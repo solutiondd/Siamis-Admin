@@ -314,6 +314,19 @@ import reportApi from '../../api/report.js'
 import { ref, computed } from 'vue'
 
 const loadingExport = ref(false)
+
+function getTimePart(timestamp) {
+    if (!timestamp) return ''
+    return String(timestamp).includes(' ') ? String(timestamp).split(' ')[1] : String(timestamp)
+}
+
+function formatTimeHHMM(timestamp) {
+    const timePart = getTimePart(timestamp)
+    if (!timePart) return '-'
+    const [hour = '00', minute = '00'] = timePart.split(':')
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`
+}
+
 async function exportAllToExcel() {
     if (loadingExport.value) return
     loadingExport.value = true
@@ -360,14 +373,15 @@ async function exportAllToExcel() {
         allData.forEach(item => {
             if (item.attendances && item.attendances.length > 0) {
                 item.attendances.forEach(att => {
+                    const sortedStamps = (att.timeStamps || []).map(ts => ts.timestamp).sort()
                     rows.push({
                         'รหัส': item.userid,
                         'ชื่อ-สกุล': item.name,
                         'ตำแหน่ง': item.position,
                         'ชั้นเรียน/แผนก': item.department ? item.department : `${item.grade}/${item.classroom}`,
                         'วันที่': formatDateTH(att.date),
-                        'เวลาเข้า': (att.timeStamps && att.timeStamps.length > 0) ? att.timeStamps.map(ts => ts.timestamp).sort()[0].split(' ')[1] : '-',
-                        'เวลาออก': (att.timeStamps && att.timeStamps.length > 1) ? att.timeStamps.map(ts => ts.timestamp).sort().slice(-1)[0].split(' ')[1] : '-',
+                        'เวลาเข้า': sortedStamps.length > 0 ? formatTimeHHMM(sortedStamps[0]) : '-',
+                        'เวลาออก': sortedStamps.length > 1 ? formatTimeHHMM(sortedStamps[sortedStamps.length - 1]) : '-',
                         'สถานะ': getStatus(att),
                     })
                 })
@@ -477,9 +491,10 @@ const extractEntryExit = (item) => {
 const extractEntryExitAttendance = (attendance) => {
     if (!attendance.timeStamps || attendance.timeStamps.length === 0) return { entry: null, exit: null }
     const stamps = attendance.timeStamps.map(ts => ({
+        timePart: getTimePart(ts.timestamp),
         raw: ts.timestamp,
-        hour: parseInt(ts.timestamp.split(' ')[1].split(':')[0]),
-        time: ts.timestamp.split(' ')[1],
+        hour: parseInt(getTimePart(ts.timestamp).split(':')[0] || '0', 10),
+        time: formatTimeHHMM(ts.timestamp),
         image: ts.image,
         location: ts.location
     }))

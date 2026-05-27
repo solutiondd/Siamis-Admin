@@ -55,7 +55,7 @@
                                     formatTime(ts.timestamp) }}</p>
                                 <p class="text-xs text-gray-600 text-center">{{ ts.location }}</p>
                                 <p v-if="ts.similarity !== undefined" class="text-xs text-gray-500 text-center mt-1">
-                                    ความเหมือน: {{ ts.similarity }}%
+                                    ความเหมือน: {{ formatSimilarity(ts.similarity) }}
                                 </p>
                             </div>
                         </div>
@@ -121,7 +121,18 @@ const formatDate = (dateStr) => {
 }
 
 const formatTime = (timestamp) => {
-    return timestamp.split(' ')[1] || timestamp
+    if (!timestamp) return '-'
+    const timePart = String(timestamp).includes(' ') ? String(timestamp).split(' ')[1] : String(timestamp)
+    const [hour = '00', minute = '00', secondRaw = '00'] = timePart.split(':')
+    const second = secondRaw.split('.')[0] || '00'
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`
+}
+
+const formatSimilarity = (similarity) => {
+    const value = Number(similarity)
+    if (!Number.isFinite(value)) return '-'
+    const percent = value <= 1 ? value * 100 : value
+    return `${Math.floor(Math.max(0, Math.min(100, percent)))}%`
 }
 
 const imageErrorHandler = (event, idx) => {

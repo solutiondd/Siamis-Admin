@@ -54,7 +54,7 @@
                                 <td class="text-center">{{ item.position }}</td>
                                 <td class="text-center">
                                     <span v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom
-                                        }}</span>
+                                    }}</span>
                                     <span v-else>-</span>
                                 </td>
                                 <td class="text-center">{{ formatDate(item.late_dates[0].date) }}</td>
@@ -82,7 +82,8 @@
                                                     @error="item.late_dates[0]._imgError = true" />
                                                 <p v-if="item.late_dates[0].timeStamps[0].similarity !== undefined"
                                                     class="text-xs text-gray-500 text-center mt-1 w-full">
-                                                    ความเหมือน: {{ item.late_dates[0].timeStamps[0].similarity }}%
+                                                    ความเหมือน: {{
+                                                        formatSimilarity(item.late_dates[0].timeStamps[0].similarity) }}
                                                 </p>
                                             </template>
                                             <template v-else>
@@ -90,7 +91,7 @@
                                                     <div
                                                         class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                         <span class="text-base font-bold">{{ getInitials(item.name)
-                                                        }}</span>
+                                                            }}</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -130,7 +131,8 @@
                                                         @error="late._imgError = true" />
                                                     <p v-if="late.timeStamps[0].similarity !== undefined"
                                                         class="text-xs text-gray-500 text-center mt-1 w-full">
-                                                        ความเหมือน: {{ late.timeStamps[0].similarity }}%
+                                                        ความเหมือน: {{ formatSimilarity(late.timeStamps[0].similarity)
+                                                        }}
                                                     </p>
                                                 </template>
                                                 <template v-else>
@@ -138,7 +140,7 @@
                                                         <div
                                                             class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                             <span class="text-base font-bold">{{ getInitials(item.name)
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                     </div>
                                                 </template>
@@ -240,7 +242,7 @@
                                     @click="viewImage(late.timeStamps[0].imageUrl)" @error="late._imgError = true" />
                                 <p v-if="late.timeStamps[0].similarity !== undefined"
                                     class="text-xs text-gray-500 text-center mt-1 w-full">
-                                    ความเหมือน: {{ late.timeStamps[0].similarity }}%
+                                    ความเหมือน: {{ formatSimilarity(late.timeStamps[0].similarity) }}
                                 </p>
                             </div>
                             <div v-else
@@ -525,6 +527,13 @@ function getEntry(late) {
     const first = late.timeStamps[0];
     if (!first || !first.timeStamp) return '-';
     return first.timeStamp.split(' ')[1].substring(0, 5);
+}
+
+function formatSimilarity(similarity) {
+    const value = Number(similarity)
+    if (!Number.isFinite(value)) return '-'
+    const percent = value <= 1 ? value * 100 : value
+    return `${Math.floor(Math.max(0, Math.min(100, percent)))}%`
 }
 
 function viewImage(image, isProfile = false) {
