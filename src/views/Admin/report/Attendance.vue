@@ -146,6 +146,14 @@ import ReportTableAmount from '../../../components/Report/AttendanceTable-amount
 import AttendanceDetail from '../../../components/Report/AttendanceDetail.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
+import {
+    compareGrades,
+    DEFAULT_GRADE_CODE,
+    gradeEquals,
+    sortGrades,
+    toGradeCode,
+    toLegacyGrade
+} from '../../../utils/grade'
 const tableType = ref('detail')
 
 function toggleTableType() {
@@ -158,14 +166,14 @@ const reportData = ref([])
 const detailModal = ref(null)
 
 const residentRole = localStorage.getItem('residentRole') || ''
-const teacherGrade = localStorage.getItem('grade') || ''
+const teacherGrade = toGradeCode(localStorage.getItem('grade') || '')
 const teacherClassroom = localStorage.getItem('classroom') || ''
 
 const filters = ref({
     role: residentRole === 'teacher' ? 'student' : 'student',
     search: '',
-    grade: residentRole === 'teacher' ? teacherGrade : 'ม.1',
-    classroom: residentRole === 'teacher' ? teacherClassroom : 1,
+    grade: residentRole === 'teacher' ? toGradeCode(teacherGrade) : '',
+    classroom: residentRole === 'teacher' ? teacherClassroom : '',
     start: getDefaultDate(),
     end: getDefaultDate(),
 })
@@ -188,8 +196,8 @@ const handleRoleChange = () => {
             filters.value.grade = ''
             filters.value.classroom = 0
         } else {
-            filters.value.grade = 'ม.1'
-            filters.value.classroom = 1
+            filters.value.grade = availableGrades.value[0] || DEFAULT_GRADE_CODE
+            filters.value.classroom = availableClassrooms.value[0] || ''
         }
         pagination.value.page = 1
         fetchData()
@@ -214,11 +222,11 @@ const fetchData = async () => {
 
         if (residentRole === 'teacher') {
             params.role = 'student'
-            params.grade = teacherGrade
+            params.grade = toLegacyGrade(teacherGrade)
             params.classroom = teacherClassroom
         } else {
             params.role = filters.value.role
-            params.grade = filters.value.grade
+            params.grade = toLegacyGrade(filters.value.grade)
             params.classroom = filters.value.classroom
         }
 
@@ -226,6 +234,10 @@ const fetchData = async () => {
 
         if (response.message === 'Success') {
             reportData.value = response.data
+            reportData.value = (response.data || []).map(item => ({
+                ...item,
+                grade: toGradeCode(item.grade)
+            }))
             pagination.value = {
                 page: response.page,
                 limit: response.limit,
@@ -255,8 +267,8 @@ const resetFilters = () => {
         filters.value = {
             role: 'student',
             search: '',
-            grade: 'ม.1',
-            classroom: 1,
+            grade: availableGrades.value[0] || DEFAULT_GRADE_CODE,
+            classroom: availableClassrooms.value[0] || '',
             start: getDefaultDate(),
             end: getDefaultDate(),
         }
@@ -281,23 +293,23 @@ const classrooms = ref([])
 
 const availableGrades = computed(() => {
     if (!classrooms.value || classrooms.value.length === 0) return []
-    const grades = [...new Set(classrooms.value.map(c => c.grade))]
-    return grades.sort((a, b) => {
-        const numA = parseInt((a || '').replace('ม.', ''))
-        const numB = parseInt((b || '').replace('ม.', ''))
-        return numA - numB
-    })
+    const grades = [...new Set(classrooms.value.map(c => toGradeCode(c.grade)))]
+    return sortGrades(grades)
 })
 
 const availableClassrooms = computed(() => {
     if (!filters.value.grade || !classrooms.value || classrooms.value.length === 0) return []
-    const filtered = classrooms.value.filter(c => c.grade === filters.value.grade)
+    const filtered = classrooms.value.filter(c => gradeEquals(c.grade, filters.value.grade))
     const classNums = [...new Set(filtered.map(c => c.classroom))]
     return classNums.sort((a, b) => a - b)
 })
 
 onMounted(async () => {
     await fetchClassrooms()
+    if (residentRole !== 'teacher') {
+        filters.value.grade = availableGrades.value[0] || DEFAULT_GRADE_CODE
+        filters.value.classroom = availableClassrooms.value[0] || ''
+    }
     fetchData()
 })
 
@@ -305,16 +317,16 @@ async function fetchClassrooms() {
     try {
         const res = await classRoomService.getClassRooms()
         if (res.message === 'Success' && res.data) {
-            classrooms.value = res.data
+            classrooms.value = [...res.data].sort((a, b) => {
+                const gradeDiff = compareGrades(a.grade, b.grade)
+                if (gradeDiff !== 0) return gradeDiff
+                return Number(a.classroom) - Number(b.classroom)
+            })
         }
     } catch (e) {
         console.error('Error fetching classrooms:', e)
     }
 }
-
-onMounted(() => {
-    fetchData()
-})
 </script>
 
 <style scoped></style>

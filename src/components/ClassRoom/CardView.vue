@@ -21,7 +21,7 @@
                             'w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-white shadow-md',
                             getGradeColor(grade.grade)
                         ]">
-                            {{ grade.grade.replace('ม.', '') }}
+                            <span class="text-[11px] md:text-sm">{{ getGradeBadgeText(grade.grade) }}</span>
                         </div>
                         <span class="text-base md:text-xl">{{ getGradeLabel(grade.grade) }}</span>
                     </h3>
@@ -108,6 +108,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useRouter } from 'vue-router'
+import { compareGrades, getGradeBadgeText, normalizeGradeCode, toGradeCode } from '../../utils/grade'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -143,9 +144,7 @@ const groupedClassrooms = computed(() => {
 
     return Object.values(groups)
         .sort((a, b) => {
-            const gradeA = parseInt(a.grade.replace('ม.', ''))
-            const gradeB = parseInt(b.grade.replace('ม.', ''))
-            return gradeA - gradeB
+            return compareGrades(a.grade, b.grade)
         })
         .map(group => ({
             ...group,
@@ -154,23 +153,30 @@ const groupedClassrooms = computed(() => {
 })
 
 const getGradeLabel = (grade) => {
-    return grade === 'ม.1' ? 'มัธยมศึกษาปีที่ 1'
-        : grade === 'ม.2' ? 'มัธยมศึกษาปีที่ 2'
-            : grade === 'ม.3' ? 'มัธยมศึกษาปีที่ 3'
-                : grade === 'ม.4' ? 'มัธยมศึกษาปีที่ 4'
-                    : grade === 'ม.5' ? 'มัธยมศึกษาปีที่ 5'
-                        : grade === 'ม.6' ? 'มัธยมศึกษาปีที่ 6'
-                            : grade
+    return toGradeCode(grade)
 }
 
 const getGradeColor = (grade) => {
-    return grade === 'ม.1' ? 'bg-blue-300'
-        : grade === 'ม.2' ? 'bg-blue-400'
-            : grade === 'ม.3' ? 'bg-blue-500'
-                : grade === 'ม.4' ? 'bg-blue-600'
-                    : grade === 'ม.5' ? 'bg-blue-700'
-                        : grade === 'ม.6' ? 'bg-blue-800'
-                            : 'bg-primary'
+    const gradeCode = normalizeGradeCode(grade)
+    const colorMap = {
+        NS: 'bg-teal-500',
+        KG1: 'bg-emerald-500',
+        KG2: 'bg-lime-500',
+        YR1: 'bg-sky-400',
+        YR2: 'bg-sky-500',
+        YR3: 'bg-sky-600',
+        YR4: 'bg-blue-400',
+        YR5: 'bg-blue-500',
+        YR6: 'bg-blue-600',
+        YR7: 'bg-indigo-400',
+        YR8: 'bg-indigo-500',
+        YR9: 'bg-indigo-600',
+        YR10: 'bg-violet-500',
+        YR11: 'bg-violet-600',
+        YR12: 'bg-violet-700'
+    }
+
+    return colorMap[gradeCode] || 'bg-primary'
 }
 </script>
 

@@ -142,6 +142,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth'
+import { gradeEquals, sortGrades, toGradeCode } from '../../utils/grade'
 
 const auth = useAuthStore()
 
@@ -181,12 +182,8 @@ const props = defineProps({
 const emit = defineEmits(['success'])
 
 const availableGrades = computed(() => {
-    const grades = [...new Set(props.classrooms.map(c => c.grade))]
-    return grades.sort((a, b) => {
-        const gradeA = parseInt(a.replace('ม.', ''))
-        const gradeB = parseInt(b.replace('ม.', ''))
-        return gradeA - gradeB
-    })
+    const grades = [...new Set(props.classrooms.map(c => toGradeCode(c.grade)))]
+    return sortGrades(grades)
 })
 
 watch(() => auth.user?.role, (role) => {
@@ -203,7 +200,7 @@ watch(() => auth.user?.role, (role) => {
 
 const availableClassrooms = computed(() => {
     const rooms = props.classrooms
-        .filter(c => c.grade === formData.value.grade)
+        .filter(c => gradeEquals(c.grade, formData.value.grade))
         .map(c => c.classroom)
     return rooms.sort((a, b) => a - b)
 })

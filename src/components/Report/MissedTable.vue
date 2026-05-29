@@ -47,8 +47,9 @@
                         <td class="align-center">{{ group[0].name }}</td>
                         <td class="text-center align-center">{{ group[0].position }}</td>
                         <td class="text-center align-center">
-                            <span v-if="group[0].position === 'นักเรียน'">{{ group[0].grade }}/{{ group[0].classroom
-                            }}</span>
+                            <span v-if="group[0].position === 'นักเรียน'">{{ displayGrade(group[0].grade) }}/{{
+                                group[0].classroom
+                                }}</span>
                             <span v-else>{{ group[0].department || '-' }}</span>
                         </td>
                         <td class="text-center">{{ formatDate(group[0].missed_date) }}</td>
@@ -103,8 +104,10 @@
             <div class="text-sm">
                 <span class="text-base-content/60" v-if="group[0].position === 'นักเรียน'">ชั้นเรียน:</span>
                 <span class="text-base-content/60" v-else>แผนก:</span>
-                <p class="font-medium inline ml-2" v-if="group[0].position === 'นักเรียน'">{{ group[0].grade }}/{{
-                    group[0].classroom }}</p>
+                <p class="font-medium inline ml-2" v-if="group[0].position === 'นักเรียน'">{{
+                    displayGrade(group[0].grade)
+                    }}/{{
+                        group[0].classroom }}</p>
                 <p class="font-medium inline ml-2" v-else>{{ group[0].department || '-' }}</p>
             </div>
 
@@ -182,6 +185,7 @@ import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
 import ExcelJS from 'exceljs'
 import MissedTableDetail from './MissedTableDetail.vue'
+import { toGradeCode, toLegacyGrade } from '../../utils/grade'
 
 const loadingExportDoc = ref(false)
 const loadingExport = ref(false)
@@ -354,7 +358,7 @@ async function exportMissedToExcel() {
             page: 1,
             limit: 50,
         };
-        if (props.grade !== undefined && props.grade !== null && props.grade !== '') params.grade = props.grade;
+        if (props.grade !== undefined && props.grade !== null && props.grade !== '') params.grade = toLegacyGrade(props.grade);
         if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') params.classroom = props.classroom;
         let allData = [];
         let totalPages = 1;
@@ -379,7 +383,7 @@ async function exportMissedToExcel() {
                         'ชื่อ-สกุล': item.name,
                         'ตำแหน่ง': item.position,
                         'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                            ? `${item.grade}/${item.classroom}`
+                            ? `${displayGrade(item.grade)}/${item.classroom}`
                             : (item.department || '-'),
                         'วันที่ขาด': formatDate(date),
                     });
@@ -390,7 +394,7 @@ async function exportMissedToExcel() {
                     'ชื่อ-สกุล': item.name,
                     'ตำแหน่ง': item.position,
                     'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                        ? `${item.grade}/${item.classroom}`
+                        ? `${displayGrade(item.grade)}/${item.classroom}`
                         : (item.department || '-'),
                     'วันที่ขาด': '-',
                 });
@@ -400,7 +404,7 @@ async function exportMissedToExcel() {
         let filteredRows = rows;
         if (props.role === 'student') {
             if (props.grade !== undefined && props.grade !== null && props.grade !== '') {
-                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).startsWith(String(props.grade + '/')));
+                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).startsWith(String(displayGrade(props.grade) + '/')));
             }
             if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') {
                 filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).endsWith('/' + String(props.classroom)));
@@ -701,6 +705,8 @@ function formatDateTHFull(dateStr) {
     const year = d.getFullYear() + 543;
     return `${day} ${month} พ.ศ.${year}`;
 }
+
+const displayGrade = (grade) => toGradeCode(grade)
 
 function formatDateRangeTH(start, end) {
     if (!start || !end) return '-';

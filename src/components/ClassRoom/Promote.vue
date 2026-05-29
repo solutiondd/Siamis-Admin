@@ -17,6 +17,7 @@
 import { ref } from 'vue'
 import { ClassRoomService } from '../../api/class-room'
 import { StudentService } from '../../api/student'
+import { toLegacyGrade } from '../../utils/grade'
 
 const emit = defineEmits(['success'])
 const loading = ref(false)
@@ -27,8 +28,8 @@ async function handlePromote() {
     const { default: Swal } = await import('sweetalert2')
     // Confirm 1
     const confirm1 = await Swal.fire({
-                icon: 'warning',
-        title: 'การยืนยันครั้งนี้จะลบชั้น ม.3 และ ม.6 ออกทุกห้อง',
+        icon: 'warning',
+        title: 'การยืนยันครั้งนี้จะลบชั้น YR9 และ YR12 ออกทุกห้อง',
         text: 'ยืนยันใช่ไหม?',
         showCancelButton: true,
         confirmButtonText: 'ยืนยัน',
@@ -59,7 +60,7 @@ async function handlePromote() {
     // Confirm 3
     // const confirm3 = await Swal.fire({
     //     icon: 'warning',
-    //     title: 'การยืนยันครั้งนี้จะลบนักเรียนชั้น ม.3 และ ม.6 ทุกห้องออกด้วย',
+    //     title: 'การยืนยันครั้งนี้จะลบนักเรียนชั้น YR9 และ YR12 ทุกห้องออกด้วย',
     //     text: 'ยืนยันการลบใช่หรือไหม?',
     //     showCancelButton: true,
     //     confirmButtonText: 'ยืนยัน',
@@ -75,8 +76,8 @@ async function handlePromote() {
     loading.value = true
     try {
         await classRoomService.promoteClassRoom({})
-        await studentService.deleteAllByGrade('ม.3')
-        await studentService.deleteAllByGrade('ม.6')
+        await studentService.deleteAllByGrade(toLegacyGrade('YR9'))
+        await studentService.deleteAllByGrade(toLegacyGrade('YR12'))
         await Swal.fire({
             icon: 'success',
             title: 'เลื่อนชั้นและลบข้อมูลสำเร็จ',

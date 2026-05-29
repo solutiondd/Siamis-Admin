@@ -18,7 +18,7 @@
                 <div>
                     <div class="font-bold text-lg">{{ student.name }}</div>
                     <div class="text-sm text-base-content/70">รหัส: {{ studentCode }}</div>
-                    <div class="text-sm">ระดับชั้น: {{ student.grade }} ห้อง {{ studentRoom }}</div>
+                    <div class="text-sm">ระดับชั้น: {{ studentGrade }} ห้อง {{ studentRoom }}</div>
                     <!-- <div class="mt-1">
                         <button v-if="canOpenConduct" type="button" class="badge badge-sm font-semibold cursor-pointer"
                             :class="getScoreBadgeClass(studentScore)" @click="goToConduct"
@@ -98,6 +98,7 @@ import reportApi from '../../api/report'
 import holidaysApi from '../../api/holidays'
 import { AcademicCalendarService } from '../../api/academiccalendar'
 import AttendanceInfo from '../AttendanceInfo.vue'
+import { toGradeCode } from '../../utils/grade'
 
 const emit = defineEmits(['close'])
 const props = defineProps({
@@ -118,6 +119,7 @@ const yearOptions = computed(() => {
 })
 
 const studentCode = computed(() => props.student.code || props.student.userid || props.student.id || '-')
+const studentGrade = computed(() => toGradeCode(props.student.grade || '-'))
 const studentRoom = computed(() => props.student.room || props.student.classroom || '-')
 const studentScore = computed(() => {
     const value = Number(props.student?.score)

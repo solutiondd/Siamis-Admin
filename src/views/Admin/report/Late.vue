@@ -86,9 +86,10 @@ import { ref, onMounted, computed } from 'vue'
 import LateTable from '../../../components/Report/LateTable.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
+import { compareGrades, DEFAULT_GRADE_CODE, gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../../utils/grade'
 
 const residentRole = localStorage.getItem('residentRole') || ''
-const teacherGrade = localStorage.getItem('grade') || ''
+const teacherGrade = toGradeCode(localStorage.getItem('grade') || '')
 const teacherClassroom = localStorage.getItem('classroom') || ''
 
 const classRoomService = new ClassRoomService()
@@ -105,7 +106,7 @@ const filters = ref({
     start: getDefaultDate(),
     end: getDefaultDate(),
     search: '',
-    grade: residentRole === 'teacher' ? teacherGrade : '',
+    grade: residentRole === 'teacher' ? toGradeCode(teacherGrade) : '',
     classroom: residentRole === 'teacher' ? teacherClassroom : ''
 })
 
@@ -139,7 +140,7 @@ const fetchData = async () => {
             }
         }
         if (filters.value.role === 'student') {
-            params.grade = filters.value.grade;
+            params.grade = toLegacyGrade(filters.value.grade);
             if (
                 filters.value.classroom === '' ||
                 filters.value.classroom === undefined ||
@@ -170,7 +171,7 @@ const handleRoleChange = () => {
         filters.value.grade = ''
         filters.value.classroom = ''
     } else {
-        filters.value.grade = allGrades.value.length > 0 ? allGrades.value[0] : 'ม.1'
+        filters.value.grade = allGrades.value.length > 0 ? allGrades.value[0] : DEFAULT_GRADE_CODE
         filters.value.classroom = allRooms.value.length > 0 ? allRooms.value[0] : '1'
     }
     fetchData()
@@ -195,16 +196,16 @@ const filteredData = computed(() => {
     const room = filters.value.classroom
 
     if (grade && room) {
-        base = base.filter(item => String(item.grade) === String(grade) && String(item.classroom) === String(room))
+        base = base.filter(item => gradeEquals(item.grade, grade) && String(item.classroom) === String(room))
     } else if (grade) {
-        base = base.filter(item => String(item.grade) === String(grade))
+        base = base.filter(item => gradeEquals(item.grade, grade))
     } else if (room) {
         base = base.filter(item => String(item.classroom) === String(room))
     }
 
     if (residentRole === 'teacher' && teacherGrade && teacherClassroom) {
         base = base.filter(item => {
-            const match = item.grade.trim() === teacherGrade.trim()
+            const match = gradeEquals(item.grade, teacherGrade)
                 && Number(String(item.classroom).trim()) === Number(String(teacherClassroom).trim())
             return match
         })
@@ -253,11 +254,13 @@ onMounted(async () => {
         const gradesSet = new Set()
         const roomsSet = new Set()
         allClassRooms.value.forEach(item => {
-            if (item.grade) gradesSet.add(item.grade)
+            if (item.grade) gradesSet.add(toGradeCode(item.grade))
             if (item.classroom) roomsSet.add(item.classroom)
         })
-        allGrades.value = Array.from(gradesSet)
+        allGrades.value = sortGrades(Array.from(gradesSet))
         allRooms.value = Array.from(roomsSet)
+            .map(room => Number(room))
+            .sort((a, b) => a - b)
     } catch (err) {
         console.error('Error fetching class rooms:', err)
     }

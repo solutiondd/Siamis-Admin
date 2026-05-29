@@ -15,7 +15,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่ {{ displayDate }}</h3>
+                }} วันที่ {{ displayDate }}</h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -55,7 +55,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่
+                }} วันที่
                     {{ displayDate }}</h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination" :hide-export="true"
@@ -244,6 +244,7 @@ import MissedTable from '../Report/MissedTable.vue'
 import AttendanceDetail from '../Report/AttendanceDetail.vue'
 import Attendance from './Attendance.vue'
 import { useAuthStore } from '../../stores/auth'
+import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade'
 
 const auth = useAuthStore()
 const emit = defineEmits(['dateChange'])
@@ -298,7 +299,7 @@ const classrooms = ref([])
 const classRoomService = new ClassRoomService()
 
 const residentRole = ref(localStorage.getItem('residentRole') || '')
-const localGrade = ref(localStorage.getItem('grade') || '')
+const localGrade = ref(toGradeCode(localStorage.getItem('grade') || ''))
 const localClassroom = ref(Number(localStorage.getItem('classroom')) || 0)
 const profileName = ref(localStorage.getItem('profileName') || '')
 
@@ -332,12 +333,8 @@ const missedPagination = computed(() => ({
 
 const availableGrades = computed(() => {
     if (!classrooms.value || classrooms.value.length === 0) return []
-    const grades = [...new Set(classrooms.value.map(c => c.grade))]
-    return grades.sort((a, b) => {
-        const numA = parseInt(a.replace('ม.', ''))
-        const numB = parseInt(b.replace('ม.', ''))
-        return numA - numB
-    })
+    const grades = [...new Set(classrooms.value.map(c => toGradeCode(c.grade)))]
+    return sortGrades(grades)
 })
 
 const availableClassrooms = computed(() => {
@@ -411,11 +408,11 @@ async function showAttendanceTable() {
             role: 'student',
             page: attendancePage.value,
             limit: 5,
-            grade: attendanceGrade.value,
+            grade: toLegacyGrade(attendanceGrade.value),
             classroom: attendanceClassroom.value
         }
         if (residentRole.value === 'teacher') {
-            params.grade = localGrade.value
+            params.grade = toLegacyGrade(localGrade.value)
             params.classroom = localClassroom.value
             params.limit = 50
         }
@@ -492,7 +489,7 @@ async function showStudentLateTable() {
             limit: lateLimit.value
         }
         if (residentRole.value === 'teacher') {
-            params.grade = localGrade.value
+            params.grade = toLegacyGrade(localGrade.value)
             params.classroom = localClassroom.value
         }
         const res = await reportApi.getLateReport(params)
@@ -554,7 +551,7 @@ async function showStudentMissedTable() {
         if (res.message === 'Success' && res.data) {
             let allMissed = res.data || [];
             if (residentRole.value === 'teacher') {
-                allMissed = allMissed.filter(item => item.grade === localGrade.value && Number(item.classroom) === localClassroom.value);
+                allMissed = allMissed.filter(item => gradeEquals(item.grade, localGrade.value) && Number(item.classroom) === localClassroom.value);
             }
             missedAllData.value = allMissed;
             missedTotalItems.value = missedAllData.value.length;
@@ -623,7 +620,7 @@ function handleLatePageChange(page) {
                 limit: lateLimit.value
             };
             if (residentRole.value === 'teacher') {
-                params.grade = localGrade.value;
+                params.grade = toLegacyGrade(localGrade.value);
                 params.classroom = localClassroom.value;
             }
             const res = await reportApi.getLateReport(params);

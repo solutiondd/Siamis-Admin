@@ -53,6 +53,7 @@ import Promote from '../../components/ClassRoom/Promote.vue'
 import { ClassRoomService } from '../../api/class-room'
 import { TeacherService } from '../../api/teacher'
 import { useAuthStore } from '../../stores/auth'
+import { DEFAULT_GRADE_CODE, GRADE_OPTIONS, gradeEquals, toLegacyGrade } from '../../utils/grade'
 const auth = useAuthStore()
 
 const classRoomService = new ClassRoomService()
@@ -64,20 +65,13 @@ const loading = ref(false)
 const createModalRef = ref(null)
 const updateModalRef = ref(null)
 const deleteModalRef = ref(null)
-const selectedGrade = ref('ม.1')
+const selectedGrade = ref(DEFAULT_GRADE_CODE)
 
-const availableGrades = [
-    { value: 'ม.1', label: 'มัธยมศึกษาปีที่ 1' },
-    { value: 'ม.2', label: 'มัธยมศึกษาปีที่ 2' },
-    { value: 'ม.3', label: 'มัธยมศึกษาปีที่ 3' },
-    { value: 'ม.4', label: 'มัธยมศึกษาปีที่ 4' },
-    { value: 'ม.5', label: 'มัธยมศึกษาปีที่ 5' },
-    { value: 'ม.6', label: 'มัธยมศึกษาปีที่ 6' }
-]
+const availableGrades = GRADE_OPTIONS
 
 const filteredClassrooms = computed(() => {
     if (!selectedGrade.value) return classrooms.value
-    return classrooms.value.filter(classroom => classroom.grade === selectedGrade.value)
+    return classrooms.value.filter(classroom => gradeEquals(classroom.grade, selectedGrade.value))
 })
 
 const fetchClassRooms = async () => {
@@ -129,7 +123,7 @@ const handleCreateSuccess = async (formData) => {
         }
 
         await classRoomService.createClassRoom({
-            grade: formData.grade,
+            grade: toLegacyGrade(formData.grade),
             classroom: formData.classroom,
             adviser: formData.adviser,
             adviser2: formData.adviser2 || ''

@@ -33,6 +33,7 @@
 <script setup>
 import { ref } from 'vue'
 import { StudentService } from '../../api/student'
+import { toLegacyGrade } from '../../utils/grade'
 const modalRef = ref(null)
 const secondDialogRef = ref(null)
 const grade = ref('')
@@ -57,7 +58,7 @@ const deleteAll = async () => {
     loading.value = true
     try {
         const service = new StudentService()
-        const res = await service.deleteAllByGrade(grade.value)
+        const res = await service.deleteAllByGrade(toLegacyGrade(grade.value))
         if (res.message === 'Success') {
             emit('success')
             closeSecond()

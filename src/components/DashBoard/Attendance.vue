@@ -129,6 +129,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import DetailAttendance from './DetailAttendance.vue'
 import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
+import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade'
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 const data = ref([])
 const loading = ref(false)
@@ -156,7 +157,8 @@ async function fetchClassRooms() {
         const res = await service.getClassRooms()
         if (res.message === 'Success' && res.data) {
             allClassrooms.value = res.data
-            grades.value = [...new Set(res.data.map(c => c.grade))]
+            const unique = [...new Set(res.data.map(c => toGradeCode(c.grade)))]
+            grades.value = sortGrades(unique)
         }
     } catch (e) {
         grades.value = []
@@ -170,7 +172,7 @@ function handleGradeChange() {
         classrooms.value = []
         return
     }
-    const filtered = allClassrooms.value.filter(c => c.grade === selectedGrade.value)
+    const filtered = allClassrooms.value.filter(c => gradeEquals(c.grade, selectedGrade.value))
     classrooms.value = [...new Set(filtered.map(c => c.classroom))]
 }
 
@@ -224,7 +226,7 @@ async function fetchData(page = 1) {
             userid: '',
             page,
             limit: 5,
-            grade: props.fixedGrade || selectedGrade.value,
+            grade: toLegacyGrade(props.fixedGrade || selectedGrade.value),
             classroom: props.fixedClassroom !== '' ? props.fixedClassroom : (selectedClassroom.value || 0)
         }
         if (props.fixedName) {

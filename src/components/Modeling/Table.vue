@@ -47,7 +47,7 @@
                     <td class="text-center">{{ item.position }}</td>
                     <td class="text-center">
                         <span v-if="item.role === 'student'">
-                            {{ item.grade }} / {{ item.classroom }}
+                            {{ displayGrade(item.grade) }} / {{ item.classroom }}
                         </span>
                         <span v-else>
                             {{ item.department || '-' }}
@@ -128,7 +128,7 @@
                     </span>
                     <p class="font-medium">
                         <span v-if="item.role === 'student'">
-                            {{ item.grade }} / {{ item.classroom }}
+                            {{ displayGrade(item.grade) }} / {{ item.classroom }}
                         </span>
                         <span v-else>
                             {{ item.department || '-' }}
@@ -203,6 +203,7 @@ import { ClassRoomService } from '../../api/class-room.js';
 import { DepartmentService } from '../../api/department.js';
 import { PositionService } from '../../api/position.js';
 import { useAuthStore } from '../../stores/auth'
+import { toGradeCode } from '../../utils/grade'
 
 const auth = useAuthStore()
 
@@ -250,7 +251,7 @@ const handleEdit = (item) => {
             name: item.name,
             userid: item.userid,
             code: item.userid,
-            grade: item.grade,
+            grade: toGradeCode(item.grade),
             room: item.classroom,
             picture: pictureUrl
         });
@@ -371,6 +372,8 @@ const getInitials = (name) => {
     return parts[0][0] || '?';
 };
 const detailItem = ref(null);
+
+const displayGrade = (grade) => toGradeCode(grade)
 </script>
 
 <style scoped></style>

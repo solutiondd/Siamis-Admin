@@ -115,6 +115,7 @@
 import { ref, computed } from 'vue'
 import { StudentService } from '../../api/student'
 import { useAuthStore } from '../../stores/auth'
+import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade'
 
 const auth = useAuthStore()
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
@@ -154,12 +155,14 @@ const props = defineProps({
 const emit = defineEmits(['success'])
 
 const availableGrades = computed(() => {
-    const grades = [...new Set(props.classrooms.map(c => c.grade))]
-    return grades.sort((a, b) => parseInt(a.replace('ม.', '')) - parseInt(b.replace('ม.', '')))
+    const grades = [...new Set(props.classrooms.map(c => toGradeCode(c.grade)))]
+    return sortGrades(grades)
 })
 
 const availableClassrooms = computed(() => {
-    const rooms = props.classrooms.filter(c => c.grade === formData.value.grade).map(c => c.classroom)
+    const rooms = props.classrooms
+        .filter(c => gradeEquals(c.grade, formData.value.grade))
+        .map(c => c.classroom)
     return rooms.sort((a, b) => a - b)
 })
 
@@ -354,7 +357,10 @@ const handleSubmit = async () => {
     loading.value = true
     try {
         const studentService = new StudentService()
-        const { ...data } = formData.value
+        const data = {
+            ...formData.value,
+            grade: toLegacyGrade(formData.value.grade)
+        }
         const response = await studentService.updateStudent(studentId.value, data)
         if (response.message === 'Success') {
             const { default: Swal } = await import('sweetalert2')

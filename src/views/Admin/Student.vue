@@ -21,7 +21,7 @@
                     </svg>
                     เพิ่มนักเรียน
                 </button>
-                <button v-if="auth.user?.role !== 'teacher' && (selectedGrade === 'ม.3' || selectedGrade === 'ม.6')"
+                <button v-if="auth.user?.role !== 'teacher' && isGraduatingGrade(selectedGrade)"
                     class="btn btn-error btn-sm" @click="openDeleteAllModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -146,6 +146,14 @@ import DetailModal from '../../components/ListStudent/Detail.vue'
 import { StudentService } from '../../api/student'
 import { ClassRoomService } from '../../api/class-room'
 import { useAuthStore } from '../../stores/auth'
+import {
+    DEFAULT_GRADE_CODE,
+    gradeEquals,
+    isGraduatingGrade,
+    sortGrades,
+    toGradeCode,
+    toLegacyGrade
+} from '../../utils/grade'
 
 const isQueryFilter = ref(false)
 const auth = useAuthStore()
@@ -169,7 +177,7 @@ const handleImportSuccess = async (importedStudents) => {
 const updateModalRef = ref(null)
 const rePasswordModalRef = ref(null)
 const loading = ref(false)
-const selectedGrade = ref('ม.1')
+const selectedGrade = ref(DEFAULT_GRADE_CODE)
 const selectedClassroom = ref('1')
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -191,17 +199,13 @@ const closeDetailModal = () => {
 }
 
 const availableGrades = computed(() => {
-    const grades = [...new Set(classrooms.value.map(c => c.grade))]
-    return grades.sort((a, b) => {
-        const gradeA = parseInt(a.replace('ม.', ''))
-        const gradeB = parseInt(b.replace('ม.', ''))
-        return gradeA - gradeB
-    })
+    const grades = [...new Set(classrooms.value.map(c => toGradeCode(c.grade)))]
+    return sortGrades(grades)
 })
 
 const availableClassrooms = computed(() => {
     const rooms = classrooms.value
-        .filter(c => c.grade === selectedGrade.value)
+        .filter(c => gradeEquals(c.grade, selectedGrade.value))
         .map(c => c.classroom)
     return rooms.sort((a, b) => a - b)
 })
@@ -284,14 +288,15 @@ const fetchStudents = async () => {
     currentPage.value = 1
     searchQuery.value = ''
     try {
-        const response = await studentService.getStudents(selectedGrade.value, selectedClassroom.value)
+        const apiGrade = toLegacyGrade(selectedGrade.value)
+        const response = await studentService.getStudents(apiGrade, selectedClassroom.value)
         if (response.message === 'Success' && response.data) {
             students.value = response.data.map(student => ({
                 id: student._id,
                 userid: student.userid,
                 name: student.name,
                 code: student.userid,
-                grade: student.grade,
+                grade: toGradeCode(student.grade),
                 room: student.classroom,
                 score: Number.isFinite(Number(student.score)) ? Number(student.score) : 100,
                 phone: student.phone || '-',
@@ -299,7 +304,7 @@ const fetchStudents = async () => {
                 has_password: student.has_password
             }))
             if (response.data.length > 0) {
-                lastFetchedGrade.value = response.data[0].grade
+                lastFetchedGrade.value = toGradeCode(response.data[0].grade)
                 lastFetchedClassroom.value = response.data[0].classroom
             } else {
                 lastFetchedGrade.value = ''
@@ -351,7 +356,11 @@ const handleCreateSuccess = async (formData) => {
     const onError = formData.onError
     const onSuccess = formData.onSuccess
     try {
-        const response = await studentService.createStudent(formData)
+        const payload = {
+            ...formData,
+            grade: toLegacyGrade(formData.grade)
+        }
+        const response = await studentService.createStudent(payload)
         if (response.message === 'Success') {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
@@ -421,7 +430,7 @@ const openRePasswordModal = (student) => {
 
 onMounted(async () => {
     await fetchClassRooms()
-    const queryGrade = route.query.grade
+    const queryGrade = route.query.grade ? toGradeCode(route.query.grade) : ''
     const queryClassroom = route.query.classroom
     if (queryGrade && availableGrades.value.includes(queryGrade)) {
         selectedGrade.value = queryGrade

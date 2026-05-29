@@ -53,8 +53,9 @@
                                 <td>{{ item.name }}</td>
                                 <td class="text-center">{{ item.position }}</td>
                                 <td class="text-center">
-                                    <span v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom
-                                    }}</span>
+                                    <span v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
+                                        item.classroom
+                                        }}</span>
                                     <span v-else>-</span>
                                 </td>
                                 <td class="text-center">{{ formatDate(item.late_dates[0].date) }}</td>
@@ -91,7 +92,7 @@
                                                     <div
                                                         class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                         <span class="text-base font-bold">{{ getInitials(item.name)
-                                                            }}</span>
+                                                        }}</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -140,7 +141,7 @@
                                                         <div
                                                             class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                             <span class="text-base font-bold">{{ getInitials(item.name)
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                     </div>
                                                 </template>
@@ -171,7 +172,8 @@
                             <td>{{ item.name }}</td>
                             <td class="text-center">{{ item.position }}</td>
                             <td class="text-center">
-                                <span v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom }}</span>
+                                <span v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
+                                    item.classroom }}</span>
                                 <span v-else>-</span>
                             </td>
                             <td class="text-center">-</td>
@@ -208,7 +210,8 @@
                     <div>
                         <span class="text-base-content/60" v-if="item.position === 'นักเรียน'">ชั้นเรียน:</span>
                         <span class="text-base-content/60" v-else>แผนก:</span>
-                        <p class="font-medium" v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom }}
+                        <p class="font-medium" v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
+                            item.classroom }}
                         </p>
                         <p class="font-medium" v-else>{{ item.department || '-' }}</p>
                     </div>
@@ -317,6 +320,7 @@ import { ref, computed } from 'vue'
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
+import { toGradeCode, toLegacyGrade } from '../../utils/grade'
 
 const loadingExport = ref(false)
 async function exportLateToExcel() {
@@ -328,7 +332,7 @@ async function exportLateToExcel() {
             end: props.filters?.end,
             role: props.filters?.role,
             name: props.filters?.search || "",
-            grade: props.filters.grade,
+            grade: toLegacyGrade(props.filters.grade),
             classroom: props.filters.classroom,
             page: 1,
             limit: 50,
@@ -355,7 +359,7 @@ async function exportLateToExcel() {
                         'ชื่อ-สกุล': item.name,
                         'ตำแหน่ง': item.position,
                         'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                            ? `${item.grade}/${item.classroom}`
+                            ? `${displayGrade(item.grade)}/${item.classroom}`
                             : (item.department || '-'),
                         'วันที่': formatDate(late.date),
                         'เวลาเข้า': getFirstTime(late),
@@ -368,7 +372,7 @@ async function exportLateToExcel() {
                     'ชื่อ-สกุล': item.name,
                     'ตำแหน่ง': item.position,
                     'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                        ? `${item.grade}/${item.classroom}`
+                        ? `${displayGrade(item.grade)}/${item.classroom}`
                         : (item.department || '-'),
                     'วันที่': '-',
                     'เวลาเข้า': '-',
@@ -528,6 +532,8 @@ function getEntry(late) {
     if (!first || !first.timeStamp) return '-';
     return first.timeStamp.split(' ')[1].substring(0, 5);
 }
+
+const displayGrade = (grade) => toGradeCode(grade)
 
 function formatSimilarity(similarity) {
     const value = Number(similarity)

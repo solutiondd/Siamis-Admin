@@ -110,8 +110,8 @@
 
             <div v-if="totalPages > 1" class="flex justify-center mt-6">
                 <div class="join">
-                    <button class="join-item btn btn-sm bg-transparent border-none"
-                        @click="changePage(1)" :disabled="currentPage === 1">
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(1)"
+                        :disabled="currentPage === 1">
                         «
                     </button>
                     <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(currentPage - 1)"
@@ -127,8 +127,8 @@
                         :disabled="currentPage === totalPages">
                         ›
                     </button>
-                    <button class="join-item btn btn-sm bg-transparent border-none"
-                        @click="changePage(totalPages)" :disabled="currentPage === totalPages">
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(totalPages)"
+                        :disabled="currentPage === totalPages">
                         »
                     </button>
                 </div>
@@ -151,6 +151,7 @@ import CreateModeling from "../../components/Modeling/Create.vue";
 import ModelingService from "../../api/modeling.js";
 import Swal from "sweetalert2";
 import { useAuthStore } from "../../stores/auth.js";
+import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade';
 
 const auth = useAuthStore();
 
@@ -179,7 +180,10 @@ const departments = ref([]);
 
 const availableClassrooms = computed(() => {
     if (!filters.value.grade) return [];
-    return classrooms.value.filter(c => c.grade === filters.value.grade).map(c => c.classroom).sort((a, b) => a - b);
+    return classrooms.value
+        .filter(c => gradeEquals(c.grade, filters.value.grade))
+        .map(c => c.classroom)
+        .sort((a, b) => a - b);
 });
 
 const visiblePages = computed(() => {
@@ -205,6 +209,7 @@ const fetchData = async () => {
         let params = { ...filters.value, page: currentPage.value };
         if (params.role === 'student') {
             params.department = '';
+            params.grade = toLegacyGrade(params.grade);
         } else if (params.role === 'teacher') {
             params.grade = '';
             params.classroom = '0';
@@ -215,7 +220,10 @@ const fetchData = async () => {
         const response = await ModelingService.getModelings(params);
 
         if (response.message === "Success") {
-            modelings.value = response.data;
+            modelings.value = (response.data || []).map((item) => ({
+                ...item,
+                grade: item.grade ? toGradeCode(item.grade) : item.grade
+            }));
             totalItems.value = response.total_items || response.data.length;
             totalPages.value = response.total_pages || 1;
         }
@@ -279,9 +287,9 @@ onMounted(async () => {
         classrooms.value = classroomRes?.data || [];
         const gradeSet = new Set();
         (classroomRes?.data || []).forEach(room => {
-            if (room.grade) gradeSet.add(room.grade);
+            if (room.grade) gradeSet.add(toGradeCode(room.grade));
         });
-        grades.value = Array.from(gradeSet);
+        grades.value = sortGrades(Array.from(gradeSet));
         departments.value = departmentRes?.data || [];
     } catch (e) {
         classrooms.value = [];
