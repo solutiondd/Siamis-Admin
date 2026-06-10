@@ -1,6 +1,6 @@
 {
-  "name": "CKKAdmin",
-  "short_name": "CKKAdmin",
+  "name": "SiamisAdmin",
+  "short_name": "SiamisAdmin",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -105,7 +105,7 @@ onMounted(() => {
     if (savedUsername && savedPassword) {
         form.username = savedUsername
         try {
-            const bytes = CryptoJS.AES.decrypt(savedPassword, 'CKKSchool2025')
+            const bytes = CryptoJS.AES.decrypt(savedPassword, 'SiamisSchool2025')
             form.password = bytes.toString(CryptoJS.enc.Utf8)
         } catch (e) {
             form.password = ''
@@ -214,7 +214,7 @@ async function onSubmit() {
             }
             if (remember.value) {
                 localStorage.setItem('remember_username', form.username)
-                const encrypted = CryptoJS.AES.encrypt(form.password, 'CKKSchool2025').toString()
+                const encrypted = CryptoJS.AES.encrypt(form.password, 'SiamisSchool2025').toString()
                 localStorage.setItem('remember_password', encrypted)
             } else {
                 localStorage.removeItem('remember_username')
