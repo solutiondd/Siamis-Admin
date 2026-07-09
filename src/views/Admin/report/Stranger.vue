@@ -1,5 +1,5 @@
 <template>
-    <div class="p-0 md:p-6 space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex justify-between items-center text-white">
             <h1 class="text-lg md:text-3xl font-bold">สแกนไม่สำเร็จ</h1>
             <input v-model="filters.date" type="date" @change="fetchData"
@@ -41,7 +41,7 @@
             <div v-if="totalPages > 1" class="flex justify-center mt-6">
                 <div class="join shadow-lg">
                     <button @click="goToPage(1)" class="join-item btn btn-sm" :disabled="pagination.page === 1">
-                        «
+                        ‹
                     </button>
 
                     <button v-for="page in visiblePages" :key="page" @click="goToPage(page)"
@@ -52,13 +52,13 @@
 
                     <button @click="goToPage(totalPages)" class="join-item btn btn-sm"
                         :disabled="pagination.page === totalPages">
-                        »
+                        ›
                     </button>
                 </div>
             </div>
 
             <div v-if="totalRecords > 0" class="text-center text-sm text-base-content/60 mt-4 text-white">
-                แสดง {{ startItem }} - {{ endItem }} จาก {{ totalRecords }} รายการ
+                ทั้งหมด {{ totalRecords }} รายการ (หน้า {{ pagination.page }} / {{ totalPages }})
             </div>
         </div>
     </div>

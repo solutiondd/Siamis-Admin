@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
             <h1 class="text-lg md:text-3xl font-bold text-white">จัดการเชื่อมต่ออุปกรณ์</h1>
             <div v-if="auth.user?.role !== 'viewer'" class="w-full sm:w-auto flex justify-end">
@@ -54,7 +54,8 @@
                     </label>
                     <select v-model="filters.grade" @change="fetchData" class="select select-bordered select-sm w-full">
                         <option value="">ทั้งหมด</option>
-                        <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
+                        <option v-for="grade in grades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
+                        </option>
                     </select>
                 </div>
                 <div v-if="filters.role === 'student' && auth.user?.role !== 'teacher'" class="form-control">
@@ -78,9 +79,23 @@
                         <option v-for="dept in departments" :key="dept._id" :value="dept.name">{{ dept.name }}</option>
                     </select>
                 </div>
+
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm font-medium">แถวต่อหน้า</span>
+                    </label>
+                    <select v-model.number="filters.limit" @change="handleLimitChange"
+                        class="select select-bordered select-sm w-full">
+                        <option :value="10">10</option>
+                        <option :value="20">20</option>
+                        <option :value="50">50</option>
+                        <option :value="100">100</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex justify-end gap-2 mt-3">
+                <ModelingExport :filters="filters" />
                 <button @click="resetFilters" class="btn btn-ghost btn-xs">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -110,9 +125,9 @@
 
             <div v-if="totalPages > 1" class="flex justify-center mt-6">
                 <div class="join">
-                    <button class="join-item btn btn-sm bg-transparent border-none"
-                        @click="changePage(1)" :disabled="currentPage === 1">
-                        «
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(1)"
+                        :disabled="currentPage === 1">
+                        ‹
                     </button>
                     <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(currentPage - 1)"
                         :disabled="currentPage === 1">
@@ -127,8 +142,8 @@
                         :disabled="currentPage === totalPages">
                         ›
                     </button>
-                    <button class="join-item btn btn-sm bg-transparent border-none"
-                        @click="changePage(totalPages)" :disabled="currentPage === totalPages">
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(totalPages)"
+                        :disabled="currentPage === totalPages">
                         »
                     </button>
                 </div>
@@ -148,9 +163,11 @@ import { ClassRoomService } from '../../api/class-room.js';
 import { DepartmentService } from '../../api/department.js';
 import ModelingTable from "../../components/Modeling/Table.vue";
 import CreateModeling from "../../components/Modeling/Create.vue";
+import ModelingExport from "../../components/Modeling/Export.vue";
 import ModelingService from "../../api/modeling.js";
 import Swal from "sweetalert2";
 import { useAuthStore } from "../../stores/auth.js";
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
 
 const auth = useAuthStore();
 
@@ -215,7 +232,12 @@ const fetchData = async () => {
         const response = await ModelingService.getModelings(params);
 
         if (response.message === "Success") {
-            modelings.value = response.data;
+            const rows = Array.isArray(response.data) ? response.data : [];
+            modelings.value = rows.map((row) => ({
+                ...row,
+                rfid: row?.rfid,
+                guardian_phone: row?.guardian_phone
+            }));
             totalItems.value = response.total_items || response.data.length;
             totalPages.value = response.total_pages || 1;
         }
@@ -238,6 +260,11 @@ const changePage = (page) => {
     }
 };
 
+const handleLimitChange = () => {
+    currentPage.value = 1;
+    fetchData();
+};
+
 const resetFilters = () => {
     filters.value = {
         role: "student",
@@ -246,6 +273,8 @@ const resetFilters = () => {
         userid: "",
         status: "all",
         limit: 10,
+        grade: "",
+        classroom: "",
     };
     currentPage.value = 1;
     fetchData();
@@ -281,7 +310,7 @@ onMounted(async () => {
         (classroomRes?.data || []).forEach(room => {
             if (room.grade) gradeSet.add(room.grade);
         });
-        grades.value = Array.from(gradeSet);
+        grades.value = toVisibleSortedGrades(Array.from(gradeSet));
         departments.value = departmentRes?.data || [];
     } catch (e) {
         classrooms.value = [];

@@ -27,7 +27,7 @@
                     </div>
                     <div v-if="type === 'student'" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
                         <p class="text-xs text-blue-600 mb-1">ระดับชั้น</p>
-                        <p class="font-semibold text-blue-900">{{ user.grade }}</p>
+                        <p class="font-semibold text-blue-900">{{ mapGradeDisplay(user.grade) }}</p>
                     </div>
                     <div v-if="type === 'student'" class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                         <p class="text-xs text-yellow-600 mb-1">ห้อง</p>
@@ -55,7 +55,7 @@
                                 <p class="text-sm font-semibold text-blue-700 text-center mb-1">{{
                                     formatTime(ts.timestamp) }}</p>
                                 <p class="text-xs text-gray-600 text-center">{{ ts.location }}</p>
-                                <p v-if="ts.similarity !== undefined" class="text-xs text-gray-500 text-center mt-1">
+                                <p v-if="hasSimilarity(ts.similarity)" class="text-xs text-gray-500 text-center mt-1">
                                     ความเหมือน: {{ ts.similarity }}%
                                 </p>
                             </div>
@@ -88,6 +88,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { mapGradeDisplay } from '../utils/gradeSystem'
 const props = defineProps({
     user: { type: Object, required: true },
     attendance: { type: Object, default: null },
@@ -126,6 +127,13 @@ const formatTime = (timestamp) => {
 const imageErrorHandler = (event, idx) => {
     imageError[idx] = true
 }
+
+const hasSimilarity = (value) => {
+    if (value === undefined || value === null) return false
+    if (typeof value === 'string' && value.trim() === '') return false
+    return true
+}
+
 const getInitials = (name) => {
     if (!name) return ''
     const parts = name.trim().split(' ')

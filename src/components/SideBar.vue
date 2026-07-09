@@ -5,12 +5,12 @@
     <aside @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave" :class="[
         'min-h-screen bg-base-100 shadow-lg transition-all duration-300 ease-in-out relative',
         isExpanded ? 'w-64' : 'w-20',
-        'max-[570px]:fixed max-[570px]:top-0 max-[570px]:left-0 max-[570px]:h-full max-[570px]:z-50',
-        isMobileMenuOpen ? 'max-[570px]:translate-x-0' : 'max-[570px]:-translate-x-full'
+        'max-[944px]:fixed max-[944px]:top-0 max-[944px]:left-0 max-[944px]:h-full max-[944px]:z-50',
+        isMobileMenuOpen ? 'max-[944px]:translate-x-0' : 'max-[944px]:-translate-x-full'
     ]">
 
         <button @click="toggleSidebar"
-            class="absolute -right-3 top-6 bg-secondary text-secondary-content rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform z-10 max-[570px]:hidden">
+            class="absolute -right-3 top-6 bg-secondary text-secondary-content rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform z-10 max-[944px]:hidden">
             <svg xmlns="http://www.w3.org/2000/svg"
                 :class="['h-4 w-4 transition-transform', isExpanded ? '' : 'rotate-180']" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor">
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <nav class="menu p-4 overflow-y-auto h-[calc(100vh-96px)]">
+        <nav class="menu p-4 max-[944px]:overflow-y-auto max-[944px]:h-[calc(100vh-96px)]">
             <ul class="space-y-2">
                 <li>
                     <router-link to="/home/dashboard"
@@ -75,7 +75,7 @@
                     </div>
 
                     <ul v-show="isExpanded && isPersonnelOpen" class="ml-4 mt-2 space-y-2">
-                        <li v-if="auth.user?.role !== 'teacher'">
+                        <li v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'discipline'">
                             <router-link to="/home/teacher"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
                                 :class="submenuClass('/home/teacher')">
@@ -103,7 +103,7 @@
                     </ul>
                 </li>
 
-                <li v-if="auth.user?.role !== 'teacher'">
+                <li v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'discipline'">
                     <div @click="toggleStructure"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors cursor-pointer relative group"
                         :class="{ 'bg-primary text-primary-content': isStructureActive }">
@@ -176,10 +176,121 @@
                                 <span class="text-sm">จัดการวันหยุด</span>
                             </router-link>
                         </li>
+                        <li>
+                            <router-link to="/home/academiccalendar"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/academiccalendar')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                <span class="text-sm">ปฏิทินการศึกษา</span>
+                            </router-link>
+                        </li>
+                        <li v-if="auth.user?.role !== 'teacher' && featureFlags.menu.enableAllowanceSetting">
+                            <router-link to="/home/allowance-setting"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/allowance-setting')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                </svg>
+                                <span class="text-sm">ตั้งค่าเวลาอนุโลม</span>
+                            </router-link>
+                        </li>
                     </ul>
                 </li>
 
-                <li v-if="auth.user?.role !== 'teacher'">
+                <li v-if="auth.user?.role !== 'viewer'">
+                    <div @click="toggleBehaviorMenu"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors cursor-pointer relative group"
+                        :class="{ 'bg-primary text-primary-content': isBehaviorMenuActive }">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3l8 4v5c0 5.25-3.75 10-8 10s-8-4.75-8-10V7l8-4z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+                        </svg>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการความประพฤติ</span>
+                        <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
+                            :class="['h-4 w-4 ml-auto transition-transform', isBehaviorMenuOpen ? 'rotate-180' : '']"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <div v-show="!isExpanded"
+                            class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                            จัดการความประพฤติ
+                        </div>
+                    </div>
+                    <ul v-show="isExpanded && isBehaviorMenuOpen" class="ml-4 mt-2 space-y-2">
+                        <li v-if="auth.user?.role !== 'teacher'">
+                            <router-link to="/home/behavior"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/behavior')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 12h8m-8 4h8M5 7h14" />
+                                </svg>
+                                <span class="text-sm">รายการพฤติกรรม</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/conduct"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/conduct')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 3l8 4v5c0 5.25-3.75 10-8 10s-8-4.75-8-10V7l8-4z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4" />
+                                </svg>
+                                <span class="text-sm">จัดการคะแนน</span>
+                            </router-link>
+                        </li>
+                        <!-- <li v-if="auth.user?.role !== 'teacher'">
+                            <router-link to="/home/leave"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/leave')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10m-12 8a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+                                </svg>
+                                <span class="text-sm">จัดการวันลา</span>
+                            </router-link>
+                        </li> -->
+                        <li>
+                            <router-link to="/home/checkname"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/checkname')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <span class="text-sm">เช็คชื่อ</span>
+                            </router-link>
+                        </li>
+                        <li v-if="featureFlags.menu.enableUniformInspection">
+                            <router-link to="/home/uniform-inspection"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-sm">ตรวจระเบียบ</span>
+                            </router-link>
+                        </li>
+                    </ul>
+                </li>
+
+                <li v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'discipline'">
                     <div @click="toggleEquipment"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors cursor-pointer relative group"
                         :class="{ 'bg-primary text-primary-content': isEquipmentActive }">
@@ -255,7 +366,7 @@
                     <ul v-show="isExpanded && isReportOpen" class="ml-4 mt-2 space-y-2">
                         <li>
                             <router-link to="/home/report"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -267,7 +378,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/late"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/late')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -278,8 +389,32 @@
                             </router-link>
                         </li>
                         <li>
+                            <router-link to="/home/report/leave"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/leave')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10m-12 8a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+                                </svg>
+                                <span>การลา</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/report/activity"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/activity')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>กิจกรรม</span>
+                            </router-link>
+                        </li>
+                        <li>
                             <router-link to="/home/report/missed"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/missed')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -291,7 +426,7 @@
                         </li>
                         <li v-if="auth.user?.role !== 'teacher'">
                             <router-link to="/home/report/stranger"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stranger')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -302,9 +437,33 @@
                                 <span>สแกนไม่สำเร็จ</span>
                             </router-link>
                         </li>
+                        <li v-if="featureFlags.menu.enableReportUniformInspection">
+                            <router-link to="/home/report/uniform-inspection"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01" />
+                                </svg>
+                                <span>ตรวจระเบียบ</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/report/at-risk"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/at-risk')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6M5 7h14M5 10h14M7 16h10M7 20h10a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>พฤติกรรมเสี่ยง</span>
+                            </router-link>
+                        </li>
                         <li>
                             <router-link to="/home/report/stats"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stats')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -317,7 +476,7 @@
                     </ul>
                 </li>
 
-                <li v-if="auth.user?.role !== 'screen' && auth.user?.role !== 'teacher'">
+                <!-- <li v-if="auth.user?.role !== 'screen' && auth.user?.role !== 'teacher'">
                     <router-link to="/home/camera"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors relative group"
                         :class="{ 'bg-primary text-primary-content': isActive('/home/camera') }">
@@ -332,7 +491,7 @@
                             เข้ากล้องแบบเรียลไทม์
                         </div>
                     </router-link>
-                </li>
+                </li> -->
 
                 <li v-if="auth.user?.role == 'super admin'">
                     <router-link to="/home/account"
@@ -362,6 +521,7 @@
 import { useRoute } from 'vue-router'
 import { computed, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import featureFlags from '../config/featureFlags'
 const auth = useAuthStore()
 
 const route = useRoute()
@@ -382,7 +542,7 @@ const isPersonnelActive = computed(() => {
 })
 
 const isStructureActive = computed(() => {
-    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom'
+    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom' || route.path === '/home/holidays' || route.path === '/home/academiccalendar'
 })
 
 const isEquipmentActive = computed(() => {
@@ -390,7 +550,7 @@ const isEquipmentActive = computed(() => {
 })
 
 const isReportActive = computed(() => {
-    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/stats'
+    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/leave' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/at-risk' || route.path === '/home/report/stats'
 })
 
 const submenuClass = (path) => {
@@ -434,6 +594,14 @@ const handleMouseLeave = () => {
     if (!isPinned.value) {
         isExpanded.value = false
     }
+}
+
+const isBehaviorMenuOpen = ref(false)
+const isBehaviorMenuActive = computed(() => {
+    return route.path === '/home/behavior' || route.path === '/home/conduct' || route.path === '/home/leave' || route.path === '/home/checkname'
+})
+const toggleBehaviorMenu = () => {
+    isBehaviorMenuOpen.value = !isBehaviorMenuOpen.value
 }
 
 const toggleMobileMenu = () => {

@@ -28,9 +28,11 @@
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
                     <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                    }} ไฟล์</p>
-                    <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสนักเรียน เช่น <b>6200.jpg</b>
-                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
+                        }} ไฟล์</p>
+                    <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพให้ตรงกับคอลัมน์ ชื่อรูป เช่น
+                        <b>image001.jpg</b>
+                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ
+                    </p>
                 </div>
             </div>
 
@@ -51,8 +53,10 @@
                                 <th>คำนำหน้า</th>
                                 <th>ชื่อ</th>
                                 <th>นามสกุล</th>
+                                <th>รหัสบัตร</th>
                                 <th>ชั้นปี</th>
                                 <th>ห้อง</th>
+                                <th>เบอร์โทรผู้ปกครอง</th>
                                 <th>ชื่อรูปภาพ</th>
                             </tr>
                         </thead>
@@ -62,17 +66,28 @@
                                 <td>{{ student.pre_name }}</td>
                                 <td>{{ student.first_name }}</td>
                                 <td>{{ student.last_name }}</td>
-                                <td>{{ student.grade }}</td>
+                                <td>{{ student.rfid || '-' }}</td>
+                                <td>{{ mapGradeDisplay(student.grade) }}</td>
                                 <td>{{ student.classroom }}</td>
-                                <td>{{ student.imageName || '-' }}</td>
+                                <td>{{ student.guardian_phone || '-' }}</td>
+                                <td>
+                                    <span
+                                        :class="student.imageMatched ? 'text-success font-semibold' : 'text-error font-semibold'">
+                                        {{ student.imageName || '-' }}
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <p class="text-xs mt-2">
+                    <span class="text-success font-semibold">สีเขียว</span> = จับคู่ไฟล์รูปได้,
+                    <span class="text-error font-semibold">สีแดง</span> = ยังไม่พบไฟล์รูปที่ตรงกับคอลัมน์ชื่อรูป
+                </p>
                 <div class="flex justify-center items-center gap-2 mt-2">
-                    <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">«</button>
+                    <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">‹</button>
                     <span class="text-xs">หน้า {{ currentPage }} / {{ totalPages }}</span>
-                    <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">»</button>
+                    <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">›</button>
                 </div>
                 <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
                     <span v-if="isImporting" class="loading loading-spinner"></span>
@@ -95,37 +110,52 @@ import { ref, computed } from 'vue'
 import { StudentService } from '../../api/student'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
+import { mapGradeDisplay } from '../../utils/gradeSystem'
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
                         if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
             img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
@@ -201,9 +231,9 @@ function previewExcel() {
     previewData.value = []
     currentPage.value = 1
 
-    const getImageName = (userid) => {
-        userid = userid?.toString().trim();
-        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === userid);
+    const getImageName = (key) => {
+        key = key?.toString().trim();
+        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === key);
         return found ? found.name : '';
     }
 
@@ -221,14 +251,32 @@ function previewExcel() {
             } else {
                 previewData.value = json.map(row => {
                     const userid = (mapHeader('รหัส', row) || mapHeader('userid', row) || '').toString().trim();
+                    const imageNameFromSheet = (
+                        mapHeader('ชื่อรูป', row) ||
+                        mapHeader('ชื่อรูปภาพ', row) ||
+                        mapHeader('image_name', row) ||
+                        mapHeader('imageName', row)
+                    )?.toString().trim() || '';
+
+                    const imageLookupKey = (imageNameFromSheet || userid)
+                        .toString()
+                        .trim()
+                        .replace(/\.[^/.]+$/, '');
+
+                    const matchedImageName = getImageName(imageLookupKey);
+                    const imageMatched = Boolean(matchedImageName);
+
                     return {
                         userid,
                         pre_name: mapHeader('คำนำหน้า', row) || mapHeader('pre_name', row) || '',
                         first_name: mapHeader('ชื่อ', row) || mapHeader('first_name', row) || '',
                         last_name: mapHeader('นามสกุล', row) || mapHeader('last_name', row) || '',
+                        rfid: (mapHeader('รหัสบัตร (rfid)', row) || mapHeader('rfid', row) || '').toString().trim(),
                         grade: mapHeader('ชั้นปี', row) || mapHeader('grade', row) || '',
                         classroom: mapHeader('ห้อง', row) || mapHeader('classroom', row) || '',
-                        imageName: getImageName(userid)
+                        guardian_phone: (mapHeader('เบอร์โทรผู้ปกครอง', row) || mapHeader('guardian_phone', row) || mapHeader('parent_phone', row) || '').toString().trim(),
+                        imageName: matchedImageName || imageNameFromSheet,
+                        imageMatched
                     }
                 })
             }
@@ -257,49 +305,209 @@ async function handleImport() {
     isImporting.value = true
     try {
         const imageMap = {};
+        const resizedImageCache = {};
         for (const file of imageFiles.value) {
             const baseName = file.name.split('.')[0];
-            if (file.type.match('image/jpeg') || file.type.match('image/jpg')) {
-                try {
-                    const resizedBlob = await resizeImage(file, 70, 300, 300);
-                    if (resizedBlob.size > 70 * 1024) {
-                        continue;
-                    }
-                    imageMap[baseName] = new File([resizedBlob], file.name, { type: 'image/jpeg' });
-                } catch (err) {
-                }
+            if (file.type.startsWith('image/')) {
+                imageMap[baseName] = file;
             }
+        }
+
+        async function getResizedImageByKey(key) {
+            const normalizedKey = (key || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            if (!normalizedKey) return null;
+
+            if (resizedImageCache[normalizedKey]) {
+                return resizedImageCache[normalizedKey];
+            }
+
+            const sourceFile = imageMap[normalizedKey];
+            if (!sourceFile) return null;
+
+            try {
+                const resizedBlob = await resizeImage(sourceFile, 70, 450);
+                const resizedFile = new File([resizedBlob], sourceFile.name, { type: 'image/jpeg' });
+                resizedImageCache[normalizedKey] = resizedFile;
+                return resizedFile;
+            } catch (err) {
+                return null;
+            }
+        }
+
+        function cleanLastName(val) {
+            if (val === undefined || val === null || val === '' || (typeof val === 'string' && val.trim() === '')) return '';
+            if (val === '-') return ' ';
+            if (typeof val === 'string' && val.trim() === '-') return ' ';
+            return val;
+        }
+
+        function cleanGuardianPhone(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
+        }
+
+        function cleanRfid(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
         }
 
         const importedStudents = [];
+        const failedStudents = [];
         for (const student of previewData.value) {
-            const formData = {
-                userid: student.userid,
-                pre_name: student.pre_name,
-                first_name: student.first_name,
-                last_name: student.last_name,
-                grade: student.grade,
-                classroom: student.classroom,
-                picture: imageMap[student.userid] || null
-            };
+            let existing = null;
             try {
-                const response = await studentService.createStudent(formData);
-                if (response.message === 'Success') {
-                    importedStudents.push(response.data);
+                existing = await studentService.getStudentByUseridRaw(student.userid);
+            } catch (e) {
+                existing = null;
+            }
+
+            const cleanedStudent = {
+                ...student,
+                last_name: cleanLastName(student.last_name),
+                guardian_phone: cleanGuardianPhone(student.guardian_phone),
+                rfid: cleanRfid(student.rfid)
+            };
+
+            const imageNameKey = (cleanedStudent.imageName || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            const resolvedImageFile = await getResizedImageByKey(imageNameKey)
+                || await getResizedImageByKey(cleanedStudent.userid);
+
+            let formData = {};
+            if (existing && existing.message === 'Success' && existing.data && existing.data._id) {
+                const oldData = existing.data;
+                
+                let fallbackFirstName = oldData.first_name || '';
+                let fallbackLastName = oldData.last_name || '';
+
+                if ((!fallbackFirstName || !fallbackLastName) && oldData.name) {
+                    let cleanName = oldData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)\s*/, '').trim();
+                    const nameParts = cleanName.split(/\s+/);
+                    
+                    fallbackFirstName = nameParts[0] || '';
+                    fallbackLastName = nameParts.slice(1).join(' ') || ''; 
                 }
-            } catch (err) {
-                const apiError = err?.response?.data;
-                if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
-                    const duplicateId = student.userid;
-                    Swal.fire('ข้อผิดพลาด', `รหัส ${duplicateId} มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel`, 'error');
-                    break;
-                } else {
-                    console.error(`Error importing student ${student.userid}:`, err);
+
+                formData = {
+                    ...oldData,
+                    userid: cleanedStudent.userid,
+                };
+                
+                delete formData.picture;
+
+                const isInvalidValue = (val) => {
+                    if (val === undefined || val === null) return true;
+                    const str = val.toString().trim();
+                    return str === '' || str === '-';
+                };
+
+                formData.pre_name = !isInvalidValue(cleanedStudent.pre_name) ? cleanedStudent.pre_name : (oldData.pre_name || '');
+                formData.first_name = !isInvalidValue(cleanedStudent.first_name) ? cleanedStudent.first_name : fallbackFirstName;
+                formData.last_name = !isInvalidValue(cleanedStudent.last_name) ? cleanedStudent.last_name : fallbackLastName;
+                
+                formData.grade = !isInvalidValue(cleanedStudent.grade) ? cleanedStudent.grade : oldData.grade;
+                formData.classroom = !isInvalidValue(cleanedStudent.classroom) ? cleanedStudent.classroom : oldData.classroom;
+                
+                formData.guardian_phone = cleanedStudent.guardian_phone !== '' ? cleanedStudent.guardian_phone : oldData.guardian_phone;
+                formData.rfid = cleanedStudent.rfid !== '' ? cleanedStudent.rfid : oldData.rfid;
+
+                if (resolvedImageFile) {
+                    formData.picture = resolvedImageFile;
+                }
+
+                try {
+                    const response = await studentService.updateStudent(oldData._id, formData);
+                    if (response.message === 'Success') {
+                        importedStudents.push(response.data);
+                    } else {
+                        failedStudents.push({
+                            userid: cleanedStudent.userid,
+                            name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                            reason: response.message || 'ไม่ทราบสาเหตุ'
+                        });
+                    }
+                } catch (err) {
+                    console.error(`Error updating student ${cleanedStudent.userid}:`, err);
+                    failedStudents.push({
+                        userid: cleanedStudent.userid,
+                        name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                        reason: err.response?.data?.error || err.response?.data?.message || err.message || 'ไม่ทราบสาเหตุ'
+                    });
+                }
+            } else {
+                formData = {
+                    userid: cleanedStudent.userid,
+                    pre_name: cleanedStudent.pre_name,
+                    first_name: cleanedStudent.first_name,
+                    last_name: cleanedStudent.last_name,
+                    grade: cleanedStudent.grade,
+                    classroom: cleanedStudent.classroom,
+                    guardian_phone: cleanedStudent.guardian_phone,
+                    rfid: cleanedStudent.rfid,
+                    picture: resolvedImageFile || null
+                };
+                try {
+                    const response = await studentService.createStudent(formData);
+                    if (response.message === 'Success') {
+                        importedStudents.push(response.data);
+                    } else {
+                        failedStudents.push({
+                            userid: cleanedStudent.userid,
+                            name: `${cleanedStudent.pre_name}${cleanedStudent.first_name} ${cleanedStudent.last_name}`,
+                            reason: response.message || 'ไม่ทราบสาเหตุ'
+                        });
+                    }
+                } catch (err) {
+                    console.error(`Error creating student ${cleanedStudent.userid}:`, err);
+                    failedStudents.push({
+                        userid: cleanedStudent.userid,
+                        name: `${cleanedStudent.pre_name}${cleanedStudent.first_name} ${cleanedStudent.last_name}`,
+                        reason: err.response?.data?.error || err.message || 'ไม่ทราบสาเหตุ'
+                    });
                 }
             }
         }
 
-        Swal.fire('สำเร็จ', `นำเข้าข้อมูลนักเรียนสำเร็จ ${importedStudents.length} รายการ`, 'success');
+        let msg = `<div style='text-align:left;'>`
+            + `บันทึกสำเร็จ <b>${importedStudents.length}</b> รายการ`
+            + `<br>บันทึกไม่สำเร็จ <b>${failedStudents.length}</b> รายการ`;
+        if (failedStudents.length > 0) {
+            msg += `<br><br><b>รายการที่บันทึกไม่สำเร็จ:</b>`;
+            msg += `<div style='max-height:220px;overflow:auto;'><table style='border-collapse:collapse;width:100%;font-size:13px;'>`;
+            msg += `<thead><tr style='background:#f3f4f6;'><th style='border:1px solid #ddd;padding:4px;'>รหัส</th><th style='border:1px solid #ddd;padding:4px;'>ชื่อ</th><th style='border:1px solid #ddd;padding:4px;'>สาเหตุ</th></tr></thead><tbody>`;
+            msg += failedStudents.map(f => {
+                let reason = f.reason;
+                if (reason === '"last_name" is not allowed to be empty' || reason === 'last_name" is not allowed to be empty') {
+                    reason = 'กรุณากรอกนามสกุล';
+                } else if (/fails to match the required pattern/.test(reason) && /last_name/.test(reason)) {
+                    reason = 'นามสกุลต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น';
+                } else if (/fails to match the required pattern/.test(reason) && /first_name/.test(reason)) {
+                    reason = 'ชื่อต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น';
+                } else if (/is required/.test(reason)) {
+                    reason = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+                }
+                return `<tr><td style='border:1px solid #ddd;padding:4px;'>${f.userid}</td><td style='border:1px solid #ddd;padding:4px;'>${f.name}</td><td style='border:1px solid #ddd;padding:4px;color:#b91c1c;'>${reason}</td></tr>`;
+            }).join('');
+            msg += `</tbody></table></div>`;
+        }
+        msg += `</div>`;
+        Swal.fire({
+            title: 'สำเร็จ',
+            html: msg,
+            icon: failedStudents.length > 0 ? 'warning' : 'success',
+            width: 600
+        });
         emit('success', importedStudents);
         closeModal();
     } catch (e) {

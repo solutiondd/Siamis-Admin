@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการบุคลากร</h2>
             <div v-if="auth.user?.role !== 'viewer'" class="flex gap-2">
@@ -79,19 +79,25 @@
             @filterPosition="handleFilterPosition" @edit="openEditModal" @delete="openDeleteModal"
             @reset="openRePasswordModal" @detail="openDetailModal" />
 
-        <div v-if="totalPages > 1" class="flex justify-center">
-            <div class="join">
-                <button class="join-item btn btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                    «
-                </button>
-                <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm"
-                    :class="{ 'btn-active': page === currentPage }" @click="goToPage(page)">
-                    {{ page }}
-                </button>
-                <button class="join-item btn btn-sm" @click="goToPage(currentPage + 1)"
-                    :disabled="currentPage === totalPages">
-                    »
-                </button>
+        <div v-if="totalPages > 1" class="flex flex-col items-center gap-2">
+            <div class="flex justify-center">
+                <div class="join">
+                    <button class="join-item btn btn-sm" @click="goToPage(currentPage - 1)"
+                        :disabled="currentPage === 1">
+                        ‹
+                    </button>
+                    <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm"
+                        :class="{ 'btn-active': page === currentPage }" @click="goToPage(page)">
+                        {{ page }}
+                    </button>
+                    <button class="join-item btn btn-sm" @click="goToPage(currentPage + 1)"
+                        :disabled="currentPage === totalPages">
+                        ›
+                    </button>
+                </div>
+            </div>
+            <div class="text-sm text-base-content/60 text-center text-white">
+                ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
             </div>
         </div>
 
@@ -174,6 +180,8 @@ const createModalRef = ref(null)
 const deleteModalRef = ref(null)
 const rePasswordModalRef = ref(null)
 
+const totalItems = computed(() => teachers.value.length)
+
 const totalPages = computed(() => Math.ceil(teachers.value.length / itemsPerPage.value))
 
 const paginatedTeachers = computed(() => {
@@ -219,6 +227,7 @@ const fetchTeachers = async () => {
                 userid: teacher.userid,
                 name: teacher.name,
                 code: teacher.userid,
+                rfid: teacher.rfid,
                 department: teacher.department || '-',
                 position: teacher.position || '-',
                 email: teacher.userid + '@ckk.ac.th',
@@ -234,7 +243,7 @@ const fetchTeachers = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลอาจารย์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลอาจารย์ได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -339,13 +348,13 @@ const handleCreateSuccess = async (formData) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มอาจารย์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถเพิ่มอาจารย์ได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
             }
         })
-        if (onError) onError('other')
+        if (onError) onError(error)
     }
 }
 

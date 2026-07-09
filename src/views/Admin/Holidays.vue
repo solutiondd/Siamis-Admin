@@ -1,15 +1,20 @@
 <template>
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-4 max-[570px]:pt-14">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-4 max-[944px]:pt-14">
         <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap mb-2 sm:mb-0">จัดการวันหยุด</h1>
         <div class="flex gap-2">
             <ImportHolidays v-if="auth.user?.role !== 'viewer'" @imported="onImportHolidays" class="" />
             <button v-if="auth.user?.role !== 'viewer'" class="btn btn-primary btn-sm whitespace-nowrap shrink-0"
-                @click="showCreate = true">+
+                @click="showCreate = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
                 เพิ่มวันหยุด</button>
         </div>
     </div>
     <div class="flex gap-2 items-center justify-end mb-4">
-        <select v-model="filterType" class="select select-bordered select-sm min-w-[80px] max-w-[120px] text-xs sm:text-base">
+        <select v-model="filterType"
+            class="select select-bordered select-sm min-w-[80px] max-w-[120px] text-xs sm:text-base">
             <option value="month">เดือน</option>
             <option value="day">วัน</option>
             <option value="year">ปี</option>
@@ -18,7 +23,7 @@
             class="input input-bordered input-sm text-xs sm:text-base w-auto" />
         <input v-if="filterType === 'month'" type="month" v-model="monthInput"
             class="input input-bordered input-sm text-xs sm:text-base w-auto" />
-        <input v-if="filterType === 'year'" type="number" min="1900" max="2100" v-model="yearInput"
+        <input v-if="filterType === 'year'" type="number" min="2443" max="2643" v-model="yearInputBE"
             class="input input-bordered input-sm w-auto text-xs sm:text-base" />
     </div>
 
@@ -36,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import Create from '../../components/Holidays/Create.vue'
 import HolidaysTable from '../../components/Holidays/Table.vue'
 import DeleteDialog from '../../components/Holidays/Delete.vue'
@@ -94,6 +99,15 @@ const filterType = ref('year')
 const dateInput = ref(`${yyyy}-${mm}-${dd}`)
 const monthInput = ref(`${yyyy}-${mm}`)
 const yearInput = ref(yyyy)
+const yearInputBE = computed({
+    get: () => yearInput.value + 543,
+    set: (value) => {
+        const parsed = Number(value)
+        if (!Number.isNaN(parsed) && parsed > 0) {
+            yearInput.value = parsed > 2400 ? parsed - 543 : parsed
+        }
+    }
+})
 
 function getRange() {
     if (filterType.value === 'day') {

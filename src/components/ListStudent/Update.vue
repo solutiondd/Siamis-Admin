@@ -49,7 +49,7 @@
                         <input v-model="formData.userid" type="text" class="input input-bordered" required
                             :class="{ 'input-error': useridError }" autocomplete="off" />
                         <label v-if="useridError" class="label"><span class="label-text-alt text-error">{{ useridError
-                                }}</span></label>
+                        }}</span></label>
                     </div>
 
                     <div class="form-control">
@@ -84,7 +84,8 @@
                         <select v-model="formData.grade" @change="handleGradeChange" class="select select-bordered"
                             required>
                             <option value="">เลือกชั้นปี</option>
-                            <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ grade }}</option>
+                            <option v-for="grade in availableGrades" :key="grade" :value="grade">{{
+                                mapGradeDisplay(grade) }}</option>
                         </select>
                     </div>
 
@@ -99,9 +100,25 @@
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">RFID (ไม่บังคับ)</span></label>
-                        <input v-model="formData.rfid" type="text" class="input input-bordered" autocomplete="off" />
+                        <label class="label"><span class="label-text">เลขบัตร RFID <span
+                                    class="text-gray-500">(ไม่บังคับ)</span></span></label>
+                        <input v-model="formData.rfid" type="text" class="input input-bordered" @input="validateRfid"
+                            autocomplete="off" />
+                        <label v-if="rfidError" class="label"><span class="label-text-alt text-error">{{ rfidError
+                        }}</span></label>
                     </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">เบอร์โทรผู้ปกครอง <span
+                                    class="text-gray-500">(ไม่บังคับ)</span></span></label>
+                        <input v-model="formData.guardian_phone" type="text" class="input input-bordered"
+                            @input="validateGuardianPhone" :class="{ 'input-error': guardianPhoneError }"
+                            autocomplete="off" />
+                        <label v-if="guardianPhoneError" class="label"><span class="label-text-alt text-error">{{
+                            guardianPhoneError
+                                }}</span></label>
+                    </div>
+
                 </div>
 
                 <div class="modal-action">
@@ -120,6 +137,7 @@
 import { ref, computed } from 'vue'
 import { StudentService } from '../../api/student'
 import { useAuthStore } from '../../stores/auth'
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
 
 const auth = useAuthStore()
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
@@ -138,6 +156,8 @@ const firstNameError = ref('')
 const lastNameError = ref('')
 const useridError = ref('')
 const studentId = ref('')
+const rfidError = ref('')
+const guardianPhoneError = ref('')
 
 const formData = ref({
     userid: '',
@@ -147,7 +167,8 @@ const formData = ref({
     grade: '',
     classroom: '',
     picture: null,
-    rfid: ''
+    rfid: '',
+    guardian_phone: ''
 })
 
 const props = defineProps({
@@ -160,8 +181,7 @@ const props = defineProps({
 const emit = defineEmits(['success'])
 
 const availableGrades = computed(() => {
-    const grades = [...new Set(props.classrooms.map(c => c.grade))]
-    return grades.sort((a, b) => parseInt(a.replace('ม.', '')) - parseInt(b.replace('ม.', '')))
+    return toVisibleSortedGrades(props.classrooms.map(c => c.grade))
 })
 
 const availableClassrooms = computed(() => {
@@ -181,6 +201,32 @@ const validateLastName = () => {
     else lastNameError.value = ''
 }
 
+const validateRfid = () => {
+    if (!formData.value.rfid) {
+        rfidError.value = ''
+        return true
+    }
+    if (!/^\d+$/.test(formData.value.rfid)) {
+        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        return false
+    }
+    rfidError.value = ''
+    return true
+}
+
+const validateGuardianPhone = () => {
+    if (!formData.value.guardian_phone) {
+        guardianPhoneError.value = ''
+        return true
+    }
+    if (!/^\d+$/.test(formData.value.guardian_phone)) {
+        guardianPhoneError.value = 'เบอร์โทรผู้ปกครองต้องเป็นตัวเลขเท่านั้น'
+        return false
+    }
+    guardianPhoneError.value = ''
+    return true
+}
+
 const isFormValid = computed(() => {
     return (
         formData.value.userid &&
@@ -191,6 +237,8 @@ const isFormValid = computed(() => {
         formData.value.classroom &&
         !firstNameError.value &&
         !lastNameError.value &&
+        !rfidError.value &&
+        !guardianPhoneError.value &&
         !fileError.value
     )
 })
@@ -216,7 +264,10 @@ const openModal = async (student) => {
         grade: student.grade || '',
         classroom: student.room || '',
         picture: null,
-        rfid: student.rfid || ''
+        rfid: student.rfid !== undefined && student.rfid !== null ? String(student.rfid) : '',
+        guardian_phone: student.guardian_phone !== undefined && student.guardian_phone !== null
+            ? String(student.guardian_phone)
+            : ''
     }
     currentImage.value = getPictureUrl(student.picture) || ''
     previewImage.value = ''
@@ -224,13 +275,15 @@ const openModal = async (student) => {
     firstNameError.value = ''
     lastNameError.value = ''
     useridError.value = ''
+    rfidError.value = ''
+    guardianPhoneError.value = ''
 
     if (student.picture) {
         try {
             const response = await fetch(student.picture)
             const blob = await response.blob()
             if (blob.size > 70 * 1024) {
-                const resizedBlob = await resizeImage(blob, 70, 300, 300)
+                const resizedBlob = await resizeImage(blob, 70, 0)
                 if (resizedBlob.size <= 70 * 1024) {
                     const reader = new FileReader()
                     reader.onload = (e) => {
@@ -256,6 +309,8 @@ const openModal = async (student) => {
 
 const closeModal = () => {
     modalRef.value?.close()
+    rfidError.value = ''
+    guardianPhoneError.value = ''
 }
 
 const handleGradeChange = () => {
@@ -267,36 +322,50 @@ const handleGradeChange = () => {
 }
 
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
                         if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
             img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
@@ -317,12 +386,7 @@ const handleFileChange = async (event) => {
             return;
         }
         try {
-            const resizedBlob = await resizeImage(file, 70, 300, 300);
-            if (resizedBlob.size > 70 * 1024) {
-                fileError.value = `ขนาดไฟล์หลังรีไซส์ยังเกิน 70KB (${(resizedBlob.size / 1024).toFixed(2)}KB)`;
-                event.target.value = '';
-                return;
-            }
+            const resizedBlob = await resizeImage(file, 70, 450);
             formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -330,7 +394,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
             event.target.value = '';
         }
     }
@@ -346,6 +410,8 @@ const removeImage = () => {
 
 const handleSubmit = async () => {
     validateFirstName(); validateLastName();
+    if (!validateRfid()) return;
+    if (!validateGuardianPhone()) return;
     useridError.value = '';
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
@@ -390,7 +456,7 @@ const handleSubmit = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถแก้ไขข้อมูลนักเรียนได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขข้อมูลนักเรียนได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')

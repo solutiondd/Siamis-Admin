@@ -1,5 +1,5 @@
 <template>
-    <div class="max-[570px]:pt-14">
+    <div class="max-[944px]:pt-14">
         <div class="w-full bg-base-200 min-h-full rounded-lg shadow-md p-6">
             <div class="flex flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
@@ -7,8 +7,8 @@
                     <p class="text-sm sm:text-base text-base-content/60 mt-1">ระบบจัดการข้อมูลอุปกรณ์</p>
                 </div>
                 <button v-if="auth.user?.role !== 'viewer'" @click="openCreateModal" class="btn btn-primary gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 sm:h-5 w-3 sm:w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 sm:h-5 w-3 sm:w-5" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     เพิ่มอุปกรณ์
@@ -33,10 +33,11 @@
             </div>
 
             <div class="bg-base-100 rounded-lg shadow-lg p-6">
-                <Table :devices="devices" @edit="handleEdit" @delete="handleDelete" />
+                <Table :devices="devices" @edit="handleEdit" @delete="handleDelete" @detail="handleDetail" />
             </div>
         </div>
 
+        <DetailModal ref="detailModal" />
         <CreateModal ref="createModal" @success="handleCreateSuccess" />
         <UpdateModal ref="updateModal" @success="handleUpdateSuccess" />
         <DeleteModal v-if="showDeleteModal" ref="deleteModal" @deleted="handleDeletedSuccess"
@@ -48,6 +49,7 @@
 import { useAuthStore } from '../../stores/auth'
 import { ref, onMounted, nextTick, onUnmounted } from 'vue'
 import Table from '../../components/Device/Table.vue'
+import DetailModal from '../../components/Device/Detail.vue'
 import CreateModal from '../../components/Device/Create.vue'
 import UpdateModal from '../../components/Device/Update.vue'
 import DeleteModal from '../../components/Device/Delete.vue'
@@ -69,6 +71,7 @@ const closeDeleteModal = () => {
 }
 
 const devices = ref([])
+const detailModal = ref(null)
 const createModal = ref(null)
 const updateModal = ref(null)
 const deleteModal = ref(null)
@@ -84,7 +87,7 @@ const fetchDevices = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้',
             confirmButtonText: 'ตรวจสอบอีกครั้ง'
         })
     }
@@ -122,7 +125,7 @@ const handleCreateSuccess = async (formData) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มอุปกรณ์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถเพิ่มอุปกรณ์ได้',
             confirmButtonText: 'ตรวจสอบอีกครั้ง'
         })
     }
@@ -131,6 +134,12 @@ const handleCreateSuccess = async (formData) => {
 const handleEdit = (device) => {
     if (updateModal.value) {
         updateModal.value.openModal(device)
+    }
+}
+
+const handleDetail = (device) => {
+    if (detailModal.value) {
+        detailModal.value.openModal(device)
     }
 }
 
@@ -161,7 +170,7 @@ const handleUpdateSuccess = async (formData) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถแก้ไขอุปกรณ์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขอุปกรณ์ได้',
             confirmButtonText: 'ตรวจสอบอีกครั้ง'
         })
     }
@@ -187,13 +196,13 @@ const handleDeletedSuccess = async () => {
     })
 }
 
-const handleDeleteError = async () => {
+const handleDeleteError = async (error) => {
     closeDeleteModal()
     await nextTick()
     Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถลบอุปกรณ์ได้',
+        text: error?.response?.data?.error || error?.message || 'ไม่สามารถลบอุปกรณ์ได้',
         confirmButtonText: 'ตรวจสอบอีกครั้ง'
     })
 }

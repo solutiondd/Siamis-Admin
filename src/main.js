@@ -29,6 +29,12 @@ axios.interceptors.response.use(
   async (error) => {
     const status = error?.response?.status;
     const originalRequest = error.config;
+    const skipAuthRedirect = Boolean(originalRequest?.skipAuthRedirect);
+
+    if (status === 401 && skipAuthRedirect) {
+      return Promise.reject(error);
+    }
+    
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       if (localStorage.getItem("refresh_token")) {
@@ -57,5 +63,12 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ป้องกันการคลิกขวาบนรูปภาพทั่วทั้งหมด
+document.addEventListener('contextmenu', (e) => {
+    if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+    }
+});
 
 app.mount("#app");

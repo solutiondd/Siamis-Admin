@@ -15,7 +15,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่ {{ displayDate }}</h3>
+                }} วันที่ {{ displayDate }}</h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -40,9 +40,16 @@
                 <h3 class="font-bold text-lg mb-4">รายการมาสาย{{ lateRole === 'teacher' ? 'ครู' : 'นักเรียน' }} วันที่
                     {{ displayDate }}</h3>
 
-                <LateTable :data="lateData" :pagination="latePagination"
-                    :filters="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString(), role: lateRole }"
-                    :hide-export="true" @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                <div v-if="lateRole === 'student'">
+                    <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
+                        grade="student" :filters="{ start: selectedDate, end: selectedDate, role: 'student' }"
+                        :hide-export="true" @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                </div>
+                <div v-else>
+                    <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
+                        :filters="{ start: selectedDate, end: selectedDate, role: 'teacher' }" :hide-export="true"
+                        @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                </div>
             </div>
             <form method="dialog" class="modal-backdrop">
                 <button>close</button>
@@ -55,12 +62,43 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่
+                }} วันที่
                     {{ displayDate }}</h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination" :hide-export="true"
                     :dateRange="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString() }"
                     :role="missedRole" @page-change="handleMissedPageChange" summaryTextColor="text-black" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+
+        <dialog ref="leaveModal" class="modal">
+            <div class="modal-box max-w-7xl">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
+                <h3 class="font-bold text-lg mb-4">รายการลา{{ leaveRole === 'teacher' ? 'ครู' : 'นักเรียน' }} วันที่
+                    {{ displayDate }}</h3>
+
+                <LeaveRequest :filters="leaveFilters" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+
+        <dialog ref="activityModal" class="modal">
+            <div class="modal-box max-w-7xl">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
+                <h3 class="font-bold text-lg mb-4">รายการกิจกรรม{{ activityRole === 'teacher' ? 'ครู' : 'นักเรียน' }}
+                    วันที่
+                    {{ displayDate }}</h3>
+
+                <ActivityTable :filters="activityFilters" />
             </div>
             <form method="dialog" class="modal-backdrop">
                 <button>close</button>
@@ -130,6 +168,24 @@
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
+                                <div class="stat-title">ลา</div>
+                                <div class="stat-value text-warning">{{ studentLeave }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-value text-info">{{ studentActivity }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
                                 <div class="stat-title">ไม่ได้สแกน</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
@@ -163,6 +219,24 @@
                                 <div class="stat-value text-black">{{ teacher.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherLateTable" class="btn btn-xs btn-ghost btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">ลา</div>
+                                <div class="stat-value text-warning">{{ teacherLeave }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showTeacherLeaveTable" class="btn btn-xs btn-warning btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-value text-info">{{ teacherActivity }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showTeacherActivityTable" class="btn btn-xs btn-info btn-plain">
                                         คลิก
                                     </button>
                                 </div>
@@ -217,6 +291,24 @@
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
+                                <div class="stat-title">ลา</div>
+                                <div class="stat-value text-warning">{{ studentLeave }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-value text-info">{{ studentActivity }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
+                                        คลิก
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
                                 <div class="stat-title">ไม่ได้สแกน</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
@@ -230,7 +322,6 @@
                 </div>
             </transition>
         </div>
-        <!-- <AttendanceDetail ref="detailModal" /> -->
     </div>
 </template>
 
@@ -239,16 +330,23 @@ import { ref, onMounted, computed } from 'vue'
 import lottie from 'lottie-web'
 import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
+import { LeaveService } from '../../api/leave'
+import { ActivityService } from '../../api/activity'
 import LateTable from '../Report/LateTable.vue'
 import MissedTable from '../Report/MissedTable.vue'
+import LeaveRequest from '../Report/LeaveRequest.vue'
+import ActivityTable from '../Report/ActivityTable.vue'
 import AttendanceDetail from '../Report/AttendanceDetail.vue'
 import Attendance from './Attendance.vue'
 import { useAuthStore } from '../../stores/auth'
+import { toVisibleSortedGrades } from '../../utils/gradeSystem'
+import { AllowanceService } from '../../api/allowance'
 
 const auth = useAuthStore()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref(new Date().toLocaleDateString('sv-SE'))
+const allowanceRules = ref([]);
 
 function getDefaultDate() {
     const now = new Date()
@@ -272,6 +370,8 @@ const teacher = ref({ total: 0, late: 0 })
 const attendanceModal = ref(null)
 const lateModal = ref(null)
 const missedModal = ref(null)
+const leaveModal = ref(null)
+const activityModal = ref(null)
 const attendanceData = ref([])
 const attendancePage = ref(1)
 const attendanceTotalItems = ref(0)
@@ -286,6 +386,8 @@ const lateLimit = ref(5)
 const lateTotalItems = ref(0)
 const lateTotalPages = ref(0)
 const lateRole = ref('student')
+const leaveRole = ref('student')
+const activityRole = ref('student')
 const missedData = ref([])
 const missedAllData = ref([])
 const missedPage = ref(1)
@@ -294,8 +396,15 @@ const missedTotalItems = ref(0)
 const missedTotalPages = ref(0)
 const missedRole = ref('student')
 const classrooms = ref([])
+// const progressData = ref([])
+const studentLeave = ref(0)
+const teacherLeave = ref(0)
+const studentActivity = ref(0)
+const teacherActivity = ref(0)
 
 const classRoomService = new ClassRoomService()
+const leaveService = new LeaveService()
+const activityService = new ActivityService()
 
 const residentRole = ref(localStorage.getItem('residentRole') || '')
 const localGrade = ref(localStorage.getItem('grade') || '')
@@ -303,11 +412,16 @@ const localClassroom = ref(Number(localStorage.getItem('classroom')) || 0)
 const profileName = ref(localStorage.getItem('profileName') || '')
 
 const displayDate = computed(() => {
-    const d = new Date(selectedDate.value)
-    const dd = String(d.getDate()).padStart(2, '0')
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const yyyy = d.getFullYear()
-    return `${dd}/${mm}/${yyyy}`
+    const [year, month, day] = (selectedDate.value || '').split('-').map(Number)
+    if (!year || !month || !day) return ''
+
+    const thaiMonths = [
+        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ]
+    const buddhistYear = year + 543
+
+    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
 })
 
 const latePagination = computed(() => ({
@@ -327,12 +441,7 @@ const missedPagination = computed(() => ({
 
 const availableGrades = computed(() => {
     if (!classrooms.value || classrooms.value.length === 0) return []
-    const grades = [...new Set(classrooms.value.map(c => c.grade))]
-    return grades.sort((a, b) => {
-        const numA = parseInt(a.replace('ม.', ''))
-        const numB = parseInt(b.replace('ม.', ''))
-        return numA - numB
-    })
+    return toVisibleSortedGrades(classrooms.value.map(c => c.grade))
 })
 
 const availableClassrooms = computed(() => {
@@ -343,8 +452,36 @@ const availableClassrooms = computed(() => {
 })
 
 const totalCombined = computed(() => (student.value.total || 0) + (teacher.value.total || 0))
-const studentAbsent = computed(() => Math.max((totals.value.total_students || 0) - (student.value.total || 0), 0))
-const teacherAbsent = computed(() => Math.max((totals.value.total_teachers || 0) - (teacher.value.total || 0), 0))
+const studentAbsent = computed(() => Math.max(
+    (totals.value.total_students || 0) -
+    (student.value.total || 0) -
+    (studentLeave.value || 0) -
+    (studentActivity.value || 0),
+    0
+))
+const teacherAbsent = computed(() => Math.max(
+    (totals.value.total_teachers || 0) -
+    (teacher.value.total || 0) -
+    (teacherLeave.value || 0) -
+    (teacherActivity.value || 0),
+    0
+))
+const leaveFilters = computed(() => ({
+    start_date: (selectedDate.value || '').toString(),
+    end_date: (selectedDate.value || '').toString(),
+    status: 'approved',
+    role: leaveRole.value,
+    search: '',
+}))
+
+const activityFilters = computed(() => ({
+    start_date: (selectedDate.value || '').toString(),
+    end_date: (selectedDate.value || '').toString(),
+    role: activityRole.value,
+    search: '',
+    status: '',
+    activity_name: '',
+}))
 
 const attendanceFilteredData = ref([])
 const showStudentStat = ref(false)
@@ -352,6 +489,68 @@ const showTeacherStat = ref(false)
 const showCombinedStat = ref(false)
 const showStudentAbsentStat = ref(false)
 const showTeacherAbsentStat = ref(false)
+
+async function fetchLeaveSummaryByDate() {
+    try {
+        const filters = {
+            start_date: selectedDate.value,
+            end_date: selectedDate.value,
+            status: 'approved',
+        }
+
+        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
+            filters.grade = localGrade.value
+            filters.classroom = localClassroom.value
+        }
+
+        const response = await leaveService.getLeaveRequests(filters)
+        let data = response?.data || response || []
+
+        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
+            data = data.filter(
+                (item) =>
+                    item.user_id?.grade === localGrade.value &&
+                    String(item.user_id?.classroom ?? '') === String(localClassroom.value)
+            )
+        }
+
+        studentLeave.value = data.filter((item) => item.user_id?.role === 'student').length
+        teacherLeave.value = data.filter((item) => item.user_id?.role === 'teacher').length
+    } catch (e) {
+        console.error('Daily leave summary error', e)
+        studentLeave.value = 0
+        teacherLeave.value = 0
+    }
+}
+
+async function fetchActivitySummaryByDate() {
+    try {
+        const filters = {}
+
+        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
+            filters.grade = localGrade.value
+            filters.classroom = localClassroom.value
+        }
+
+        const response = await activityService.getActivities(selectedDate.value, selectedDate.value, filters)
+        let data = response?.data || response || []
+
+        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
+            data = data.filter(
+                (item) =>
+                    item.user_id?.grade === localGrade.value &&
+                    String(item.user_id?.classroom ?? '') === String(localClassroom.value)
+            )
+        }
+
+        studentActivity.value = data.filter((item) => item.user_id?.role === 'student').length
+        teacherActivity.value = data.filter((item) => item.user_id?.role === 'teacher').length
+    } catch (e) {
+        console.error('Daily activity summary error', e)
+        studentActivity.value = 0
+        teacherActivity.value = 0
+    }
+}
 
 async function fetchDaily() {
     loading.value = true
@@ -369,11 +568,17 @@ async function fetchDaily() {
             student.value = { total: stu.total || 0, late: stu.late || 0 }
             teacher.value = { total: tea.total || 0, late: tea.late || 0 }
         }
+        await fetchLeaveSummaryByDate()
+        await fetchActivitySummaryByDate()
     } catch (e) {
         console.error('Daily summary error', e)
         totals.value = { total_students: 0, total_teachers: 0 }
         student.value = { total: 0, late: 0 }
         teacher.value = { total: 0, late: 0 }
+        studentLeave.value = 0
+        teacherLeave.value = 0
+        studentActivity.value = 0
+        teacherActivity.value = 0
     } finally {
         loading.value = false
     }
@@ -596,6 +801,26 @@ async function showTeacherMissedTable() {
     }
 }
 
+function showStudentLeaveTable() {
+    leaveRole.value = 'student'
+    leaveModal.value?.showModal()
+}
+
+function showTeacherLeaveTable() {
+    leaveRole.value = 'teacher'
+    leaveModal.value?.showModal()
+}
+
+function showStudentActivityTable() {
+    activityRole.value = 'student'
+    activityModal.value?.showModal()
+}
+
+function showTeacherActivityTable() {
+    activityRole.value = 'teacher'
+    activityModal.value?.showModal()
+}
+
 function handleLatePageChange(page) {
     if (page >= 1 && page <= lateTotalPages.value) {
         latePage.value = page;
@@ -682,6 +907,32 @@ function resetLatePage() {
     latePage.value = 1;
 }
 
+const fetchAllowanceSettings = async () => {
+    try {
+        const service = new AllowanceService();
+        const res = await service.getAllowance();
+        if (res && res.data && res.data.rules) {
+            allowanceRules.value = res.data.rules;
+        }
+    } catch (error) {
+        console.error("Error fetching allowance settings in dashboard:", error);
+    }
+};
+
+// async function fetchProgressData() {
+//     try {
+//         const res = await reportApi.getProgressReport({ date: selectedDate.value })
+//         if (res && res.message === 'Success') {
+//             progressData.value = res.data || []
+//         } else {
+//             progressData.value = []
+//         }
+//     } catch (e) {
+//         console.error('Error fetching progress report on dashboard:', e)
+//         progressData.value = []
+//     }
+// }
+
 onMounted(() => {
     showStudentStat.value = false
     showTeacherStat.value = false
@@ -703,6 +954,7 @@ onMounted(() => {
     setTimeout(() => {
         showTeacherAbsentStat.value = true
     }, 100)
+    fetchAllowanceSettings();
     fetchDaily()
     fetchClassrooms()
     if (studentIconRef.value) {

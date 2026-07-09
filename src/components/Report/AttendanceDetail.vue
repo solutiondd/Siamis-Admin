@@ -26,7 +26,8 @@
                     <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                         <p class="text-xs text-yellow-600 mb-1">{{ selectedItem.department ? 'แผนก' : 'ชั้นเรียน' }}</p>
                         <p class="font-semibold text-yellow-900">
-                            {{ selectedItem.department || `${selectedItem.grade}/${selectedItem.classroom}` }}
+                            {{ selectedItem.department || formatGradeClassroomDisplay(selectedItem.grade,
+                                selectedItem.classroom) }}
                         </p>
                     </div>
                 </div>
@@ -54,8 +55,11 @@
                                 <p class="text-sm font-semibold text-blue-700 text-center mb-1">{{
                                     formatTime(ts.timestamp) }}</p>
                                 <p class="text-xs text-gray-600 text-center">{{ ts.location }}</p>
-                                <p v-if="ts.similarity !== undefined" class="text-xs text-gray-500 text-center mt-1">
+                                <p v-if="hasSimilarity(ts.similarity)" class="text-xs text-gray-500 text-center mt-1">
                                     ความเหมือน: {{ ts.similarity }}%
+                                </p>
+                                <p v-if="ts.usecase" class="text-xs text-gray-500 text-center mt-1">
+                                    {{ ts.usecase }}
                                 </p>
                             </div>
                         </div>
@@ -88,6 +92,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
 // const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
@@ -121,11 +126,23 @@ const formatDate = (dateStr) => {
 }
 
 const formatTime = (timestamp) => {
-    return timestamp.split(' ')[1] || timestamp
+    if (!timestamp) return '-'
+    const timePart = timestamp.split(' ')[1] || timestamp
+    const [hour, minute, secondWithFraction] = timePart.split(':')
+    if (hour === undefined || minute === undefined) return timePart
+    if (secondWithFraction === undefined) return `${hour}:${minute}`
+    const second = secondWithFraction.split('.')[0]
+    return `${hour}:${minute}:${second}`
 }
 
 const imageErrorHandler = (event, idx) => {
     imageError[idx] = true
+}
+
+const hasSimilarity = (value) => {
+    if (value === undefined || value === null) return false
+    if (typeof value === 'string' && value.trim() === '') return false
+    return true
 }
 
 const getInitials = (name) => {

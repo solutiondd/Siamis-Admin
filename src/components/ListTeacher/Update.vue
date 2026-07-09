@@ -3,22 +3,46 @@
         <div class="modal-box max-w-2xl overflow-y-auto">
             <h3 class="font-bold text-lg mb-4">แก้ไขข้อมูลบุคลากร</h3>
             <form @submit.prevent="handleSubmit">
-                <div v-if="currentImage || previewImage" class="flex justify-center mb-4">
-                    <div class="relative">
-                        <img :src="previewImage || currentImage" alt="Teacher Image"
-                            class="w-32 h-32 object-cover rounded-lg shadow-md" />
-                        <button type="button" @click="removeNewImage"
-                            class="absolute -top-2 -right-2 btn btn-circle btn-sm btn-error">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold">รูปภาพ <span
+                            class="text-gray-500">(ไม่บังคับ)</span></label>
+
+                    <div v-if="currentImage || previewImage" class="relative flex justify-center mb-2">
+                        <div class="relative">
+                            <img :src="previewImage || currentImage" alt="Preview"
+                                class="w-32 h-32 object-cover rounded-lg shadow-md" />
+                            <button type="button" @click="removeImage"
+                                class="absolute -top-2 -right-2 btn btn-circle btn-sm btn-error">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
+
+                    <div v-if="!currentImage && !previewImage" class="relative">
+                        <label for="pictureInputUpdateTeacher"
+                            class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                            <span class="flex flex-col items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพบุคลากร</span>
+                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                            </span>
+                            <input id="pictureInputUpdateTeacher" ref="fileInputRef" type="file"
+                                @change="handleFileChange" accept="image/jpeg,image/jpg"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        </label>
+                    </div>
+                    <div v-if="fileError" class="text-sm text-error mt-1">{{ fileError }}</div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     <div class="form-control w-full">
                         <label class="label">
                             <span class="label-text">รหัสบุคลากร</span>
@@ -87,6 +111,16 @@
 
                     <div class="form-control w-full">
                         <label class="label">
+                            <span class="label-text">เลขบัตร RFID <span class="text-gray-500">(ไม่บังคับ)</span></span>
+                        </label>
+                        <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
+                            @input="validateRfid" autocomplete="off" />
+                        <label v-if="rfidError" class="label"><span class="label-text-alt text-error">{{ rfidError
+                                }}</span></label>
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
                             <span class="label-text">สถานะ</span>
                         </label>
                         <select v-model="formData.status" class="select select-bordered w-full" required>
@@ -96,7 +130,7 @@
                         </select>
                     </div>
 
-                    <div class="form-control w-full">
+                    <!-- <div class="form-control w-full">
                         <label class="label">
                             <span class="label-text">RFID (ไม่บังคับ)</span>
                         </label>
@@ -114,7 +148,7 @@
                             <span class="label-text-alt text-gray-500">JPG only (สูงสุด 70KB)</span>
                         </label>
                         <div v-if="fileError" class="text-sm text-error mt-1">{{ fileError }}</div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div class="modal-action">
@@ -150,6 +184,7 @@ const fileInputRef = ref(null)
 const firstNameError = ref('')
 const lastNameError = ref('')
 const useridError = ref('')
+const rfidError = ref('')
 const formData = ref({
     userid: '',
     pre_name: '',
@@ -157,6 +192,7 @@ const formData = ref({
     last_name: '',
     position: '',
     department: '',
+    rfid: '',
     status: '',
     picture: null,
     rfid: ''
@@ -191,16 +227,17 @@ const openModal = async (teacher) => {
         department: teacher.department,
         status: 'ปกติ',
         picture: null,
-        rfid: teacher.rfid || ''
+        rfid: teacher.rfid !== undefined && teacher.rfid !== null ? String(teacher.rfid) : ''
     }
     useridError.value = ''
+    rfidError.value = ''
 
     if (teacher.picture) {
         try {
             const response = await fetch(teacher.picture)
             const blob = await response.blob()
             if (blob.size > 70 * 1024) {
-                const resizedBlob = await resizeImage(blob, 70, 300, 300)
+                const resizedBlob = await resizeImage(blob, 70, 0)
                 if (resizedBlob.size <= 70 * 1024) {
                     const reader = new FileReader()
                     reader.onload = (e) => {
@@ -223,6 +260,7 @@ const openModal = async (teacher) => {
 
 const closeModal = () => {
     modalRef.value.close()
+    rfidError.value = ''
     currentImage.value = ''
     previewImage.value = ''
     fileError.value = ''
@@ -243,36 +281,50 @@ const closeModal = () => {
 }
 
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
                         if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
             img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
@@ -294,12 +346,7 @@ const handleFileChange = async (event) => {
             return;
         }
         try {
-            const resizedBlob = await resizeImage(file, 70, 300, 300);
-            if (resizedBlob.size > 70 * 1024) {
-                fileError.value = `ขนาดไฟล์หลังรีไซส์ยังเกิน 70KB (${(resizedBlob.size / 1024).toFixed(2)}KB)`;
-                event.target.value = '';
-                return;
-            }
+            const resizedBlob = await resizeImage(file, 70, 450);
             formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -307,7 +354,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
             event.target.value = '';
         }
     }
@@ -335,19 +382,33 @@ const validateLastName = () => {
     }
 }
 
+const validateRfid = () => {
+    if (!formData.value.rfid) {
+        rfidError.value = ''
+        return true
+    }
+    if (!/^\d+$/.test(formData.value.rfid)) {
+        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        return false
+    }
+    rfidError.value = ''
+    return true
+}
+
 const isFormValid = computed(() => {
     return (
         !firstNameError.value &&
         !lastNameError.value &&
         formData.value.first_name &&
         formData.value.last_name &&
+        !rfidError.value &&
         !fileError.value
     )
 })
 
-const removeNewImage = () => {
+const removeImage = () => {
     previewImage.value = ''
-    fileError.value = ''
+    currentImage.value = ''
     formData.value.picture = null
     if (fileInputRef.value) {
         fileInputRef.value.value = ''
@@ -357,6 +418,7 @@ const removeNewImage = () => {
 const handleSubmit = async () => {
     validateFirstName()
     validateLastName()
+    if (!validateRfid()) return
     useridError.value = ''
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
@@ -401,7 +463,7 @@ const handleSubmit = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถแก้ไขข้อมูลอาจารย์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขข้อมูลอาจารย์ได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')

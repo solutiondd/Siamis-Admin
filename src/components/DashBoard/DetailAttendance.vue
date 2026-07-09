@@ -24,7 +24,7 @@
                     <div v-if="props.role !== 'teacher'" class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                         <p class="text-xs text-yellow-600 mb-1">ชั้นเรียน</p>
                         <p class="font-semibold text-yellow-900">
-                            {{ `${selectedItem.grade}/${selectedItem.classroom}` }}
+                            {{ formatGradeClassroomDisplay(selectedItem.grade, selectedItem.classroom) }}
                         </p>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                             <div class="p-3">
                                 <p class="text-sm font-semibold text-blue-700 text-center mb-1">{{
                                     formatTime(ts.timeStamp) }}</p>
-                                <p v-if="ts.similarity !== undefined" class="text-xs text-gray-500 text-center">
+                                <p v-if="hasSimilarity(ts.similarity)" class="text-xs text-gray-500 text-center">
                                     ความเหมือน: {{ ts.similarity }}%
                                 </p>
                             </div>
@@ -80,6 +80,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 const detailModal = ref(null)
 const imageModal = ref(null)
@@ -106,7 +107,19 @@ const formatDate = (dateStr) => {
 const formatTime = (timestamp) => {
     if (!timestamp) return '-'
     const parts = timestamp.split(' ')
-    return parts.length > 1 ? parts[1] : timestamp
+    const timePart = parts.length > 1 ? parts[1] : timestamp
+    const [hour, minute, secondWithFraction] = timePart.split(':')
+    if (hour === undefined || minute === undefined) return timePart
+    if (secondWithFraction === undefined) return `${hour}:${minute}`
+    const second = secondWithFraction.split('.')[0]
+    return `${hour}:${minute}:${second}`
 }
+
+const hasSimilarity = (value) => {
+    if (value === undefined || value === null) return false
+    if (typeof value === 'string' && value.trim() === '') return false
+    return true
+}
+
 defineExpose({ openModal })
 </script>

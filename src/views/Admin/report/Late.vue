@@ -1,5 +1,5 @@
 <template>
-    <div class="p-0 md:p-6 space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
             <h1 class="text-lg md:text-3xl font-bold">ตารางมาสาย</h1>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
@@ -37,7 +37,8 @@
                     <select v-model="filters.grade" @change="handleGradeChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
                         <option value="">ทุกชั้นปี</option>
-                        <option v-for="grade in allGrades" :key="grade" :value="grade">{{ grade }}</option>
+                        <option v-for="grade in allGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
+                        </option>
                     </select>
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
@@ -55,7 +56,7 @@
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
                         <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
-                        <span>{{ teacherGrade }}/{{ teacherClassroom }}</span>
+                        <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
             </div>
@@ -75,8 +76,14 @@
         </div>
 
         <div v-else>
-            <LateTable :data="paginatedData" :pagination="paginationData" :filters="filters" :grade="filters.grade"
-                :classroom="filters.classroom" @page-change="goToPage" />
+            <LateTable 
+            :data="paginatedData" 
+            :pagination="paginationData" 
+            :filters="filters" 
+            :grade="filters.grade"
+            :classroom="filters.classroom"
+            :allowance-rules="allowanceRules"
+            @page-change="goToPage" />
         </div>
     </div>
 </template>
@@ -86,6 +93,8 @@ import { ref, onMounted, computed } from 'vue'
 import LateTable from '../../../components/Report/LateTable.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem'
+import { AllowanceService } from '../../../api/allowance';
 
 const residentRole = localStorage.getItem('residentRole') || ''
 const teacherGrade = localStorage.getItem('grade') || ''
@@ -99,6 +108,20 @@ const allRooms = ref([])
 const loading = ref(false)
 const error = ref(null)
 const lateData = ref([])
+
+const allowanceRules = ref([]);
+
+const fetchAllowanceSettings = async () => {
+    try {
+        const service = new AllowanceService();
+        const res = await service.getAllowance();
+        if (res?.data?.rules) {
+            allowanceRules.value = res.data.rules;
+        }
+    } catch (error) {
+        console.error("Error fetching allowance in Late.vue:", error);
+    }
+};
 
 const filters = ref({
     role: 'student',
@@ -170,7 +193,7 @@ const handleRoleChange = () => {
         filters.value.grade = ''
         filters.value.classroom = ''
     } else {
-        filters.value.grade = allGrades.value.length > 0 ? allGrades.value[0] : 'ม.1'
+        filters.value.grade = allGrades.value.length > 0 ? allGrades.value[0] : ''
         filters.value.classroom = allRooms.value.length > 0 ? allRooms.value[0] : '1'
     }
     fetchData()
@@ -246,6 +269,7 @@ const goToPage = (page) => {
 }
 
 onMounted(async () => {
+    fetchAllowanceSettings();
     fetchData()
     try {
         const res = await classRoomService.getClassRooms()
@@ -256,8 +280,11 @@ onMounted(async () => {
             if (item.grade) gradesSet.add(item.grade)
             if (item.classroom) roomsSet.add(item.classroom)
         })
-        allGrades.value = Array.from(gradesSet)
+        allGrades.value = toVisibleSortedGrades(Array.from(gradesSet))
         allRooms.value = Array.from(roomsSet)
+        if (filters.value.role === 'student' && !filters.value.grade) {
+            filters.value.grade = allGrades.value[0] || ''
+        }
     } catch (err) {
         console.error('Error fetching class rooms:', err)
     }

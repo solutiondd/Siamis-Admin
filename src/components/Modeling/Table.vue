@@ -10,7 +10,7 @@
                     <th class="text-center">ลำดับ</th>
                     <th>ชื่อ-สกุล</th>
                     <th class="text-center">รหัสนักเรียน/รหัสอาจารย์</th>
-                    <th class="text-center">ตำแหน่ง</th>
+                    <th class="text-center max-[1307px]:hidden">ตำแหน่ง</th>
                     <th class="text-center">ห้องเรียน/แผนก</th>
                     <th class="text-center">สถานะการเชื่อมต่อ</th>
                     <th v-if="auth.user?.role !== 'viewer'" class="text-center">จัดการ</th>
@@ -22,9 +22,10 @@
                         ไม่พบข้อมูล
                     </td>
                 </tr>
-                <tr v-for="(item, index) in data" :key="item._id" class="hover">
+                <tr v-for="(item, index) in data" :key="item._id" class="hover"
+                    :class="{ 'cursor-pointer': selectMode }" @click="handleRowClick(item)">
                     <td v-if="selectMode" class="text-center">
-                        <input type="checkbox" :checked="isSelected(item)"
+                        <input type="checkbox" :checked="isSelected(item)" @click.stop
                             @change="toggleSelect(item, $event.target.checked)" />
                     </td>
                     <td class="text-center">{{ (page - 1) * limit + index + 1 }}</td>
@@ -33,7 +34,8 @@
                             <div class="avatar">
                                 <div class="w-10 h-10 rounded-full">
                                     <img v-if="item.picture" :src="getPictureUrl(item.picture)" :alt="item.name"
-                                        class="w-full h-full object-cover" @error="item.picture = null" />
+                                        class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                        @click.stop="openPictureModal(item.picture)" @error="item.picture = null" />
                                     <div v-else
                                         class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                         <span class="text-sm font-semibold">{{ getInitials(item.name) }}</span>
@@ -44,10 +46,10 @@
                         </div>
                     </td>
                     <td class="text-center">{{ item.userid }}</td>
-                    <td class="text-center">{{ item.position }}</td>
+                    <td class="text-center max-[1307px]:hidden">{{ item.position }}</td>
                     <td class="text-center">
                         <span v-if="item.role === 'student'">
-                            {{ item.grade }} / {{ item.classroom }}
+                            {{ formatGradeClassroomDisplay(item.grade, item.classroom) }}
                         </span>
                         <span v-else>
                             {{ item.department || '-' }}
@@ -58,9 +60,10 @@
                             class="text-center text-base-content/60">
                             ยังไม่ได้เชื่อมต่ออุปกรณ์
                         </div>
-                        <div v-else class="flex items-center justify-center gap-2">
+                        <div v-else
+                            class="flex items-center justify-center gap-2 max-[1307px]:grid max-[1307px]:grid-cols-4 max-[1307px]:justify-items-center max-[1307px]:gap-1">
                             <div v-for="(model, idx) in item.modeling" :key="idx" class="tooltip tooltip-top"
-                                :data-tip="`${model.device.location} - ${statusLabel(model.status)}`">
+                                :data-tip="`${model.device.location} - ${statusLabel(model.status)}${model.result_msg ? ' (' + model.result_msg + ')' : ''}`">
                                 <div :class="[
                                     'w-3 h-3 rounded-full cursor-help transition-transform hover:scale-125',
                                     statusColorClass(model.status)
@@ -68,7 +71,7 @@
                             </div>
                         </div>
                     </td>
-                    <td v-if="auth.user?.role !== 'viewer'">
+                    <td v-if="auth.user?.role !== 'viewer'" @click.stop>
                         <div class="flex justify-center gap-2">
                             <DetailModeling :item="item" @updated="$emit('updated')" />
                             <button class="btn btn-xs btn-warning" @click="handleEdit(item)" title="แก้ไข">
@@ -89,9 +92,10 @@
         <div v-if="data.length === 0" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
             ไม่พบข้อมูล
         </div>
-        <div v-for="(item, index) in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
+        <div v-for="(item, index) in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3"
+            :class="{ 'cursor-pointer': selectMode }" @click="handleRowClick(item)">
             <div class="flex justify-between items-start">
-                <div v-if="selectMode" class="mr-2 flex items-center">
+                <div v-if="selectMode" class="mr-2 flex items-center" @click.stop>
                     <input type="checkbox" :checked="isSelected(item)"
                         @change="toggleSelect(item, $event.target.checked)" />
                 </div>
@@ -101,7 +105,8 @@
                         <div class="avatar">
                             <div class="w-10 h-10 rounded-full">
                                 <img v-if="item.picture" :src="getPictureUrl(item.picture)" :alt="item.name"
-                                    class="w-full h-full object-cover" @error="item.picture = null" />
+                                    class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                    @click.stop="openPictureModal(item.picture)" @error="item.picture = null" />
                                 <div v-else
                                     class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                     <span class="text-sm font-semibold">{{ getInitials(item.name) }}</span>
@@ -128,7 +133,7 @@
                     </span>
                     <p class="font-medium">
                         <span v-if="item.role === 'student'">
-                            {{ item.grade }} / {{ item.classroom }}
+                            {{ formatGradeClassroomDisplay(item.grade, item.classroom) }}
                         </span>
                         <span v-else>
                             {{ item.department || '-' }}
@@ -147,7 +152,7 @@
                 </div>
                 <div v-else class="flex flex-wrap gap-2">
                     <div v-for="(model, idx) in item.modeling" :key="idx" class="tooltip tooltip-top"
-                        :data-tip="`${model.device.location} - ${statusLabel(model.status)}`">
+                        :data-tip="`${model.device.location} - ${statusLabel(model.status)}${model.result_msg ? ' (' + model.result_msg + ')' : ''}`">
                         <div :class="[
                             'w-4 h-4 rounded-full cursor-help transition-transform hover:scale-125',
                             statusColorClass(model.status)
@@ -156,7 +161,7 @@
                 </div>
             </div>
 
-            <div v-if="auth.user?.role !== 'viewer'" class="mt-3">
+            <div v-if="auth.user?.role !== 'viewer'" class="mt-3" @click.stop>
                 <div class="divider my-2"></div>
                 <div class="flex justify-end gap-2">
                     <DetailModeling :item="item" @updated="$emit('updated')" />
@@ -192,6 +197,19 @@
         <UpdateTeacher ref="updateTeacherRef" :departments="departments" :positions="positions"
             @success="() => emit('updated', { refresh: true, key: Math.random() })" />
     </div>
+    <dialog ref="pictureModal" class="modal">
+        <div class="modal-box max-w-xl w-full p-0">
+            <form method="dialog">
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
+            </form>
+            <img v-if="pictureModalSrc" :src="pictureModalSrc" alt="profile"
+                class="w-full h-auto max-h-[80vh] object-contain" />
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 </template>
 
 <script setup>
@@ -203,6 +221,7 @@ import { ClassRoomService } from '../../api/class-room.js';
 import { DepartmentService } from '../../api/department.js';
 import { PositionService } from '../../api/position.js';
 import { useAuthStore } from '../../stores/auth'
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
 const auth = useAuthStore()
 
@@ -252,6 +271,8 @@ const handleEdit = (item) => {
             code: item.userid,
             grade: item.grade,
             room: item.classroom,
+            rfid: item.rfid,
+            guardian_phone: item.guardian_phone,
             picture: pictureUrl
         });
     } else {
@@ -261,6 +282,8 @@ const handleEdit = (item) => {
             userid: item.userid,
             position: item.position,
             department: item.department,
+            rfid: item.rfid,
+            guardian_phone: item.guardian_phone,
             picture: pictureUrl
         });
     }
@@ -313,6 +336,11 @@ function toggleSelect(item, checked) {
         newArr = newArr.filter(obj => obj._id !== item._id);
     }
     emit('selectedIds', newArr);
+}
+
+function handleRowClick(item) {
+    if (!props.selectMode) return;
+    toggleSelect(item, !isSelected(item));
 }
 
 watch(() => props.selectMode, (val) => {
@@ -371,6 +399,13 @@ const getInitials = (name) => {
     return parts[0][0] || '?';
 };
 const detailItem = ref(null);
+const pictureModal = ref(null);
+const pictureModalSrc = ref(null);
+
+const openPictureModal = (pic) => {
+    pictureModalSrc.value = getPictureUrl(pic);
+    pictureModal.value?.showModal();
+};
 </script>
 
 <style scoped></style>

@@ -146,6 +146,7 @@ function validate() {
 }
 
 async function onSubmit() {
+    if (loading.value) return
     formError.value = ''
     success.value = false
     if (!validate()) return
@@ -241,10 +242,16 @@ async function onSubmit() {
 
         let errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
 
+        if (e.response?.status === 429) {
+            errorMessage = 'มีการเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง'
+        }
+
         if (e.response?.data) {
             const errorData = e.response.data
 
-            if (errorData.message === 'Authentication failed') {
+            if (e.response?.status === 429) {
+                errorMessage = errorData.message || errorMessage
+            } else if (errorData.message === 'Authentication failed') {
                 if (errorData.error === 'Wrong password') {
                     errorMessage = 'รหัสผ่านไม่ถูกต้อง'
                 } else if (errorData.error === 'User not found') {

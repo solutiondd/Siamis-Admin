@@ -54,7 +54,6 @@
                             required />
                         <div v-if="useridError" class="text-sm text-error mt-1">{{ useridError }}</div>
                     </div>
-
                     <div class="form-control w-full">
                         <label class="label">
                             <span class="label-text">คำนำหน้า</span>
@@ -89,10 +88,8 @@
                             <input ref="positionInputRef" v-model="positionQuery" type="text"
                                 class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกตำแหน่ง..."
                                 @focus="positionOpen = true" @input="positionOpen = true" required />
-                            <button v-if="formData.position" type="button"
-                                class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearPosition">ลบ</button>
                             <ul v-if="positionOpen"
-                                class="bg-base-100 rounded-box shadow-lg border absolute z-[1000] bottom-full left-0 mt-2 pt-1 w-full max-h-60 overflow-y-auto">
+                                class="bg-base-100 rounded-box shadow-lg border absolute z-[1000] top-full left-0 mt-1 w-full max-h-60 overflow-y-auto">
                                 <li v-if="!filteredPositions.length" class="px-3 py-2 text-sm opacity-70">
                                     ไม่พบตำแหน่งที่ตรงกับคำค้นหา
                                 </li>
@@ -114,10 +111,8 @@
                             <input ref="departmentInputRef" v-model="departmentQuery" type="text"
                                 class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกแผนก..."
                                 @focus="departmentOpen = true" @input="departmentOpen = true" required />
-                            <button v-if="formData.department" type="button"
-                                class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearDepartment">ลบ</button>
                             <ul v-if="departmentOpen"
-                                class="bg-base-100 rounded-box shadow-lg border absolute z-[999] bottom-full left-0 mt-2 pt-1 w-full max-h-60 overflow-y-auto">
+                                class="bg-base-100 rounded-box shadow-lg border absolute z-[999] top-full left-0 mt-1 w-full max-h-60 overflow-y-auto">
                                 <li v-if="!filteredDepartments.length" class="px-3 py-2 text-sm opacity-70">
                                     ไม่พบแผนกที่ตรงกับคำค้นหา
                                 </li>
@@ -129,6 +124,16 @@
                                 </li>
                             </ul>
                         </div>
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">เลขบัตร RFID <span class="text-gray-500">(ไม่บังคับ)</span></span>
+                        </label>
+                        <input v-model="formData.rfid" type="text"
+                            :class="['input input-bordered w-full', rfidError ? 'border-error focus:border-error' : '']"
+                            @input="validateRfid" autocomplete="off" />
+                        <div v-if="rfidError" class="text-sm text-error mt-1">{{ rfidError }}</div>
                     </div>
 
                     <div class="form-control w-full">
@@ -172,6 +177,7 @@ const previewImage = ref('')
 const fileName = ref('')
 const fileError = ref('')
 const useridError = ref('')
+const rfidError = ref('')
 
 const positionQuery = ref('')
 const positionOpen = ref(false)
@@ -188,6 +194,7 @@ const formData = ref({
     pre_name: '',
     first_name: '',
     last_name: '',
+    rfid: '',
     position: '',
     department: '',
     status: '',
@@ -250,6 +257,21 @@ const clearDepartment = () => {
     departmentOpen.value = false
 }
 
+const validateRfid = () => {
+    if (!formData.value.rfid) {
+        rfidError.value = ''
+        return true
+    }
+
+    if (!/^\d+$/.test(formData.value.rfid)) {
+        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        return false
+    }
+
+    rfidError.value = ''
+    return true
+}
+
 let _onDocClickPosition = null
 let _onDocClickDepartment = null
 
@@ -283,6 +305,7 @@ const openModal = () => {
         pre_name: '',
         first_name: '',
         last_name: '',
+        rfid: '',
         position: '',
         department: '',
         status: '',
@@ -293,6 +316,7 @@ const openModal = () => {
     fileName.value = ''
     fileError.value = ''
     useridError.value = ''
+    rfidError.value = ''
     positionQuery.value = ''
     departmentQuery.value = ''
     positionOpen.value = false
@@ -307,6 +331,7 @@ const closeModal = () => {
         pre_name: '',
         first_name: '',
         last_name: '',
+        rfid: '',
         position: '',
         department: '',
         status: '',
@@ -317,6 +342,7 @@ const closeModal = () => {
     fileName.value = ''
     fileError.value = ''
     useridError.value = ''
+    rfidError.value = ''
     positionQuery.value = ''
     departmentQuery.value = ''
     positionOpen.value = false
@@ -324,36 +350,50 @@ const closeModal = () => {
 }
 
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
                         if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
             img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
@@ -375,12 +415,7 @@ const handleFileChange = async (event) => {
             return;
         }
         try {
-            const resizedBlob = await resizeImage(file, 70, 300, 300);
-            if (resizedBlob.size > 70 * 1024) {
-                fileError.value = `ขนาดไฟล์หลังรีไซส์ยังเกิน 70KB (${(resizedBlob.size / 1024).toFixed(2)}KB)`;
-                event.target.value = '';
-                return;
-            }
+            const resizedBlob = await resizeImage(file, 70, 450);
             formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
             fileName.value = file.name;
             const reader = new FileReader();
@@ -389,7 +424,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
             event.target.value = '';
         }
     }
@@ -408,6 +443,9 @@ const removeImage = () => {
 
 const handleSubmit = async () => {
     useridError.value = ''
+    if (!validateRfid()) {
+        return
+    }
     loading.value = true
     emit('success', {
         ...formData.value,
@@ -416,12 +454,13 @@ const handleSubmit = async () => {
             if (errStr.includes('duplicateteacheruserid')) {
                 useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
             } else {
+                const errorMessage = err?.response?.data?.error || err?.message || 'ไม่สามารถเพิ่มบุคลากรได้';
                 closeModal();
                 const { default: Swal } = await import('sweetalert2');
                 Swal.fire({
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
-                    text: 'ไม่สามารถเพิ่มบุคลากรได้',
+                    text: errorMessage,
                     confirmButtonColor: '#2563eb',
                     didOpen: () => {
                         document.getElementById('app')?.removeAttribute('aria-hidden')

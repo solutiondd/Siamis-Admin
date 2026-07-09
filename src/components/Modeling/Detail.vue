@@ -22,7 +22,8 @@
                                 <div class="avatar">
                                     <div class="w-12 h-12 rounded-full">
                                         <img v-if="item.picture" :src="getPictureUrl(item.picture)" :alt="item.name"
-                                            class="w-full h-full object-cover" @error="item.picture = null" />
+                                            class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                            @click="openPictureModal(item.picture)" @error="item.picture = null" />
                                         <div v-else
                                             class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                             <span class="text-lg font-semibold">{{ getInitials(item.name) }}</span>
@@ -47,7 +48,7 @@
                             </span>
                             <p class="font-medium">
                                 <span v-if="item.role === 'student'">
-                                    {{ item.grade }} / {{ item.classroom }}
+                                    {{ formatGradeClassroomDisplay(item.grade, item.classroom) }}
                                 </span>
                                 <span v-else>
                                     {{ item.department || '-' }}
@@ -110,6 +111,20 @@
                 <button type="button" @click="closeModal">close</button>
             </form>
         </dialog>
+
+        <dialog ref="pictureModal" class="modal">
+            <div class="modal-box max-w-xl w-full p-0">
+                <form method="dialog">
+                    <button
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
+                </form>
+                <img v-if="pictureModalSrc" :src="pictureModalSrc" alt="profile"
+                    class="w-full h-auto max-h-[80vh] object-contain" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
     </div>
 </template>
 
@@ -117,6 +132,7 @@
 import { ref } from 'vue';
 import ReModel from './ReModel.vue';
 import DeleteModeling from './Delete.vue';
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
 const getInitials = (name) => {
     if (!name) return '?';
@@ -146,6 +162,13 @@ const props = defineProps({
 
 const emit = defineEmits(['updated']);
 const modal = ref(null);
+const pictureModal = ref(null);
+const pictureModalSrc = ref(null);
+
+const openPictureModal = (pic) => {
+    pictureModalSrc.value = getPictureUrl(pic);
+    pictureModal.value?.showModal();
+};
 
 const openModal = () => {
     modal.value?.showModal();

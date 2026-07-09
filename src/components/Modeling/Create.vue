@@ -60,13 +60,13 @@
                         <div v-if="basketTotalPages > 1" class="flex justify-center mb-2">
                             <div class="join">
                                 <button class="join-item btn btn-sm" @click="goToBasketPage(basketPage - 1)"
-                                    :disabled="basketPage === 1">«</button>
+                                    :disabled="basketPage === 1">‹</button>
                                 <button v-for="page in basketDisplayedPages" :key="page" class="join-item btn btn-sm"
                                     :class="{ 'btn-active': page === basketPage }" @click="goToBasketPage(page)">
                                     {{ page }}
                                 </button>
                                 <button class="join-item btn btn-sm" @click="goToBasketPage(basketPage + 1)"
-                                    :disabled="basketPage === basketTotalPages">»</button>
+                                    :disabled="basketPage === basketTotalPages">›</button>
                             </div>
                         </div>
                     </div>
@@ -265,7 +265,7 @@ const loadDevices = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้'
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้'
         });
     } finally {
         loadingDevices.value = false;
@@ -325,7 +325,7 @@ const handleSubmit = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: error.response?.data?.message || 'ไม่สามารถสร้าง Modeling ได้'
+            text: error?.response?.data?.error || error?.response?.data?.message || error?.message || 'ไม่สามารถสร้าง Modeling ได้'
         });
     } finally {
         isSubmitting.value = false;
