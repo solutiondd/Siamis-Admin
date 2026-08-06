@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-4">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-white">สรุปรายวัน</h3>
+            <h3 class="text-lg font-semibold text-white">{{ $t('DashBoardData.dailySummary') }}</h3>
             <div class="flex items-center gap-2">
                 <input type="date" v-model="selectedDate" class="input input-sm input-bordered" @change="fetchDaily"
                     :max="getDefaultDate()" />
@@ -14,8 +14,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่ {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.attendanceList', {
+                        role: attendanceRole === 'teacher' ?
+                            $t('DashBoardData.teacher') : $t('DashBoardData.student'), date: displayDate
+                    }) }}
+                </h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -37,8 +41,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการมาสาย{{ lateRole === 'teacher' ? 'ครู' : 'นักเรียน' }} วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.lateList', {
+                        role: lateRole === 'teacher' ? $t('DashBoardData.teacher') :
+                            $t('DashBoardData.student'), date: displayDate
+                    }) }}
+                </h3>
 
                 <div v-if="lateRole === 'student'">
                     <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
@@ -61,9 +69,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.missedList', {
+                        role: missedRole === 'teacher' ? $t('DashBoardData.teacher') :
+                            $t('DashBoardData.student'), date: displayDate
+                    }) }}
+                </h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination" :hide-export="true"
                     :dateRange="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString() }"
@@ -79,8 +90,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการลา{{ leaveRole === 'teacher' ? 'ครู' : 'นักเรียน' }} วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.leaveList', {
+                        role: leaveRole === 'teacher' ? $t('DashBoardData.teacher') :
+                            $t('DashBoardData.student'), date: displayDate
+                    }) }}
+                </h3>
 
                 <LeaveRequest :filters="leaveFilters" />
             </div>
@@ -94,9 +109,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการกิจกรรม{{ activityRole === 'teacher' ? 'ครู' : 'นักเรียน' }}
-                    วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.activityList', {
+                        role: activityRole === 'teacher' ? $t('DashBoardData.teacher')
+                            : $t('DashBoardData.student'), date: displayDate
+                    }) }}
+                </h3>
 
                 <ActivityTable :filters="activityFilters" />
             </div>
@@ -109,7 +127,7 @@
             <transition name="slide-fade">
                 <div v-show="showStudentStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="studentStatRef">
-                        <div class="stat-title">จำนวนนักเรียนทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalStudents') }}</div>
                         <div class="stat-value text-primary">{{ totals.total_students || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="studentIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -120,7 +138,7 @@
             <transition v-if="auth.user?.role !== 'teacher'" name="slide-down">
                 <div v-show="showTeacherStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="teacherStatRef">
-                        <div class="stat-title">จำนวนครูทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalTeachers') }}</div>
                         <div class="stat-value text-secondary">{{ totals.total_teachers || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="teacherIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -131,9 +149,9 @@
             <transition name="slide-right">
                 <div v-show="showCombinedStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="combinedStatRef">
-                        <div class="stat-title">ทั้งหมดที่เข้า</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalCombined') }}</div>
                         <div class="stat-value text-purple-500">{{ totalCombined }}</div>
-                        <div class="stat-desc">ประจำวันที่ {{ displayDate }}</div>
+                        <div class="stat-desc">{{ $t('DashBoardData.dateFor', { date: displayDate }) }}</div>
                         <div class="stat-figure">
                             <div ref="combinedIconRef" class="w-20 h-20 transition-transform duration-200"></div>
                         </div>
@@ -147,50 +165,50 @@
                 <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group student-bg"
                     ref="studentAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">นักเรียน</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.student') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full student-bg">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-primary">{{ student.total - student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showAttendanceTable" class="btn btn-xs btn-primary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ลา</div>
+                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
                                 <div class="stat-value text-warning">{{ studentLeave }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
                                 <div class="stat-value text-info">{{ studentActivity }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -202,51 +220,51 @@
                 <div v-show="showTeacherAbsentStat" class="card bg-base-100 shadow-xl group teacher-bg"
                     ref="teacherAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">ครู</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.teacher') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full teacher-bg">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-secondary">{{ teacher.total - teacher.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherAttendanceTable"
                                         class="btn btn-xs btn-secondary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ teacher.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ลา</div>
+                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
                                 <div class="stat-value text-warning">{{ teacherLeave }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherLeaveTable" class="btn btn-xs btn-warning btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
                                 <div class="stat-value text-info">{{ teacherActivity }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherActivityTable" class="btn btn-xs btn-info btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat group relative border-l pl-4" ref="teacherAbsentStatRef">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ teacherAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -259,7 +277,7 @@
             <transition name="slide-fade">
                 <div v-show="showStudentStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="studentStatRef">
-                        <div class="stat-title">จำนวนนักเรียนทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalStudents') }}</div>
                         <div class="stat-value text-primary">{{ totals.total_students || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="studentIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -270,50 +288,50 @@
             <transition name="slide-right">
                 <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group" ref="studentAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">นักเรียน</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.student') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-primary">{{ student.total - student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showAttendanceTable" class="btn btn-xs btn-primary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ลา</div>
+                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
                                 <div class="stat-value text-warning">{{ studentLeave }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">กิจกรรม</div>
+                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
                                 <div class="stat-value text-info">{{ studentActivity }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -327,6 +345,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import lottie from 'lottie-web'
 import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
@@ -342,6 +361,7 @@ import { useAuthStore } from '../../stores/auth'
 import { toVisibleSortedGrades } from '../../utils/gradeSystem'
 import { AllowanceService } from '../../api/allowance'
 
+const { t, locale } = useI18n()
 const auth = useAuthStore()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
@@ -396,7 +416,6 @@ const missedTotalItems = ref(0)
 const missedTotalPages = ref(0)
 const missedRole = ref('student')
 const classrooms = ref([])
-// const progressData = ref([])
 const studentLeave = ref(0)
 const teacherLeave = ref(0)
 const studentActivity = ref(0)
@@ -415,13 +434,22 @@ const displayDate = computed(() => {
     const [year, month, day] = (selectedDate.value || '').split('-').map(Number)
     if (!year || !month || !day) return ''
 
-    const thaiMonths = [
-        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-    ]
-    const buddhistYear = year + 543
+    const date = new Date(year, month - 1, day)
+    const currentLocale = locale.value || 'th'
 
-    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
+    if (currentLocale === 'en') {
+        return date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        })
+    }
+
+    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    })
 })
 
 const latePagination = computed(() => ({
@@ -919,20 +947,6 @@ const fetchAllowanceSettings = async () => {
     }
 };
 
-// async function fetchProgressData() {
-//     try {
-//         const res = await reportApi.getProgressReport({ date: selectedDate.value })
-//         if (res && res.message === 'Success') {
-//             progressData.value = res.data || []
-//         } else {
-//             progressData.value = []
-//         }
-//     } catch (e) {
-//         console.error('Error fetching progress report on dashboard:', e)
-//         progressData.value = []
-//     }
-// }
-
 onMounted(() => {
     showStudentStat.value = false
     showTeacherStat.value = false
@@ -1010,77 +1024,38 @@ onMounted(() => {
         containerEl3.addEventListener('mouseenter', playAnim3)
         containerEl3.addEventListener('mouseleave', stopAnim3)
     }
-
-    // if (studentLateIconRef.value) {
-    //     const animLate = lottie.loadAnimation({
-    //         container: studentLateIconRef.value,
-    //         renderer: 'svg',
-    //         loop: true,
-    //         autoplay: false,
-    //         path: new URL('../../assets/doodle-color-292-clock-time-hover-pinch.json', import.meta.url).href,
-    //     })
-    //     animLate.addEventListener('DOMLoaded', () => {
-    //         animLate.goToAndStop(0, true)
-    //     })
-    //     const containerLate = studentCardRef.value || studentLateStatRef.value || studentLateIconRef.value
-    //     const playLate = () => animLate.play()
-    //     const stopLate = () => animLate.stop()
-    //     containerLate.addEventListener('mouseenter', playLate)
-    //     containerLate.addEventListener('mouseleave', stopLate)
-    // }
 })
 </script>
 
 <style scoped>
-.slide-fade-enter-active {
-    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
+.slide-fade-enter-active,
 .slide-fade-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-fade-enter-from {
-    opacity: 0;
-    transform: translateX(-60px);
-}
-
+.slide-fade-enter-from,
 .slide-fade-leave-to {
     opacity: 0;
     transform: translateX(-60px);
 }
 
-.slide-down-enter-active {
-    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
+.slide-down-enter-active,
 .slide-down-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-down-enter-from {
-    opacity: 0;
-    transform: translateY(-60px);
-}
-
+.slide-down-enter-from,
 .slide-down-leave-to {
     opacity: 0;
     transform: translateY(-60px);
 }
 
-.slide-right-enter-active {
-    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
+.slide-right-enter-active,
 .slide-right-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-right-enter-from {
-    opacity: 0;
-    transform: translateX(60px);
-}
-
+.slide-right-enter-from,
 .slide-right-leave-to {
     opacity: 0;
     transform: translateX(60px);

@@ -7,19 +7,19 @@
                         <input type="checkbox" :checked="selectedAll"
                             @change="toggleSelectAll($event.target.checked)" />
                     </th>
-                    <th class="text-center">ลำดับ</th>
-                    <th>ชื่อ-สกุล</th>
-                    <th class="text-center">รหัสนักเรียน/รหัสอาจารย์</th>
-                    <th class="text-center max-[1307px]:hidden">ตำแหน่ง</th>
-                    <th class="text-center">ห้องเรียน/แผนก</th>
-                    <th class="text-center">สถานะการเชื่อมต่อ</th>
-                    <th v-if="auth.user?.role !== 'viewer'" class="text-center">จัดการ</th>
+                    <th class="text-center">{{ t('ModelingTable.index') }}</th>
+                    <th>{{ t('ModelingTable.fullName') }}</th>
+                    <th class="text-center">{{ t('ModelingTable.userId') }}</th>
+                    <th class="text-center max-[1307px]:hidden">{{ t('ModelingTable.position') }}</th>
+                    <th class="text-center">{{ t('ModelingTable.classroomOrDepartment') }}</th>
+                    <th class="text-center">{{ t('ModelingTable.connectionStatus') }}</th>
+                    <th v-if="auth.user?.role !== 'viewer'" class="text-center">{{ t('ModelingTable.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="data.length === 0">
                     <td :colspan="selectMode ? 8 : 7" class="text-center py-8 text-base-content/60">
-                        ไม่พบข้อมูล
+                        {{ t('ModelingTable.noData') }}
                     </td>
                 </tr>
                 <tr v-for="(item, index) in data" :key="item._id" class="hover"
@@ -58,7 +58,7 @@
                     <td>
                         <div v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0"
                             class="text-center text-base-content/60">
-                            ยังไม่ได้เชื่อมต่ออุปกรณ์
+                            {{ t('ModelingTable.notConnected') }}
                         </div>
                         <div v-else
                             class="flex items-center justify-center gap-2 max-[1307px]:grid max-[1307px]:grid-cols-4 max-[1307px]:justify-items-center max-[1307px]:gap-1">
@@ -74,7 +74,8 @@
                     <td v-if="auth.user?.role !== 'viewer'" @click.stop>
                         <div class="flex justify-center gap-2">
                             <DetailModeling :item="item" @updated="$emit('updated')" />
-                            <button class="btn btn-xs btn-warning" @click="handleEdit(item)" title="แก้ไข">
+                            <button class="btn btn-xs btn-warning" @click="handleEdit(item)"
+                                :title="t('ModelingTable.edit')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,7 +91,7 @@
 
     <div class="lg:hidden space-y-4">
         <div v-if="data.length === 0" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-            ไม่พบข้อมูล
+            {{ t('ModelingTable.noData') }}
         </div>
         <div v-for="(item, index) in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3"
             :class="{ 'cursor-pointer': selectMode }" @click="handleRowClick(item)">
@@ -115,7 +116,7 @@
                         </div>
                         <h3 class="font-bold text-lg">{{ item.name }}</h3>
                     </div>
-                    <p class="text-sm text-base-content/70">รหัส: {{ item.userid }}</p>
+                    <p class="text-sm text-base-content/70">{{ t('ModelingTable.code') }}: {{ item.userid }}</p>
                 </div>
             </div>
 
@@ -123,13 +124,13 @@
 
             <div class="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                    <span class="text-base-content/60">ตำแหน่ง:</span>
+                    <span class="text-base-content/60">{{ t('ModelingTable.position') }}:</span>
                     <p class="font-medium">{{ item.position }}</p>
                 </div>
                 <div>
                     <span class="text-base-content/60">
-                        <span v-if="item.role === 'student'">ห้องเรียน:</span>
-                        <span v-else>แผนก:</span>
+                        <span v-if="item.role === 'student'">{{ t('ModelingTable.classroom') }}:</span>
+                        <span v-else>{{ t('ModelingTable.department') }}:</span>
                     </span>
                     <p class="font-medium">
                         <span v-if="item.role === 'student'">
@@ -145,10 +146,10 @@
             <div class="divider my-2"></div>
 
             <div>
-                <span class="text-sm text-base-content/60 block mb-2">สถานะการเชื่อมต่อ:</span>
+                <span class="text-sm text-base-content/60 block mb-2">{{ t('ModelingTable.connectionStatus') }}:</span>
                 <div v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0"
                     class="text-center text-base-content/60">
-                    ยังไม่ได้เชื่อมต่ออุปกรณ์
+                    {{ t('ModelingTable.notConnected') }}
                 </div>
                 <div v-else class="flex flex-wrap gap-2">
                     <div v-for="(model, idx) in item.modeling" :key="idx" class="tooltip tooltip-top"
@@ -167,7 +168,7 @@
                     <DetailModeling :item="item" @updated="$emit('updated')" />
                     <button class="btn btn-xs btn-warning"
                         :class="detailItem && detailItem._id === item._id ? 'btn-outline' : ''"
-                        @click="handleEdit(item)" title="แก้ไข">
+                        @click="handleEdit(item)" :title="t('ModelingTable.edit')">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,16 +182,16 @@
 
     <div class="mt-4 flex flex-wrap gap-4 text-xs">
         <div class="flex items-center gap-1 text-white">
-            <span class="w-3 h-3 rounded-full bg-info inline-block"></span> กำลังเชื่อมโยงอุปกรณ์
+            <span class="w-3 h-3 rounded-full bg-info inline-block"></span> {{ t('ModelingTable.statusConnecting') }}
         </div>
         <div class="flex items-center gap-1 text-white">
-            <span class="w-3 h-3 rounded-full bg-success inline-block"></span> สำเร็จ
+            <span class="w-3 h-3 rounded-full bg-success inline-block"></span> {{ t('ModelingTable.statusSuccess') }}
         </div>
         <div class="flex items-center gap-1 text-white">
-            <span class="w-3 h-3 rounded-full bg-error inline-block"></span> เชื่อมโยงไม่สำเร็จ
+            <span class="w-3 h-3 rounded-full bg-error inline-block"></span> {{ t('ModelingTable.statusFailed') }}
         </div>
         <div class="flex items-center gap-1 text-white">
-            <span class="w-3 h-3 rounded-full bg-warning inline-block"></span> กำลังลบเชื่อมโยงอุปกรณ์
+            <span class="w-3 h-3 rounded-full bg-warning inline-block"></span> {{ t('ModelingTable.statusDeleting') }}
         </div>
         <UpdateStudent ref="updateStudentRef" :classrooms="classrooms"
             @success="() => emit('updated', { refresh: true, key: Math.random() })" emitRaw />
@@ -222,6 +223,9 @@ import { DepartmentService } from '../../api/department.js';
 import { PositionService } from '../../api/position.js';
 import { useAuthStore } from '../../stores/auth'
 import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const auth = useAuthStore()
 
@@ -372,11 +376,11 @@ const toggleSelectAll = (checked) => {
 };
 
 const statusLabel = (s) => {
-    if (s === 0) return 'กำลังเชื่อมโยงอุปกรณ์';
-    if (s === 2) return 'สำเร็จ';
-    if (s === 4) return 'เชื่อมโยงไม่สำเร็จ';
-    if (s === 5) return 'กำลังลบเชื่อมโยงอุปกรณ์';
-    return 'ไม่ทราบสถานะ';
+    if (s === 0) return t('ModelingTable.statusConnecting');
+    if (s === 2) return t('ModelingTable.statusSuccess');
+    if (s === 4) return t('ModelingTable.statusFailed');
+    if (s === 5) return t('ModelingTable.statusDeleting');
+    return t('ModelingTable.statusUnknown');
 }
 
 const statusColorClass = (s) => {

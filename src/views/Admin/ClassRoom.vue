@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการห้องเรียน</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">{{ t('classroomPage.title') }}</h2>
             <div class="flex gap-2">
                 <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" @click="openCreateModal"
                     class="btn btn-primary btn-sm">
@@ -9,7 +9,7 @@
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มห้องเรียน
+                    {{ t('classroomPage.add') }}
                 </button>
                 <Promote
                     v-if="featureFlags.gradeSystem.enablePromoteLevel && auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'"
@@ -55,9 +55,11 @@ import Promote from '../../components/ClassRoom/Promote.vue'
 import { ClassRoomService } from '../../api/class-room'
 import { TeacherService } from '../../api/teacher'
 import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 import featureFlags from '../../config/featureFlags'
 import { getConfiguredGrades, getGradeCompactLabel, getGradeFullLabel, getGradeUiLabel, shouldIncludeGrade, toVisibleSortedGrades } from '../../utils/gradeSystem'
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const classRoomService = new ClassRoomService()
 const teacherService = new TeacherService()
@@ -105,8 +107,8 @@ const fetchClassRooms = async () => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลห้องเรียนได้',
+            title: t('classroomPage.loadErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.loadErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -132,7 +134,7 @@ const handleCreateSuccess = async (formData) => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'warning',
-                title: 'กรุณาเลือกครูที่ปรึกษาอย่างน้อย 1 คน',
+                title: t('classroomPage.chooseAdviser'),
                 confirmButtonColor: '#2563eb',
                 didOpen: () => {
                     document.getElementById('app').removeAttribute('aria-hidden')
@@ -151,7 +153,7 @@ const handleCreateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'success',
-            title: 'เพิ่มห้องเรียนสำเร็จ',
+            title: t('classroomPage.createSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -163,8 +165,8 @@ const handleCreateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถเพิ่มห้องเรียนได้',
+            title: t('classroomPage.createErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.createErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -183,7 +185,7 @@ const handleUpdateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'success',
-            title: 'แก้ไขห้องเรียนสำเร็จ',
+            title: t('classroomPage.updateSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -195,8 +197,8 @@ const handleUpdateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขห้องเรียนได้',
+            title: t('classroomPage.updateErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.updateErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

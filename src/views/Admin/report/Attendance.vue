@@ -1,10 +1,10 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h1 class="text-lg md:text-3xl font-bold">ตารางเข้า-ออก</h1>
+            <h1 class="text-lg md:text-3xl font-bold">{{ $t('Attendance.title') }}</h1>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">วันที่เริ่มต้น</label>
+                    <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">{{ $t('Attendance.startDate') }}</label>
                     <input v-model="filters.start" type="date" @change="fetchData" :max="getDefaultDate()"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
@@ -12,7 +12,7 @@
                     <span class="mx-1">-</span>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">วันที่สิ้นสุด</label>
+                    <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">{{ $t('Attendance.endDate') }}</label>
                     <input v-model="filters.end" type="date" @change="fetchData" :max="getDefaultDate()"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
@@ -24,30 +24,30 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Attendance.typeLabel') }}</span>
                     </label>
                     <select v-model="filters.role" @change="handleRoleChange"
                         class="select select-sm select-bordered w-full">
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">ครู</option>
+                        <option value="student">{{ $t('Attendance.typeStudent') }}</option>
+                        <option value="teacher">{{ $t('Attendance.typeTeacher') }}</option>
                     </select>
                 </div>
 
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ค้นหาชื่อ/รหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Attendance.searchLabel') }}</span>
                     </label>
-                    <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
+                    <input v-model="filters.search" type="text" :placeholder="$t('Attendance.searchPlaceholder')"
                         class="input input-sm input-bordered w-full" @keyup.enter="fetchData" />
                 </div>
 
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ชั้นปี</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Attendance.gradeLabel') }}</span>
                     </label>
                     <select v-model="filters.grade" class="select select-sm select-bordered w-full"
                         :disabled="filters.role === 'teacher'">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('Attendance.allGrades') }}</option>
                         <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade)
                             }}</option>
                     </select>
@@ -55,11 +55,11 @@
 
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ห้อง</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Attendance.classroomLabel') }}</span>
                     </label>
                     <select v-model="filters.classroom" class="select select-sm select-bordered w-full"
                         :disabled="filters.role === 'teacher'">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('Attendance.allClassrooms') }}</option>
                         <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
@@ -67,7 +67,7 @@
                     class="form-control col-span-3 flex flex-col items-center md:items-end">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('Attendance.gradeClassroomBadge') }}</span>
                         <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <span class="hidden sm:inline">ค้นหา</span>
+                        <span class="hidden sm:inline">{{ $t('Attendance.searchButton') }}</span>
                     </button>
                     <button @click="resetFilters" class="btn btn-sm btn-outline">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
@@ -97,7 +97,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span class="hidden sm:inline">รีเซ็ต</span>
+                        <span class="hidden sm:inline">{{ $t('Attendance.resetButton') }}</span>
                     </button>
                 </div>
                 <button @click="toggleTableType" class="btn btn-sm btn-secondary">
@@ -111,7 +111,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 7h18M3 12h18M3 17h18" />
                     </svg>
-                    {{ tableType === 'detail' ? 'แบบจำนวน' : 'แบบข้อมูล' }}
+                    {{ tableType === 'detail' ? $t('Attendance.amountMode') : $t('Attendance.detailMode') }}
                 </button>
             </div>
         </div>
@@ -142,12 +142,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ReportTable from '../../../components/Report/AttendanceTable.vue'
 import ReportTableAmount from '../../../components/Report/AttendanceTable-amount.vue'
 import AttendanceDetail from '../../../components/Report/AttendanceDetail.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem'
+
+const { t } = useI18n()
 const tableType = ref('detail')
 
 function toggleTableType() {
@@ -236,7 +239,7 @@ const fetchData = async () => {
             }
         }
     } catch (err) {
-        error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
+        error.value = t('Attendance.fetchError')
         console.error('Error fetching report:', err)
     } finally {
         loading.value = false
@@ -316,10 +319,6 @@ async function fetchClassrooms() {
         console.error('Error fetching classrooms:', e)
     }
 }
-
-onMounted(() => {
-    fetchData()
-})
 </script>
 
 <style scoped></style>

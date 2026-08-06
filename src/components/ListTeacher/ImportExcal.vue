@@ -2,36 +2,34 @@
     <dialog ref="modalRef" class="modal">
         <div class="modal-box w-11/12 max-w-4xl">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg text-primary">นำเข้าข้อมูลครูจาก Excel 📝</h3>
+                <h3 class="font-bold text-lg text-primary">{{ t('TeacherImportExcel.title') }}</h3>
                 <button class="btn btn-sm btn-circle btn-ghost" @click="closeModal">✕</button>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mb-4 p-4 border rounded-lg bg-base-200">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์ Excel (.xlsx, .xls)</span>
+                        <span class="label-text font-medium">{{ t('TeacherImportExcel.selectExcelLabel') }}</span>
                     </label>
                     <input type="file" accept=".xlsx,.xls" @change="onExcelChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="excelFile" class="text-xs text-success mt-1">ไฟล์ที่เลือก: {{ excelFile.name }}</p>
+                    <p v-if="excelFile" class="text-xs text-success mt-1">{{ t('TeacherImportExcel.selectedFile') }} {{ excelFile.name }}</p>
                     <div class="mt-2">
                         <a :href="exampleExcelUrl" download class="link link-primary text-xs">
-                            ดาวน์โหลดไฟล์ตัวอย่าง Excel
+                            {{ t('TeacherImportExcel.downloadSample') }}
                         </a>
                     </div>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์รูปภาพ (หลายไฟล์ได้)</span>
+                        <span class="label-text font-medium">{{ t('TeacherImportExcel.selectImagesLabel') }}</span>
                     </label>
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                    }} ไฟล์</p>
-                    <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพให้ตรงกับคอลัมน์ ชื่อรูป เช่น
-                        <b>image001.jpg</b>
-                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ
+                    <p v-if="imageFiles.length" class="text-xs text-success mt-1">{{ t('TeacherImportExcel.selectedImages') }} {{ imageFiles.length }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ t('TeacherImportExcel.imageHint') }}
                     </p>
                 </div>
             </div>
@@ -39,24 +37,24 @@
             <div class="flex gap-2">
                 <button class="btn btn-warning" @click="previewExcel" :disabled="!excelFile || isPreviewing">
                     <span v-if="isPreviewing" class="loading loading-spinner"></span>
-                    ดูตัวอย่าง
+                    {{ t('TeacherImportExcel.previewButton') }}
                 </button>
             </div>
 
             <div v-if="previewData.length" class="mt-6">
-                <h3 class="font-bold mb-2 text-secondary">ตัวอย่างข้อมูลครู ({{ previewData.length }} แถว)</h3>
+                <h3 class="font-bold mb-2 text-secondary">{{ t('TeacherImportExcel.previewTitle', { count: previewData.length }) }}</h3>
                 <div class="overflow-x-auto max-h-96">
                     <table class="table table-zebra w-full table-sm">
                         <thead>
                             <tr class="bg-base-300">
-                                <th>รหัส</th>
-                                <th>คำนำหน้า</th>
-                                <th>ชื่อ</th>
-                                <th>นามสกุล</th>
-                                <th>รหัสบัตร</th>
-                                <th>ตำแหน่ง</th>
-                                <th>แผนก</th>
-                                <th>ชื่อรูปภาพ</th>
+                                <th>{{ t('TeacherImportExcel.colUserId') }}</th>
+                                <th>{{ t('TeacherImportExcel.colPrefix') }}</th>
+                                <th>{{ t('TeacherImportExcel.colFirstName') }}</th>
+                                <th>{{ t('TeacherImportExcel.colLastName') }}</th>
+                                <th>{{ t('TeacherImportExcel.colRfid') }}</th>
+                                <th>{{ t('TeacherImportExcel.colPosition') }}</th>
+                                <th>{{ t('TeacherImportExcel.colDepartment') }}</th>
+                                <th>{{ t('TeacherImportExcel.colImageName') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -79,22 +77,22 @@
                     </table>
                 </div>
                 <p class="text-xs mt-2">
-                    <span class="text-success font-semibold">สีเขียว</span> = จับคู่ไฟล์รูปได้,
-                    <span class="text-error font-semibold">สีแดง</span> = ยังไม่พบไฟล์รูปที่ตรงกับคอลัมน์ชื่อรูป
+                    <span class="text-success font-semibold">{{ t('TeacherImportExcel.matchedHint') }}</span>
+                    <span class="text-error font-semibold">{{ t('TeacherImportExcel.unmatchedHint') }}</span>
                 </p>
                 <div class="flex justify-center items-center gap-2 mt-2">
                     <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">‹</button>
-                    <span class="text-xs">หน้า {{ currentPage }} / {{ totalPages }}</span>
+                    <span class="text-xs">{{ t('TeacherImportExcel.pageText', { current: currentPage, total: totalPages }) }}</span>
                     <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">›</button>
                 </div>
                 <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
                     <span v-if="isImporting" class="loading loading-spinner"></span>
-                    ✅ บันทึกและนำเข้าข้อมูล
+                    {{ t('TeacherImportExcel.saveImportButton') }}
                 </button>
             </div>
 
             <div v-if="!excelFile && !previewData.length" class="text-center p-8 text-gray-500">
-                กรุณาเลือกไฟล์ Excel เพื่อเริ่มต้นการนำเข้า
+                {{ t('TeacherImportExcel.emptyHint') }}
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -105,9 +103,12 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { TeacherService } from '../../api/teacher'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
+
+const { t } = useI18n()
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
@@ -220,7 +221,7 @@ function onImagesChange(e) {
 
 function previewExcel() {
     if (!excelFile.value) {
-        Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกไฟล์ Excel ก่อน', 'warning')
+        Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errSelectExcelFirst'), 'warning')
         return
     }
 
@@ -244,7 +245,7 @@ function previewExcel() {
             const json = XLSX.utils.sheet_to_json(sheet)
 
             if (!json || json.length === 0) {
-                Swal.fire('ข้อมูลว่างเปล่า', 'ไม่พบข้อมูลในไฟล์ Excel ที่เลือก', 'warning')
+                Swal.fire('ข้อมูลว่างเปล่า', t('TeacherImportExcel.errEmptyData'), 'warning')
             } else {
                 previewData.value = json.map(row => {
                     const userid = (mapHeader('รหัส', row) || mapHeader('userid', row) || '').toString().trim();
@@ -280,7 +281,7 @@ function previewExcel() {
 
         } catch (error) {
             console.error('Error reading Excel:', error)
-            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถอ่านไฟล์ Excel ได้ ลองตรวจสอบรูปแบบไฟล์', 'error')
+            Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errReadExcel'), 'error')
             previewData.value = []
         } finally {
             isPreviewing.value = false
@@ -288,14 +289,14 @@ function previewExcel() {
     }
     reader.onerror = () => {
         isPreviewing.value = false
-        Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการโหลดไฟล์', 'error')
+        Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errLoadFile'), 'error')
     }
     reader.readAsArrayBuffer(excelFile.value)
 }
 
 async function handleImport() {
     if (!previewData.value.length || !excelFile.value) {
-        Swal.fire('แจ้งเตือน', 'กรุณาดูตัวอย่างข้อมูลและตรวจสอบความถูกต้องก่อนบันทึก', 'warning')
+        Swal.fire('แจ้งเตือน', t('TeacherImportExcel.warnPreviewFirst'), 'warning')
         return
     }
 

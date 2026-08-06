@@ -6,7 +6,7 @@
             </div>
 
             <div v-else-if="departments.length === 0" class="text-center py-8 text-base-content/60">
-                ไม่มีข้อมูลแผนก
+                {{ t('departmentPage.noData') }}
             </div>
 
             <div v-else class="overflow-x-auto">
@@ -14,8 +14,9 @@
                     <thead>
                         <tr>
                             <th class="w-10 md:w-20">#</th>
-                            <th class="">ชื่อแผนก</th>
-                            <th v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="w-10 md:w-24 px-2 py-1 text-center">จัดการ</th>
+                            <th class="">{{ t('departmentPage.name') }}</th>
+                            <th v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'"
+                                class="w-10 md:w-24 px-2 py-1 text-center">{{ t('departmentPage.manage') }}</th>
                         </tr>
                     </thead>
                     <!-- <tbody>
@@ -25,7 +26,7 @@
                             <td v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
                                 <div class="flex justify-center">
                                     <button @click="$emit('delete', dept)"
-                                        class="btn btn-ghost btn-sm btn-square" title="ลบ">
+                                        class="btn btn-ghost btn-sm btn-square" :title="t('common.delete')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error"
                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -61,8 +62,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 const auth = useAuthStore()
+const { t } = useI18n()
 defineProps({
     departments: {
         type: Array,

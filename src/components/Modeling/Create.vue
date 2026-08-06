@@ -7,7 +7,7 @@
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มการเชื่อมต่ออุปกรณ์
+                    {{ t('ModelingCreate.addConnection') }}
                 </button>
                 <button class="btn btn-warning btn-sm flex items-center gap-1" @click="handleSelectMode">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -15,34 +15,37 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.657 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    เลือกบุคคล
+                    {{ t('ModelingCreate.selectPerson') }}
                 </button>
             </template>
             <template v-else>
                 <button class="btn btn-ghost btn-sm flex items-center gap-1" @click="cancelSelectMode">
-                    ยกเลิก
+                    {{ t('common.cancel') }}
                 </button>
                 <button class="btn btn-info btn-sm flex items-center gap-1" @click="showBasket = true">
-                    จำนวน ({{ selectedIds.length }})
+                    {{ t('ModelingCreate.selectedCount', { count: selectedIds.length }) }}
                 </button>
                 <button class="btn btn-primary btn-sm flex items-center gap-1" @click="openCreateModalWithSelected">
-                    ยืนยัน
+                    {{ t('ModelingCreate.confirm') }}
                 </button>
             </template>
             <dialog ref="basketDialog" class="modal">
                 <div class="modal-box max-w-2xl">
-                    <h3 class="font-bold text-lg mb-4">รายการที่เลือก ({{ selectedIds.length }})</h3>
+                    <h3 class="font-bold text-lg mb-4">{{ t('ModelingCreate.selectedListTitle', {
+                        count:
+                        selectedIds.length }) }}
+                    </h3>
                     <div v-if="selectedIds.length === 0" class="text-center text-base-content/60 py-8">
-                        ยังไม่มีรายการที่เลือก
+                        {{ t('ModelingCreate.noSelectedItems') }}
                     </div>
                     <div v-else>
                         <table class="table table-zebra w-full mb-4">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>รูป</th>
-                                    <th>ชื่อ</th>
-                                    <th>รหัส</th>
+                                    <th>{{ t('ModelingCreate.image') }}</th>
+                                    <th>{{ t('ModelingCreate.name') }}</th>
+                                    <th>{{ t('ModelingCreate.code') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,33 +74,35 @@
                         </div>
                     </div>
                     <div class="modal-action">
-                        <button class="btn btn-ghost" @click="closeBasket">ปิด</button>
+                        <button class="btn btn-ghost" @click="closeBasket">{{ t('common.close') }}</button>
                     </div>
                 </div>
                 <form method="dialog" class="modal-backdrop">
-                    <button type="button" @click="closeBasket">close</button>
+                    <button type="button" @click="closeBasket">{{ t('common.close') }}</button>
                 </form>
             </dialog>
         </div>
 
         <dialog ref="modal" class="modal">
             <div class="modal-box max-w-md">
-                <h3 class="font-bold text-lg mb-4">เพิ่มการเชื่อมต่ออุปกรณ์</h3>
+                <h3 class="font-bold text-lg mb-4">{{ t('ModelingCreate.modalTitle') }}</h3>
                 <form @submit.prevent="handleSubmit">
                     <div v-if="!hideType" class="form-control mb-4">
                         <label class="label">
-                            <span class="label-text">ประเภท <span class="text-error">*</span></span>
+                            <span class="label-text">{{ t('ModelingCreate.type') }} <span
+                                    class="text-error">*</span></span>
                         </label>
                         <select v-model="formData.option" class="select select-bordered w-full" required>
-                            <option value="" disabled>เลือกประเภท</option>
-                            <option value="student">นักเรียน</option>
-                            <option value="teacher">อาจารย์</option>
+                            <option value="" disabled>{{ t('ModelingCreate.selectType') }}</option>
+                            <option value="student">{{ t('ModelingCreate.student') }}</option>
+                            <option value="teacher">{{ t('ModelingCreate.teacher') }}</option>
                         </select>
                     </div>
 
                     <div class="form-control mb-4">
                         <label class="label">
-                            <span class="label-text">เลือกอุปกรณ์ <span class="text-error">*</span></span>
+                            <span class="label-text">{{ t('ModelingCreate.selectDevice') }} <span
+                                    class="text-error">*</span></span>
                         </label>
                         <div v-if="loadingDevices" class="flex justify-center py-4">
                             <span class="loading loading-spinner loading-sm"></span>
@@ -110,30 +115,33 @@
                                 <span class="text-sm">{{ device.location }}</span>
                             </label>
                             <div v-if="devices.length === 0" class="text-center text-sm text-base-content/60 py-4">
-                                ไม่พบอุปกรณ์
+                                {{ t('ModelingCreate.noDevices') }}
                             </div>
                         </div>
                         <label class="label">
-                            <span class="label-text-alt text-base-content/60">เลือกอุปกรณ์อย่างน้อย 1 รายการ</span>
+                            <span class="label-text-alt text-base-content/60">{{
+                                t('ModelingCreate.selectAtLeastOneDevice')
+                                }}</span>
                         </label>
                     </div>
 
                     <div class="modal-action flex justify-between items-center">
                         <button v-if="hideType" type="button" @click="backToSelectPerson" class="btn btn-warning">
-                            กลับ
+                            {{ t('ModelingCreate.back') }}
                         </button>
                         <div class="flex gap-2">
-                            <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                            <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('common.cancel')
+                                }}</button>
                             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
-                                {{ isSubmitting ? 'กำลังบันทึก...' : 'บันทึก' }}
+                                {{ isSubmitting ? t('ModelingCreate.saving') : t('common.save') }}
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button type="button" @click="closeModal">close</button>
+                <button type="button" @click="closeModal">{{ t('common.close') }}</button>
             </form>
         </dialog>
     </div>
@@ -144,6 +152,9 @@ import { ref, onMounted, computed, watch } from 'vue';
 import ModelingService from '../../api/modeling.js';
 import DeviceService from '../../api/device.js';
 import Swal from 'sweetalert2';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['created', 'selectModeChanged', 'selectedIds']);
 const selectMode = ref(false);
@@ -264,8 +275,8 @@ const loadDevices = async () => {
         console.error('Error loading devices:', error);
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้'
+            title: t('ModelingCreate.loadDevicesErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('ModelingCreate.loadDevicesErrorText')
         });
     } finally {
         loadingDevices.value = false;
@@ -287,8 +298,8 @@ const handleSubmit = async () => {
     if (formData.value.device_id.length === 0) {
         Swal.fire({
             icon: 'warning',
-            title: 'แจ้งเตือน',
-            text: 'กรุณาเลือกอุปกรณ์อย่างน้อย 1 รายการ'
+            title: t('ModelingCreate.warningTitle'),
+            text: t('ModelingCreate.selectAtLeastOneDevice')
         });
         return;
     }
@@ -312,8 +323,8 @@ const handleSubmit = async () => {
         if (response.message === 'Success') {
             Swal.fire({
                 icon: 'success',
-                title: 'สำเร็จ',
-                text: 'สร้าง Modeling สำเร็จ',
+                title: t('ModelingCreate.successTitle'),
+                text: t('ModelingCreate.successText'),
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -324,8 +335,8 @@ const handleSubmit = async () => {
         console.error('Error creating modeling:', error);
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.response?.data?.message || error?.message || 'ไม่สามารถสร้าง Modeling ได้'
+            title: t('ModelingCreate.createErrorTitle'),
+            text: error?.response?.data?.error || error?.response?.data?.message || error?.message || t('ModelingCreate.createErrorText')
         });
     } finally {
         isSubmitting.value = false;

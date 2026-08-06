@@ -6,7 +6,7 @@
                     <span class="loading loading-spinner loading-lg text-primary"></span>
                 </div>
                 <div v-else-if="students.length === 0" class="text-center py-8 text-base-content/50">
-                    ไม่มีข้อมูลนักเรียน
+                    {{ $t('StudentTable.noData') }}
                 </div>
                 <div v-else class="space-y-4">
                     <div v-for="student in students" :key="student.id"
@@ -25,14 +25,16 @@
                             </div>
                             <div>
                                 <span class="font-medium">{{ student.name }}</span>
-                                <div class="text-xs text-base-content/70">รหัส: {{ student.code }}</div>
+                                <div class="text-xs text-base-content/70">{{ $t('StudentTable.codePrefix') }} {{
+                                    student.code }}</div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 text-sm mt-2">
                             <span class="badge badge-primary badge-sm">{{ mapGradeDisplay(student.grade) }}</span>
-                            <span class="badge badge-outline badge-sm">ห้อง {{ student.room }}</span>
+                            <span class="badge badge-outline badge-sm">{{ $t('StudentTable.roomPrefix') }} {{
+                                student.room }}</span>
                             <span class="badge badge-sm font-semibold" :class="getScoreBadgeClass(student.score)">
-                                คะแนน {{ getScoreDisplay(student.score) }}
+                                {{ $t('StudentTable.scorePrefix') }} {{ getScoreDisplay(student.score) }}
                             </span>
                         </div>
                         <div class="flex flex-col gap-2 mt-2">
@@ -40,20 +42,19 @@
                                 <div class="inline-flex items-center gap-1">
                                     <template v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'">
                                         <button class="btn btn-ghost btn-xs"
-                                            :title="student.has_password ? 'มีรหัสผ่าน' : 'ยังไม่มีรหัสผ่าน'"
+                                            :title="student.has_password ? $t('StudentTable.hasPassword') : $t('StudentTable.noPassword')"
                                             @click="emitReset(student)">
                                             <span :class="student.has_password ? 'bg-green-500' : 'bg-red-500'"
                                                 class="inline-block w-3 h-3 rounded-full"></span>
-                                            <span class="ml-2 text-xs">{{ student.has_password ? 'มีรหัสผ่าน' :
-                                                'ยังไม่มีรหัสผ่าน' }}</span>
+                                            <span class="ml-2 text-xs">{{ student.has_password ?
+                                                $t('StudentTable.hasPassword') : $t('StudentTable.noPassword') }}</span>
                                         </button>
                                     </template>
                                     <template v-else>
                                         <span :class="student.has_password ? 'bg-green-500' : 'bg-red-500'"
                                             class="inline-block w-3 h-3 rounded-full"></span>
-                                        <span class="text-xs">{{ student.has_password ? 'มีรหัสผ่าน' :
-                                            'ยังไม่มีรหัสผ่าน'
-                                            }}</span>
+                                        <span class="text-xs">{{ student.has_password ? $t('StudentTable.hasPassword') :
+                                            $t('StudentTable.noPassword') }}</span>
                                     </template>
                                 </div>
                                 <span v-if="hasGuardian(student)" class="inline-flex items-center shrink-0">
@@ -81,14 +82,15 @@
                                                                 class="w-full h-full object-cover" />
                                                             <div v-else
                                                                 class="w-full h-full flex items-center justify-center text-xs text-base-content/60">
-                                                                ไม่มีรูป
+                                                                {{ $t('StudentTable.noImage') }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="text-xs text-base-content/60">
-                                                            ผู้ปกครอง LINE{{ getGuardianCount(student) > 1 ? `
-                                                            ${guardianIndex + 1}` : '' }}
+                                                            {{ $t('StudentTable.guardianLine') }}{{
+                                                            getGuardianCount(student) > 1 ? ` ${guardianIndex +
+                                                            1}` : '' }}
                                                         </div>
                                                         <div class="font-medium truncate">{{ guardian.name || '-' }}
                                                         </div>
@@ -97,7 +99,7 @@
                                                     </div>
                                                 </div>
                                                 <button type="button" class="btn btn-ghost btn-xs btn-square text-error"
-                                                    :title="guardian.lineuserId ? 'ลบ' : 'ไม่พบ lineuser_id'"
+                                                    :title="guardian.lineuserId ? $t('StudentTable.delete') : 'ไม่พบ lineuser_id'"
                                                     :disabled="guardianDeletingKey === guardian.key"
                                                     @click.stop="deleteGuardianLine(student, guardian)">
                                                     <span v-if="guardianDeletingKey === guardian.key"
@@ -116,7 +118,7 @@
                             </div>
                             <div class="flex gap-2 flex-wrap xs:flex-col xs:items-stretch xs:w-full">
                                 <button class="btn btn-sm btn-info btn-outline" @click="emitDetail(student)"
-                                    title="ดูรายละเอียด">
+                                    :title="$t('StudentTable.actionDetail')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -126,7 +128,8 @@
                                     </svg>
                                 </button>
                                 <button v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
-                                    class="btn btn-sm btn-warning btn-outline" @click="emitEdit(student)" title="แก้ไข">
+                                    class="btn btn-sm btn-warning btn-outline" @click="emitEdit(student)"
+                                    :title="$t('StudentTable.actionEdit')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -134,7 +137,8 @@
                                     </svg>
                                 </button>
                                 <button v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
-                                    class="btn btn-sm btn-error btn-outline" @click="emitDelete(student)" title="ลบ">
+                                    class="btn btn-sm btn-error btn-outline" @click="emitDelete(student)"
+                                    :title="$t('StudentTable.actionDelete')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -150,15 +154,20 @@
                 <table class="table table-zebra table-xs sm:table-sm md:table-md student-table">
                     <thead>
                         <tr>
-                            <th class="bg-primary text-primary-content hidden lg:table-cell">#</th>
-                            <th class="bg-primary text-primary-content">ชื่อ-นามสกุล</th>
-                            <th class="bg-primary text-primary-content hidden sm:table-cell">รหัสนักเรียน</th>
-                            <th class="bg-primary text-primary-content">ระดับชั้น</th>
-                            <th class="bg-primary text-primary-content hidden md:table-cell">ห้อง</th>
-                            <th class="bg-primary text-primary-content text-center hidden xl:table-cell">คะแนน</th>
-                            <th class="bg-primary text-primary-content text-center">สถานะ</th>
-                            <th class="bg-primary text-primary-content text-center">
-                                จัดการ</th>
+                            <th class="bg-primary text-primary-content hidden lg:table-cell">{{
+                                $t('StudentTable.colNum') }}</th>
+                            <th class="bg-primary text-primary-content">{{ $t('StudentTable.colName') }}</th>
+                            <th class="bg-primary text-primary-content hidden sm:table-cell">{{
+                                $t('StudentTable.colCode') }}</th>
+                            <th class="bg-primary text-primary-content">{{ $t('StudentTable.colGrade') }}</th>
+                            <th class="bg-primary text-primary-content hidden md:table-cell">{{
+                                $t('StudentTable.colRoom') }}</th>
+                            <th class="bg-primary text-primary-content text-center hidden xl:table-cell">{{
+                                $t('StudentTable.colScore') }}</th>
+                            <th class="bg-primary text-primary-content text-center">{{ $t('StudentTable.colStatus') }}
+                            </th>
+                            <th class="bg-primary text-primary-content text-center">{{ $t('StudentTable.colManage') }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="p-0">
@@ -169,7 +178,7 @@
                         </tr>
                         <tr v-else-if="students.length === 0">
                             <td colspan="8" class="text-center py-8 text-base-content/50">
-                                ไม่มีข้อมูลนักเรียน
+                                {{ $t('StudentTable.noData') }}
                             </td>
                         </tr>
                         <tr v-else v-for="(student, index) in students" :key="student.id" class="hover">
@@ -185,7 +194,7 @@
                                             <div v-else
                                                 class="w-full h-full bg-secondary text-secondary-content flex items-center justify-center">
                                                 <span class="text-sm font-semibold">{{ getInitials(student.name)
-                                                    }}</span>
+                                                }}</span>
                                                 <svg class="ml-1 w-4 h-4 text-base-content/50" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -213,7 +222,7 @@
                                     class="flex items-center justify-center gap-2 max-[1070px]:flex-col max-[1070px]:gap-1">
                                     <template v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'">
                                         <button class="btn btn-ghost btn-xs"
-                                            :title="student.has_password ? 'มีรหัสผ่าน' : 'ยังไม่มีรหัสผ่าน'"
+                                            :title="student.has_password ? $t('StudentTable.hasPassword') : $t('StudentTable.noPassword')"
                                             @click="emitReset(student)">
                                             <span :class="student.has_password ? 'bg-green-500' : 'bg-red-500'"
                                                 class="inline-block w-3 h-3 rounded-full"></span>
@@ -249,15 +258,15 @@
                                                                 class="w-full h-full object-cover" />
                                                             <div v-else
                                                                 class="w-full h-full flex items-center justify-center text-xs text-base-content/60">
-                                                                ไม่มีรูป
+                                                                {{ $t('StudentTable.noImage') }}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="text-xs text-base-content/60">
-                                                            ผู้ปกครอง LINE{{ getGuardianCount(student) > 1 ? `
-                                                            ${guardianIndex + 1}`
-                                                                : '' }}
+                                                            {{ $t('StudentTable.guardianLine') }}{{
+                                                            getGuardianCount(student) > 1 ?
+                                                            ` ${guardianIndex + 1}` : '' }}
                                                         </div>
                                                         <div class="font-medium truncate">{{ guardian.name || '-' }}
                                                         </div>
@@ -266,7 +275,7 @@
                                                     </div>
                                                 </div>
                                                 <button type="button" class="btn btn-ghost btn-xs btn-square text-error"
-                                                    :title="guardian.lineuserId ? 'ลบ' : 'ไม่พบ lineuser_id'"
+                                                    :title="guardian.lineuserId ? $t('StudentTable.delete') : 'ไม่พบ lineuser_id'"
                                                     :disabled="guardianDeletingKey === guardian.key"
                                                     @click.stop="deleteGuardianLine(student, guardian)">
                                                     <span v-if="guardianDeletingKey === guardian.key"
@@ -286,7 +295,7 @@
                             <td>
                                 <div class="flex gap-1 lg:gap-2 justify-center">
                                     <button class="btn btn-xs xl:btn-sm btn-info btn-outline"
-                                        @click="emitDetail(student)" title="ดูรายละเอียด">
+                                        @click="emitDetail(student)" :title="$t('StudentTable.actionDetail')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -297,7 +306,7 @@
                                     </button>
                                     <button v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
                                         class="btn btn-xs xl:btn-sm btn-warning btn-outline" @click="emitEdit(student)"
-                                        title="แก้ไข">
+                                        :title="$t('StudentTable.actionEdit')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -306,7 +315,7 @@
                                     </button>
                                     <button v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
                                         class="btn btn-xs xl:btn-sm btn-error btn-outline" @click="emitDelete(student)"
-                                        title="ลบ">
+                                        :title="$t('StudentTable.actionDelete')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -338,9 +347,12 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { StudentService } from '../../api/student'
 import { mapGradeDisplay } from '../../utils/gradeSystem'
+
+const { t } = useI18n()
 const auth = useAuthStore()
 const openGuardianKey = ref(null)
 const guardianDeletingKey = ref(null)
@@ -459,11 +471,11 @@ const deleteGuardianLine = async (student, guardian) => {
     const { default: Swal } = await import('sweetalert2')
     const confirmResult = await Swal.fire({
         icon: 'warning',
-        title: 'ยืนยันการลบใช่ไหม',
-        text: 'ต้องการลบไลน์ผู้ปกครองรายการนี้หรือไม่',
+        title: t('StudentTable.deleteLineConfirmTitle'),
+        text: t('StudentTable.deleteLineConfirmText'),
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('StudentTable.delete'),
+        cancelButtonText: t('StudentTable.cancel'),
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6b7280',
         didOpen: () => {

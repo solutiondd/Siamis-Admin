@@ -3,9 +3,9 @@
         <div class="w-full bg-white rounded-lg shadow-sm p-6">
             <div class="mb-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">เช็คระเบียบการแต่งตัว</h2>
+                    <h2 class="text-2xl font-bold text-gray-800">{{ $t('UniformInspection.title') }}</h2>
                     <div class="flex items-center gap-2">
-                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">วันที่</label>
+                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">{{ $t('UniformInspection.date') }}</label>
                         <input v-model="selectedDate" type="date" class="input input-bordered input-sm"
                             @change="loadUsers" />
                     </div>
@@ -13,25 +13,25 @@
 
                 <div class="grid grid-cols-2 gap-3 gap-y-3 items-end lg:grid-cols-5 lg:gap-4">
                     <div class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ค้นหาชื่อ/รหัส</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('UniformInspection.searchQuery') }}</label>
                         <input v-model="searchQuery" type="text" class="input input-bordered w-full"
-                            placeholder="ชื่อหรือรหัส..." @input="handleSearch" />
+                            :placeholder="$t('UniformInspection.searchPlaceholder')" @input="handleSearch" />
                     </div>
 
                     <div class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">เพศ</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('UniformInspection.gender') }}</label>
                         <select v-model="selectedGender" class="select select-bordered w-full" @change="applyFilters">
-                            <option value="">ทั้งหมด</option>
-                            <option value="male">ชาย</option>
-                            <option value="female">หญิง</option>
+                            <option value="">{{ $t('UniformInspection.all') }}</option>
+                            <option value="male">{{ $t('UniformInspection.male') }}</option>
+                            <option value="female">{{ $t('UniformInspection.female') }}</option>
                         </select>
                     </div>
 
                     <div v-if="residentRole !== 'teacher'" class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ชั้นเรียน</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('UniformInspection.grade') }}</label>
                         <select v-model="selectedGrade" class="select select-bordered w-full"
                             @change="handleGradeChange">
-                            <option value="">เลือกชั้นเรียน</option>
+                            <option value="">{{ $t('UniformInspection.selectGrade') }}</option>
                             <option v-for="grade in gradeList" :key="grade" :value="grade">
                                 {{ mapGradeDisplay(grade) }}
                             </option>
@@ -39,9 +39,9 @@
                     </div>
 
                     <div v-if="residentRole !== 'teacher'" class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ห้องเรียน</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('UniformInspection.classroom') }}</label>
                         <select v-model="selectedClassroom" class="select select-bordered w-full" @change="loadUsers">
-                            <option value="">เลือกห้องเรียน</option>
+                            <option value="">{{ $t('UniformInspection.selectClassroom') }}</option>
                             <option v-for="classroom in filteredClassrooms" :key="classroom._id"
                                 :value="classroom.classroom">
                                 {{ classroom.classroom }}
@@ -51,7 +51,7 @@
 
                     <div v-if="residentRole === 'teacher'" class="w-full col-span-1 lg:col-start-5 flex justify-end">
                         <div class="p-2 text-white bg-primary rounded-md text-center min-w-[120px]">
-                            <span class="block text-sm font-medium text-secondary">ชั้นปี / ห้อง</span>
+                            <span class="block text-sm font-medium text-secondary">{{ $t('UniformInspection.gradeClassroomHeader') }}</span>
                             <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                         </div>
                     </div>
@@ -68,6 +68,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
 import { StudentService } from '../../api/student';
 import { ClassRoomService } from '../../api/class-room';
@@ -76,6 +77,7 @@ import { UniformInspectionService } from '../../api/uniform_inspection';
 import UniformInspectionTable from '../../components/Uniform Inspection/Table.vue';
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem';
 
+const { t } = useI18n();
 const studentService = new StudentService();
 const classRoomService = new ClassRoomService();
 const conductService = new ConductService();

@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex justify-between items-center text-white">
-            <h1 class="text-lg md:text-3xl font-bold">สแกนไม่สำเร็จ</h1>
+            <h1 class="text-lg md:text-3xl font-bold">{{ $t('Stranger.title') }}</h1>
             <input v-model="filters.date" type="date" @change="fetchData"
                 class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
         </div>
@@ -9,11 +9,11 @@
         <div class="bg-base-100 rounded-lg shadow-lg p-4">
             <div class="form-control">
                 <label class="label py-1">
-                    <span class="label-text text-sm font-medium">สถานที่</span>
+                    <span class="label-text text-sm font-medium">{{ $t('Stranger.locationLabel') }}</span>
                 </label>
                 <select v-model="filters.device_sn" @change="handleDeviceChange"
                     class="select select-sm select-bordered w-full max-w-xs">
-                    <option value="">ทั้งหมด</option>
+                    <option value="">{{ $t('Stranger.allLocations') }}</option>
                     <option v-for="device in devices" :key="device._id" :value="device.serial_number">
                         {{ device.location }}
                     </option>
@@ -58,7 +58,7 @@
             </div>
 
             <div v-if="totalRecords > 0" class="text-center text-sm text-base-content/60 mt-4 text-white">
-                ทั้งหมด {{ totalRecords }} รายการ (หน้า {{ pagination.page }} / {{ totalPages }})
+                {{ $t('Stranger.totalRecords', { total: totalRecords, page: pagination.page, totalPages: totalPages }) }}
             </div>
         </div>
     </div>
@@ -80,10 +80,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import StrangerTable from '../../../components/Report/StrangerTable.vue'
 import reportApi from '../../../api/report.js'
 import deviceService from '../../../api/device.js'
 
+const { t } = useI18n()
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
 const loading = ref(false)
@@ -144,7 +146,7 @@ const fetchData = async () => {
             pagination.value.limit = response.limit || 10
         }
     } catch (err) {
-        error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
+        error.value = t('Stranger.fetchError')
         console.error('Error fetching stranger report:', err)
     } finally {
         loading.value = false

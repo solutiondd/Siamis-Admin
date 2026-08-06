@@ -11,11 +11,15 @@
         </form>
     </dialog>
 </template>
+
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AttendanceInfo from '../AttendanceInfo.vue'
 import StudentDetail from '../ListStudent/Detail.vue'
 import TeacherDetail from '../ListTeacher/Detail.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     student: { type: Object, required: true },

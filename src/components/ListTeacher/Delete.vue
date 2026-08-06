@@ -7,17 +7,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01M5.07 19h13.86A2.07 2.07 0 0021 16.93V7.07A2.07 2.07 0 0018.93 5H5.07A2.07 2.07 0 003 7.07v9.86A2.07 2.07 0 005.07 19z" />
                 </svg>
-                ยืนยันการลบ
+                {{ t('TeacherDelete.title') }}
             </h3>
-            <p class="text-sm mb-4" v-if="teacher">ต้องการลบอาจารย์ <span class="font-semibold">{{ teacher.name
-            }}</span> ใช่หรือไม่?</p>
-            <p v-else class="text-sm mb-4">กำลังเตรียมข้อมูล...</p>
+            <p class="text-sm mb-4" v-if="teacher">
+                {{ t('TeacherDelete.confirmText', { name: teacher.name }) }}
+            </p>
+            <p v-else class="text-sm mb-4">{{ t('TeacherDelete.preparingData') }}</p>
 
             <div class="flex justify-end gap-2 mt-2">
-                <button class="btn btn-sm" @click="close" :disabled="loading">ยกเลิก</button>
+                <button class="btn btn-sm" @click="close" :disabled="loading">{{ t('TeacherDelete.cancel') }}</button>
                 <button class="btn btn-sm btn-error" @click="confirmDelete" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    <span v-else>ลบ</span>
+                    <span v-else>{{ t('TeacherDelete.delete') }}</span>
                 </button>
             </div>
         </div>
@@ -29,8 +30,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { TeacherService } from '../../api/teacher'
 
+const { t } = useI18n()
 const dialogRef = ref(null)
 const teacher = ref(null)
 const loading = ref(false)
@@ -70,8 +73,8 @@ async function showSuccess() {
     const { default: Swal } = await import('sweetalert2')
     await Swal.fire({
         icon: 'success',
-        title: 'ลบสำเร็จ',
-        text: 'ลบอาจารย์เรียบร้อยแล้ว',
+        title: t('TeacherDelete.successTitle'),
+        text: t('TeacherDelete.successText'),
         showConfirmButton: false,
         timer: 1600,
         didOpen: () => { document.getElementById('app')?.removeAttribute('aria-hidden') }
@@ -82,8 +85,8 @@ async function showError(error = null) {
     const { default: Swal } = await import('sweetalert2')
     await Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: error?.response?.data?.error || error?.message || 'ไม่สามารถลบอาจารย์ได้',
+        title: t('TeacherDelete.errorTitle'),
+        text: error?.response?.data?.error || error?.message || t('TeacherDelete.errorText'),
         confirmButtonColor: '#2563eb',
         didOpen: () => { document.getElementById('app')?.removeAttribute('aria-hidden') }
     })

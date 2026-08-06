@@ -10,7 +10,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="text-lg font-bold text-primary">ตั้งค่าการหักคะแนนอัตโนมัติ</span>
+                        <span class="text-lg font-bold text-primary">{{ $t('BehaviorList.autoDeductTitle') }}</span>
                         <svg xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 transition-transform text-base-content/60', conductSettingOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -18,7 +18,7 @@
                         </svg>
                     </div>
                     <button v-if="auth.user?.role !== 'viewer'" @click.stop="openConductSettingModal"
-                        class="bg-transparent border-none shadow-none p-0" title="แก้ไขการตั้งค่า">
+                        class="bg-transparent border-none shadow-none p-0" :title="$t('BehaviorList.editSettingTitle')">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="#fbbf24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -29,34 +29,34 @@
                 <div v-show="conductSettingOpen" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
                     <div class="rounded-lg border border-warning/40 bg-warning/5 p-3">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="font-semibold text-warning">มาสาย</span>
+                            <span class="font-semibold text-warning">{{ $t('BehaviorList.lateLabel') }}</span>
                             <span
                                 :class="conductSetting.late?.enabled ? 'badge badge-warning badge-sm' : 'badge badge-ghost badge-sm'">
-                                {{ conductSetting.late?.enabled ? 'เปิด' : 'ปิด' }}
+                                {{ conductSetting.late?.enabled ? $t('BehaviorList.statusOn') : $t('BehaviorList.statusOff') }}
                             </span>
                         </div>
                         <div class="text-sm space-y-1 text-base-content/80">
-                            <div>เวลาตัด: <span class="font-medium">{{ conductSetting.late?.cutoff_time || '-' }}</span>
+                            <div>{{ $t('BehaviorList.cutoffTime') }}: <span class="font-medium">{{ conductSetting.late?.cutoff_time || '-' }}</span>
                             </div>
-                            <div>หักคะแนน: <span class="font-medium text-error">{{ conductSetting.late?.score }}</span>
+                            <div>{{ $t('BehaviorList.scoreDeduct') }}: <span class="font-medium text-error">{{ conductSetting.late?.score }}</span>
                             </div>
-                            <div>พฤติกรรม: <span class="font-medium">{{ conductSetting.late?.behavior }}</span></div>
+                            <div>{{ $t('BehaviorList.behaviorLabel') }}: <span class="font-medium">{{ conductSetting.late?.behavior }}</span></div>
                         </div>
                     </div>
                     <div class="rounded-lg border border-error/40 bg-error/5 p-3">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="font-semibold text-error">ขาดเรียน</span>
+                            <span class="font-semibold text-error">{{ $t('BehaviorList.absentLabel') }}</span>
                             <span
                                 :class="conductSetting.absent?.enabled ? 'badge badge-error badge-sm' : 'badge badge-ghost badge-sm'">
-                                {{ conductSetting.absent?.enabled ? 'เปิด' : 'ปิด' }}
+                                {{ conductSetting.absent?.enabled ? $t('BehaviorList.statusOn') : $t('BehaviorList.statusOff') }}
                             </span>
                         </div>
                         <div class="text-sm space-y-1 text-base-content/80">
-                            <div>เวลาตัด: <span class="font-medium">{{ conductSetting.absent?.cutoff_time || '-'
+                            <div>{{ $t('BehaviorList.cutoffTime') }}: <span class="font-medium">{{ conductSetting.absent?.cutoff_time || '-'
                             }}</span></div>
-                            <div>หักคะแนน: <span class="font-medium text-error">{{ conductSetting.absent?.score
+                            <div>{{ $t('BehaviorList.scoreDeduct') }}: <span class="font-medium text-error">{{ conductSetting.absent?.score
                                     }}</span></div>
-                            <div>พฤติกรรม: <span class="font-medium">{{ conductSetting.absent?.behavior }}</span></div>
+                            <div>{{ $t('BehaviorList.behaviorLabel') }}: <span class="font-medium">{{ conductSetting.absent?.behavior }}</span></div>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
-            <p class="text-base-content/60 text-white">ไม่มีข้อมูลหมวดพฤติกรรม</p>
+            <p class="text-base-content/60 text-white">{{ $t('BehaviorList.noData') }}</p>
         </div>
         <div v-else class="space-y-6">
             <div v-for="type in behaviortypes" :key="type._id" class="card bg-base-100 shadow-md">
@@ -88,7 +88,7 @@
                         </div>
                         <div class="action-buttons flex gap-2 ml-auto">
                             <button v-if="auth.user?.role !== 'viewer'" @click="openEdit('type', type)"
-                                class="bg-transparent border-none shadow-none p-0" title="แก้ไข">
+                                class="bg-transparent border-none shadow-none p-0" :title="$t('BehaviorList.editTitle')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="#fbbf24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -96,7 +96,7 @@
                                 </svg>
                             </button>
                             <button v-if="auth.user?.role !== 'viewer'" @click="deleteType(type)"
-                                class="bg-transparent border-none shadow-none p-0" title="ลบ">
+                                class="bg-transparent border-none shadow-none p-0" :title="$t('BehaviorList.deleteTitle')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="#ef4444">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -127,7 +127,7 @@
                                             <div class="action-buttons flex gap-2">
                                                 <button v-if="auth.user?.role !== 'viewer'"
                                                     @click="openEdit('behavior', behavior)"
-                                                    class="bg-transparent border-none shadow-none p-0" title="แก้ไข">
+                                                    class="bg-transparent border-none shadow-none p-0" :title="$t('BehaviorList.editTitle')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                         viewBox="0 0 24 24" stroke="#fbbf24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -137,7 +137,7 @@
                                                 </button>
                                                 <button v-if="auth.user?.role !== 'viewer'"
                                                     @click="deleteBehavior(behavior)"
-                                                    class="bg-transparent border-none shadow-none p-0" title="ลบ">
+                                                    class="bg-transparent border-none shadow-none p-0" :title="$t('BehaviorList.deleteTitle')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                         viewBox="0 0 24 24" stroke="#ef4444">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -148,11 +148,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- <div class="text-xs text-secondary font-medium">หมวด: {{ type.name }}</div> -->
                                     <div v-if="expandedBehavior === behavior._id"
                                         class="mt-3 bg-base-200 p-4 rounded-lg">
                                         <div v-if="behaviorLevels.length === 0" class="text-xs text-gray-400">
-                                            ไม่มีข้อมูลระดับ</div>
+                                            {{ $t('BehaviorList.noLevelData') }}</div>
                                         <div v-else>
                                             <div v-for="level in behaviorLevels" :key="level._id"
                                                 class="level-row mb-2">
@@ -160,13 +159,13 @@
                                                     level.name
                                                     }}</span>
                                                 <div class="flex items-center justify-between w-full md:w-auto">
-                                                    <span class="text-xs text-gray-500 score">หักคะแนน: {{ level.score
+                                                    <span class="text-xs text-gray-500 score">{{ $t('BehaviorList.scoreDeduct') }}: {{ level.score
                                                     }}</span>
                                                     <div class="">
                                                         <button v-if="auth.user?.role !== 'viewer'"
                                                             @click="openEdit('level', level)"
                                                             class="bg-transparent border-none shadow-none p-0 ml-2"
-                                                            title="แก้ไข">
+                                                            :title="$t('BehaviorList.editTitle')">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                                                                 fill="none" viewBox="0 0 24 24" stroke="#fbbf24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,7 +176,7 @@
                                                         <button v-if="auth.user?.role !== 'viewer'"
                                                             @click="deleteLevel(level)"
                                                             class="bg-transparent border-none shadow-none p-0 ml-2"
-                                                            title="ลบ">
+                                                            :title="$t('BehaviorList.deleteTitle')">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                                                                 fill="none" viewBox="0 0 24 24" stroke="#ef4444">
                                                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -296,63 +295,63 @@ export default {
         async deleteType(type) {
             const Swal = await import('sweetalert2');
             const result = await Swal.default.fire({
-                title: 'ยืนยันการลบหมวดพฤติกรรม?',
-                text: `คุณต้องการลบ "${type.name}" หรือไม่?`,
+                title: this.$t('BehaviorList.confirmDeleteTypeTitle'),
+                text: this.$t('BehaviorList.confirmDeleteTypeText', { name: type.name }),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'ลบ',
-                cancelButtonText: 'ยกเลิก',
+                confirmButtonText: this.$t('BehaviorList.btnDelete'),
+                cancelButtonText: this.$t('BehaviorList.btnCancel'),
                 confirmButtonColor: '#d33',
             });
             if (result.isConfirmed) {
                 try {
                     await this.service.deleteBehaviortype(type._id);
-                    await Swal.default.fire('ลบสำเร็จ!', '', 'success');
+                    await Swal.default.fire(this.$t('BehaviorList.deleteSuccess'), '', 'success');
                     this.fetchBehaviortypes();
                 } catch (e) {
-                    Swal.default.fire('เกิดข้อผิดพลาด', e.message || 'ลบไม่สำเร็จ', 'error');
+                    Swal.default.fire(this.$t('BehaviorList.errorTitle'), e.message || this.$t('BehaviorList.deleteFailed'), 'error');
                 }
             }
         },
         async deleteBehavior(behavior) {
             const Swal = await import('sweetalert2');
             const result = await Swal.default.fire({
-                title: 'ยืนยันการลบพฤติกรรม?',
-                text: `คุณต้องการลบ "${behavior.name}" หรือไม่?`,
+                title: this.$t('BehaviorList.confirmDeleteBehaviorTitle'),
+                text: this.$t('BehaviorList.confirmDeleteBehaviorText', { name: behavior.name }),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'ลบ',
-                cancelButtonText: 'ยกเลิก',
+                confirmButtonText: this.$t('BehaviorList.btnDelete'),
+                cancelButtonText: this.$t('BehaviorList.btnCancel'),
                 confirmButtonColor: '#d33',
             });
             if (result.isConfirmed) {
                 try {
                     await this.service.deleteBehavior(behavior._id);
-                    await Swal.default.fire('ลบสำเร็จ!', '', 'success');
+                    await Swal.default.fire(this.$t('BehaviorList.deleteSuccess'), '', 'success');
                     this.fetchBehaviortypes();
                 } catch (e) {
-                    Swal.default.fire('เกิดข้อผิดพลาด', e.message || 'ลบไม่สำเร็จ', 'error');
+                    Swal.default.fire(this.$t('BehaviorList.errorTitle'), e.message || this.$t('BehaviorList.deleteFailed'), 'error');
                 }
             }
         },
         async deleteLevel(level) {
             const Swal = await import('sweetalert2');
             const result = await Swal.default.fire({
-                title: 'ยืนยันการลบระดับ?',
-                text: `คุณต้องการลบ "${level.name}" หรือไม่?`,
+                title: this.$t('BehaviorList.confirmDeleteLevelTitle'),
+                text: this.$t('BehaviorList.confirmDeleteLevelText', { name: level.name }),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'ลบ',
-                cancelButtonText: 'ยกเลิก',
+                confirmButtonText: this.$t('BehaviorList.btnDelete'),
+                cancelButtonText: this.$t('BehaviorList.btnCancel'),
                 confirmButtonColor: '#d33',
             });
             if (result.isConfirmed) {
                 try {
                     await this.service.deleteBehaviorLevel(level._id);
-                    await Swal.default.fire('ลบสำเร็จ!', '', 'success');
+                    await Swal.default.fire(this.$t('BehaviorList.deleteSuccess'), '', 'success');
                     this.fetchBehaviortypes();
                 } catch (e) {
-                    Swal.default.fire('เกิดข้อผิดพลาด', e.message || 'ลบไม่สำเร็จ', 'error');
+                    Swal.default.fire(this.$t('BehaviorList.errorTitle'), e.message || this.$t('BehaviorList.deleteFailed'), 'error');
                 }
             }
         },

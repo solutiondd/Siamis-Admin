@@ -1,14 +1,14 @@
 <template>
     <dialog ref="modalRef" :id="modalId" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4 text-primary">เพิ่มผู้ใช้งาน</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ t('adminModal.createTitle') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Username <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('adminModal.username') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model.trim="form.username" type="text" placeholder="กรอก username"
+                    <input v-model.trim="form.username" type="text" :placeholder="t('adminModal.usernamePlaceholder')"
                         class="input input-bordered" :class="{ 'input-error': errors.username }" required />
                     <label v-if="errors.username" class="label">
                         <span class="label-text-alt text-error">{{ errors.username }}</span>
@@ -17,18 +17,18 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Password <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('adminModal.password') }} <span class="text-error">*</span></span>
                     </label>
                     <div class="flex items-center gap-2 w-full">
                         <div class="flex-1">
                             <input v-model.trim="form.password" :type="passwordVisible ? 'text' : 'password'"
-                                placeholder="กรอก password" class="input input-bordered w-full"
+                                :placeholder="t('adminModal.passwordPlaceholder')" class="input input-bordered w-full"
                                 :class="{ 'input-error': errors.password }" required />
                         </div>
                         <button type="button"
                             class="ml-2 text-primary bg-transparent border-none text-sm px-2 py-1 focus:outline-none"
-                            tabindex="-1" @click="togglePassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
-                            <span>{{ passwordVisible ? 'ซ่อน' : 'แสดง' }}</span>
+                            tabindex="-1" @click="togglePassword" :aria-label="t('adminModal.togglePasswordAria')">
+                            <span>{{ passwordVisible ? t('common.hide') : t('common.show') }}</span>
                         </button>
                     </div>
                     <label v-if="errors.password" class="label">
@@ -38,9 +38,9 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ชื่อ-นามสกุล <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('adminModal.fullName') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model.trim="form.name" type="text" placeholder="กรอกชื่อ-นามสกุล"
+                    <input v-model.trim="form.name" type="text" :placeholder="t('adminModal.fullNamePlaceholder')"
                         class="input input-bordered" :class="{ 'input-error': errors.name }" required />
                     <label v-if="errors.name" class="label">
                         <span class="label-text-alt text-error">{{ errors.name }}</span>
@@ -49,14 +49,14 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">สิทธิ์ผู้ใช้ (Role) <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('adminModal.role') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="form.role" class="select select-bordered w-full"
                         :class="{ 'select-error': errors.role }" required>
-                        <option disabled value="">เลือกสิทธิ์ผู้ใช้</option>
-                        <option value="admin">Admin</option>
-                        <option value="discipline">Discipline</option>
-                        <option value="viewer">Viewer</option>
+                        <option disabled value="">{{ t('adminModal.selectRolePlaceholder') }}</option>
+                        <option value="admin">{{ t('roles.admin') }}</option>
+                        <option value="discipline">{{ t('roles.discipline') }}</option>
+                        <option value="viewer">{{ t('roles.viewer') }}</option>
                     </select>
                     <label v-if="errors.role" class="label">
                         <span class="label-text-alt text-error">{{ errors.role }}</span>
@@ -74,11 +74,11 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-ghost" @click="handleClose" :disabled="loading">
-                        ยกเลิก
+                        {{ t('common.cancel') }}
                     </button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ t('common.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -91,8 +91,10 @@
 
 <script setup>
 import { reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AccountService } from '../../api/account'
 
+const { t } = useI18n()
 const passwordVisible = ref(false)
 
 const togglePassword = () => {
@@ -117,7 +119,6 @@ const accountService = new AccountService()
 const loading = ref(false)
 const errorMessage = ref('')
 const allowedRoles = ['admin', 'discipline', 'viewer']
-
 
 const form = reactive({
     username: '',
@@ -153,22 +154,22 @@ const validateForm = () => {
     errors.role = ''
 
     if (!form.username || form.username.length < 4) {
-        errors.username = 'Username ต้องมีอย่างน้อย 4 ตัวอักษร'
+        errors.username = t('adminModal.errors.usernameMinLength')
         isValid = false
     }
 
     if (!form.password || form.password.length < 4) {
-        errors.password = 'Password ต้องมีอย่างน้อย 4 ตัวอักษร'
+        errors.password = t('adminModal.errors.passwordMinLength')
         isValid = false
     }
 
     if (!form.name || form.name.length < 2) {
-        errors.name = 'กรุณากรอกชื่อ-นามสกุล'
+        errors.name = t('adminModal.errors.requiredFullName')
         isValid = false
     }
 
     if (!allowedRoles.includes(form.role)) {
-        errors.role = 'กรุณาเลือกสิทธิ์ผู้ใช้'
+        errors.role = t('adminModal.errors.requiredRole')
         isValid = false
     }
 
@@ -194,7 +195,7 @@ const handleSubmit = async () => {
         resetForm()
     } catch (error) {
         console.error('Create admin error:', error)
-        errorMessage.value = error.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มผู้ใช้งาน'
+        errorMessage.value = error.response?.data?.message || t('adminModal.errors.createFail')
     } finally {
         loading.value = false
     }

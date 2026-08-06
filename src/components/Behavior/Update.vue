@@ -1,27 +1,27 @@
 <template>
     <div class="modal-bg">
         <div class="modal-content">
-            <h2 class="text-xl font-bold mb-4">แก้ไขข้อมูล</h2>
+            <h2 class="text-xl font-bold mb-4">{{ $t('BehaviorUpdate.title') }}</h2>
             <form @submit.prevent="handleUpdate">
                 <div v-if="type === 'type'">
-                    <label>ชื่อประเภท</label>
+                    <label>{{ $t('BehaviorUpdate.typeNameLabel') }}</label>
                     <input v-model="form.name" class="input input-bordered w-full" />
                 </div>
                 <div v-else-if="type === 'behavior'">
-                    <label>ชื่อพฤติกรรม</label>
+                    <label>{{ $t('BehaviorUpdate.behaviorNameLabel') }}</label>
                     <input v-model="form.name" class="input input-bordered w-full" />
                 </div>
                 <div v-else-if="type === 'level'" class="max-w-xl">
-                    <label>ชื่อระดับ</label>
+                    <label>{{ $t('BehaviorUpdate.levelNameLabel') }}</label>
                     <input v-model="form.name" class="input input-bordered w-full mb-2" />
-                    <label>ระดับ</label>
+                    <label>{{ $t('BehaviorUpdate.levelLabel') }}</label>
                     <input v-model="form.level" class="input input-bordered w-full mb-2" />
-                    <label>คะแนน</label>
+                    <label>{{ $t('BehaviorUpdate.scoreLabel') }}</label>
                     <input v-model="form.score" class="input input-bordered w-full mb-2" />
                 </div>
                 <div class="flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">บันทึก</button>
-                    <button type="button" class="btn btn-secondary" @click="$emit('close')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary">{{ $t('BehaviorUpdate.saveBtn') }}</button>
+                    <button type="button" class="btn btn-secondary" @click="$emit('close')">{{ $t('BehaviorUpdate.cancelBtn') }}</button>
                 </div>
             </form>
         </div>
@@ -63,19 +63,19 @@ export default {
                 }
                 await Swal.fire({
                     icon: 'success',
-                    title: 'สำเร็จ',
-                    text: 'บันทึกข้อมูลเรียบร้อย!',
+                    title: this.$t('BehaviorUpdate.successTitle'),
+                    text: this.$t('BehaviorUpdate.successText'),
                     timer: 1500,
                     showConfirmButton: false
                 });
                 this.$emit('updated');
                 this.$emit('close');
             } catch (e) {
-                this.error = 'เกิดข้อผิดพลาดในการบันทึก';
+                this.error = this.$t('BehaviorUpdate.errorMessage');
                 await Swal.fire({
                     icon: 'error',
-                    title: 'ผิดพลาด',
-                    text: 'บันทึกข้อมูลไม่สำเร็จ!',
+                    title: this.$t('BehaviorUpdate.errorTitle'),
+                    text: this.$t('BehaviorUpdate.errorText'),
                 });
             } finally {
                 this.loading = false;

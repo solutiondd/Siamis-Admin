@@ -6,16 +6,18 @@
             </div>
 
             <div v-else-if="positions.length === 0" class="text-center py-8 text-base-content/60">
-                ไม่มีข้อมูลตำแหน่ง
+                {{ $t('PositionTable.noData') }}
             </div>
 
             <div v-else class="overflow-x-auto">
                 <table class="table table-zebra">
                     <thead>
                         <tr>
-                            <th class="w-10 md:w-20">#</th>
-                            <th>ชื่อตำแหน่ง</th>
-                            <th v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="w-10 md:w-24 text-center">จัดการ</th>
+                            <th class="w-10 md:w-20">{{ $t('PositionTable.indexHeader') }}</th>
+                            <th>{{ $t('PositionTable.nameHeader') }}</th>
+                            <th v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="w-10 md:w-24 text-center">
+                                {{ $t('PositionTable.actionHeader') }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -25,7 +27,7 @@
                             <td v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
                                 <div class="flex justify-center">
                                     <button @click="$emit('delete', position)" class="btn btn-ghost btn-sm btn-square"
-                                        title="ลบ">
+                                        :title="$t('PositionTable.deleteTitle')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -43,8 +45,12 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
+
+const { t } = useI18n()
 const auth = useAuthStore()
+
 defineProps({
     positions: {
         type: Array,

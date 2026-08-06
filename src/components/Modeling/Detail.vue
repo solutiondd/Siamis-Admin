@@ -12,12 +12,12 @@
 
         <dialog ref="modal" class="modal">
             <div class="modal-box max-w-3xl">
-                <h3 class="font-bold text-lg mb-4">รายละเอียด Modeling</h3>
+                <h3 class="font-bold text-lg mb-4">{{ t('ModelingDetail.title') }}</h3>
 
                 <div class="bg-base-200 rounded-lg p-4 mb-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <span class="text-sm text-base-content/60">ชื่อ-สกุล:</span>
+                            <span class="text-sm text-base-content/60">{{ t('ModelingDetail.fullName') }}:</span>
                             <div class="flex items-center gap-3 mt-1">
                                 <div class="avatar">
                                     <div class="w-12 h-12 rounded-full">
@@ -34,17 +34,17 @@
                             </div>
                         </div>
                         <div>
-                            <span class="text-sm text-base-content/60">รหัส:</span>
+                            <span class="text-sm text-base-content/60">{{ t('ModelingDetail.code') }}:</span>
                             <p class="font-medium">{{ item.userid }}</p>
                         </div>
                         <div>
-                            <span class="text-sm text-base-content/60">ตำแหน่ง:</span>
+                            <span class="text-sm text-base-content/60">{{ t('ModelingDetail.position') }}:</span>
                             <p class="font-medium">{{ item.position }}</p>
                         </div>
                         <div>
                             <span class="text-sm text-base-content/60">
-                                <span v-if="item.role === 'student'">ห้องเรียน:</span>
-                                <span v-else>แผนก:</span>
+                                <span v-if="item.role === 'student'">{{ t('ModelingDetail.classroom') }}:</span>
+                                <span v-else>{{ t('ModelingDetail.department') }}:</span>
                             </span>
                             <p class="font-medium">
                                 <span v-if="item.role === 'student'">
@@ -59,22 +59,22 @@
                 </div>
 
                 <div class="space-y-3">
-                    <h4 class="font-semibold">รายการ Modeling ({{ item.modeling.length }} รายการ)</h4>
+                    <h4 class="font-semibold">{{ t('ModelingDetail.listTitle', { count: item.modeling.length }) }}</h4>
                     <div class="overflow-x-auto">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th class="text-center">ลำดับ</th>
-                                    <th>ตำแหน่งอุปกรณ์</th>
-                                    <th class="text-center">สถานะ</th>
-                                    <th class="text-center">จัดการ</th>
+                                    <th class="text-center">{{ t('ModelingDetail.index') }}</th>
+                                    <th>{{ t('ModelingDetail.deviceLocation') }}</th>
+                                    <th class="text-center">{{ t('ModelingDetail.status') }}</th>
+                                    <th class="text-center">{{ t('ModelingDetail.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr
                                     v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0">
                                     <td colspan="4" class="text-center text-base-content/60 py-8">
-                                        ยังไม่ได้เชื่อมต่ออุปกรณ์</td>
+                                        {{ t('ModelingDetail.notConnected') }}</td>
                                 </tr>
                                 <tr v-for="(model, idx) in item.modeling" :key="idx" v-else>
                                     <td class="text-center">{{ idx + 1 }}</td>
@@ -104,7 +104,7 @@
                 </div>
 
                 <div class="modal-action">
-                    <button @click="closeModal" class="btn">ปิด</button>
+                    <button @click="closeModal" class="btn">{{ t('common.close') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
@@ -133,6 +133,9 @@ import { ref } from 'vue';
 import ReModel from './ReModel.vue';
 import DeleteModeling from './Delete.vue';
 import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const getInitials = (name) => {
     if (!name) return '?';
@@ -184,9 +187,9 @@ const handleUpdated = () => {
 };
 
 const statusLabel = (s) => {
-    if (s === 2) return 'สำเร็จ';
-    if (s === 1) return 'รอตรวจสอบ';
-    return 'ไม่สำเร็จ';
+    if (s === 2) return t('ModelingDetail.statusSuccess');
+    if (s === 1) return t('ModelingDetail.statusPending');
+    return t('ModelingDetail.statusFailed');
 };
 
 const statusColorClass = (s) => {

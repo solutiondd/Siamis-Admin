@@ -16,14 +16,14 @@
                 </div>
                 <div>
                     <div class="font-bold text-lg">{{ teacher.name }}</div>
-                    <div class="text-sm text-base-content/70">รหัส: {{ teacherCode }}</div>
-                    <div class="text-sm">แผนก: {{ teacher.department }} | ตำแหน่ง: {{ teacher.position }}</div>
+                    <div class="text-sm text-base-content/70">{{ t('TeacherDetail.code') }} {{ teacherCode }}</div>
+                    <div class="text-sm">{{ t('TeacherDetail.department') }} {{ teacher.department }} | {{ t('TeacherDetail.position') }} {{ teacher.position }}</div>
                     <div v-if="teacher?.rfid !== undefined && teacher?.rfid !== null && String(teacher.rfid).trim() !== ''"
-                        class="text-sm text-base-content/70">rfid: {{ teacher.rfid }}</div>
+                        class="text-sm text-base-content/70">{{ t('TeacherDetail.rfid') }} {{ teacher.rfid }}</div>
                 </div>
             </div>
             <div class="mb-2 font-semibold flex items-center gap-2">
-                <span>ปฏิทินการโรงเรียน</span>
+                <span>{{ t('TeacherDetail.schoolCalendar') }}</span>
                 <select v-model="selectedMonth" class="select select-bordered select-xs">
                     <option v-for="(m, idx) in monthsTH" :key="idx" :value="idx">{{ m }}</option>
                 </select>
@@ -64,20 +64,20 @@
             </div>
             <div class="mt-4 text-xs grid grid-cols-7 gap-3 max-[650px]:grid-cols-3">
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span>
-                    มาโรงเรียน</div>
+                    {{ t('TeacherDetail.attendPresent') }}</div>
                 <div class="flex items-center gap-1"><span
-                        class="inline-block w-4 h-4 rounded-full bg-yellow-400"></span> มาสาย</div>
+                        class="inline-block w-4 h-4 rounded-full bg-yellow-400"></span> {{ t('TeacherDetail.attendLate') }}</div>
                 <div class="flex items-center gap-1"><span
-                        class="inline-block w-4 h-4 rounded-full bg-emerald-400"></span> ลา</div>
+                        class="inline-block w-4 h-4 rounded-full bg-emerald-400"></span> {{ t('TeacherDetail.attendLeave') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-pink-300"></span>
-                    กิจกรรม</div>
+                    {{ t('TeacherDetail.attendActivity') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
-                    ไม่ได้สแกน</div>
+                    {{ t('TeacherDetail.attendAbsent') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-gray-400"></span>
-                    วันหยุด</div>
+                    {{ t('TeacherDetail.attendHoliday') }}</div>
                 <div class="flex items-center gap-1"><span
                         class="inline-block w-4 h-4 rounded-full bg-violet-300"></span>
-                    ปิดเทอม/ช่วงพิเศษ</div>
+                    {{ t('TeacherDetail.attendVacation') }}</div>
             </div>
             <AttendanceInfo ref="attendanceInfoRef" :user="teacher" :attendance="selectedAttendanceInfo"
                 type="teacher" />
@@ -100,12 +100,15 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import reportApi from '../../api/report'
 import holidaysApi from '../../api/holidays'
 import { AcademicCalendarService } from '../../api/academiccalendar'
 import { LeaveService } from '../../api/leave'
 import { ActivityService } from '../../api/activity'
 import AttendanceInfo from '../AttendanceInfo.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
     teacher: { type: Object, required: true },
@@ -276,7 +279,7 @@ const isTermOneOrTwo = (termName) => {
 
 const getAcademicTermStatus = (dateObj) => {
     const dstr = dateToStr(dateObj)
-    if (!dstr) return { inTerm: false, label: 'ปิดเทอม' }
+    if (!dstr) return { inTerm: false, label: t('TeacherDetail.vacation') }
 
     const matchedTerm = academicTerms.value.find((term) => {
         const start = normalizeDateInput(term.start_date)
@@ -285,13 +288,13 @@ const getAcademicTermStatus = (dateObj) => {
         return dstr >= start && dstr <= end
     })
 
-    if (!matchedTerm) return { inTerm: false, label: 'ปิดเทอม' }
+    if (!matchedTerm) return { inTerm: false, label: t('TeacherDetail.vacation') }
 
     if (isTermOneOrTwo(matchedTerm.term)) {
-        return { inTerm: true, label: matchedTerm.term || 'ช่วงเวลาเรียน' }
+        return { inTerm: true, label: matchedTerm.term || t('TeacherDetail.studyPeriod') }
     }
 
-    return { inTerm: false, label: matchedTerm.term || 'ปิดเทอม' }
+    return { inTerm: false, label: matchedTerm.term || t('TeacherDetail.vacation') }
 }
 
 const openAttendanceInfo = (dateObj) => {
@@ -342,15 +345,15 @@ const getDayTitle = (dateObj) => {
 
     const holidayTitle = getHolidayTitle(dateObj)
     if (holidayTitle) {
-        labels.push(`วันหยุด: ${holidayTitle}`)
+        labels.push(`${t('TeacherDetail.holidayPrefix')} ${holidayTitle}`)
     }
 
     const leaveInfo = approvedLeaveMap.value[dateToStr(dateObj)]
     if (leaveInfo) {
         if (leaveInfo.reason) {
-            labels.push(`ลา (${leaveInfo.leaveType}): ${leaveInfo.reason}`)
+            labels.push(`${t('TeacherDetail.leavePrefix')} (${leaveInfo.leaveType}): ${leaveInfo.reason}`)
         } else {
-            labels.push(`ลา (${leaveInfo.leaveType})`)
+            labels.push(`${t('TeacherDetail.leavePrefix')} (${leaveInfo.leaveType})`)
         }
     }
 
@@ -363,9 +366,9 @@ const getDayTitle = (dateObj) => {
                     : (item.startTime || item.endTime || '')
                 const detailParts = [timeRange, item.location].filter(Boolean)
                 if (detailParts.length > 0) {
-                    return `กิจกรรม: ${item.name} (${detailParts.join(' | ')})`
+                    return `${t('TeacherDetail.activityPrefix')} ${item.name} (${detailParts.join(' | ')})`
                 }
-                return `กิจกรรม: ${item.name}`
+                return `${t('TeacherDetail.activityPrefix')} ${item.name}`
             })
             .join('\n')
         labels.push(activityText)
@@ -376,7 +379,7 @@ const getDayTitle = (dateObj) => {
     }
 
     const termStatus = getAcademicTermStatus(dateObj)
-    return termStatus.label || 'ปิดเทอม'
+    return termStatus.label || t('TeacherDetail.vacation')
 }
 
 const fetchAttendance = async () => {

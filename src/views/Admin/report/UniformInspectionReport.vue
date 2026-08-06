@@ -1,7 +1,7 @@
 <template>
     <div class="w-full space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h2 class="text-lg md:text-3xl font-bold">รายงานตรวจระเบียบการแต่งตัว</h2>
+            <h2 class="text-lg md:text-3xl font-bold">{{ $t('UniformInspectionReport.title') }}</h2>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <input v-model="filters.date" type="date" :max="today"
                     class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
@@ -12,11 +12,11 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ชั้นเรียน</span>
+                        <span class="label-text text-sm font-medium">{{ $t('UniformInspectionReport.gradeLabel') }}</span>
                     </label>
                     <select v-model="filters.grade" class="select select-sm select-bordered w-full"
                         @change="onGradeChange">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('UniformInspectionReport.allGrades') }}</option>
                         <option v-for="grade in gradeOptions" :key="grade" :value="grade">
                             {{ mapGradeDisplay(grade) }}
                         </option>
@@ -25,11 +25,11 @@
 
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ห้องเรียน</span>
+                        <span class="label-text text-sm font-medium">{{ $t('UniformInspectionReport.classroomLabel') }}</span>
                     </label>
                     <select v-model="filters.classroom" class="select select-sm select-bordered w-full"
                         :disabled="!filters.grade">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('UniformInspectionReport.allClassrooms') }}</option>
                         <option v-for="room in classroomOptions" :key="room" :value="room">
                             {{ room }}
                         </option>
@@ -39,7 +39,7 @@
                 <div v-if="residentRole === 'teacher'" class="form-control col-span-2 flex items-end">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('UniformInspectionReport.gradeClassroomBadge') }}</span>
                         <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
@@ -130,3 +130,5 @@ watch(
     { immediate: true }
 );
 </script>
+
+<style scoped></style>

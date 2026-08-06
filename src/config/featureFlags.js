@@ -1,7 +1,7 @@
 export default {
   // ฟีเจอร์สำหรับระบบชั้นเรียน
   gradeSystem: {
-    enableDisplayMapping: false, // true = แสดงชั้นเรียนแบบ NS/KG/YR ทั้งระบบ
+    enableDisplayMapping: true, // true = แสดงชั้นเรียนแบบ NS/KG/YR ทั้งระบบ
     enableEarlyChildhoodLevels: false, // true = แสดงระดับ เตรียมอนุบาล-อนุบาล 2
     enablePrimaryLevels: false, // true = แสดงระดับ ป.1-ป.6
     enableLowerLevels: false, // legacy: true = แสดงระดับ เตรียมอนุบาล-ป.6
@@ -10,7 +10,7 @@ export default {
 
   // ฟีเจอร์สำหรับตารางเข้า-ออก
   attendance: {
-    enableLineupColumn: false, // true = แสดงคอลัมน์เข้าแถว, false = ซ่อน
+    enableLineupColumn: true, // true = แสดงคอลัมน์เข้าแถว, false = ซ่อน
   },
 
   // ฟีเจอร์สำหรับหน้าเช็คชื่อ
@@ -27,12 +27,12 @@ export default {
 
   // ฟีเจอร์สำหรับไลน์หน้านักเรียน
   student: {
-    enableLineStatusFilter: false, // true = แสดงตัวกรองสถานะ LINE, false = ซ่อน
+    enableLineStatusFilter: true, // true = แสดงตัวกรองสถานะ LINE, false = ซ่อน
   },
 
   // ฟีเจอร์สำหรับหน้า Home
   home: {
-    enableProgress: false, // true = แสดง Progress, false = ซ่อน
+    enableProgress: true, // true = แสดง Progress, false = ซ่อน
   },
 
   // ฟีเจอร์สำหรับเมนู
@@ -44,6 +44,6 @@ export default {
 
   // ฟรีเจอร์ลบรายงานตรวจระเบียบ
   reportUniformInspection: {
-    enableDelete: false, // true = แสดงปุ่มลบในตารางรายงานตรวจระเบียบ, false = ซ่อน
+    enableDelete: true, // true = แสดงปุ่มลบในตารางรายงานตรวจระเบียบ, false = ซ่อน
   },
 };

@@ -2,20 +2,21 @@
     <div>
         <input ref="fileInput" type="file" accept=".xlsx,.xls" style="display:none" @change="handleExcelImport" />
 
-        <button class="btn btn-success btn-sm" @click="triggerFileInput">นำเข้า Excel</button>
+        <button class="btn btn-success btn-sm" @click="triggerFileInput">{{ t('HolidaysImport.importExcel') }}</button>
         <div class="mt-1">
-            <a href="/Excel-Dayoff.xlsx" download class="text-xs text-blue-500 underline">ตัวอย่างไฟล์ Excel</a>
+            <a href="/Excel-Dayoff.xlsx" download class="text-xs text-blue-500 underline">{{
+                t('HolidaysImport.sampleFile') }}</a>
         </div>
 
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div class="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-md relative animate-fade-in">
                 <button class="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost" @click="closeModal">✕</button>
-                <h3 class="font-bold mb-4">ตัวอย่างวันหยุดที่นำเข้า</h3>
+                <h3 class="font-bold mb-4">{{ t('HolidaysImport.previewTitle') }}</h3>
                 <table class="table w-full mb-2">
                     <thead>
                         <tr>
-                            <th>ชื่อวันหยุด</th>
-                            <th>วันที่</th>
+                            <th>{{ t('HolidaysImport.holidayName') }}</th>
+                            <th>{{ t('HolidaysImport.date') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -23,15 +24,16 @@
                         <tr v-for="(item, idx) in holidays" :key="item.summary + '_' + item.date">
                             <td>{{ item.summary }}</td>
                             <td>{{ formatDisplayDate(item.date) }}</td>
-                            <td><button class="btn btn-xs btn-error" @click="removeHoliday(idx)">ลบ</button></td>
+                            <td><button class="btn btn-xs btn-error" @click="removeHoliday(idx)">{{ t('common.delete')
+                                    }}</button></td>
                         </tr>
                     </tbody>
                 </table>
                 <div class="flex justify-end mt-4 gap-2">
-                    <button class="btn btn-secondary" @click="closeModal">ยกเลิก</button>
+                    <button class="btn btn-secondary" @click="closeModal">{{ t('common.cancel') }}</button>
                     <button class="btn btn-primary" :disabled="!holidays.length || loading" @click="confirmImport">
-                        <span v-if="loading">กำลังนำเข้า...</span>
-                        <span v-else>ยืนยันนำเข้า</span>
+                        <span v-if="loading">{{ t('HolidaysImport.importing') }}</span>
+                        <span v-else>{{ t('HolidaysImport.confirmImport') }}</span>
                     </button>
                 </div>
             </div>
@@ -43,6 +45,9 @@
 import { ref } from 'vue'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const fileInput = ref(null)
 const holidays = ref([])
@@ -116,13 +121,13 @@ function handleExcelImport(e) {
                 }
             }
             if (imported.length === 0) {
-                Swal.fire({ icon: 'info', title: 'ไม่พบข้อมูลวันหยุดในไฟล์', showConfirmButton: true })
+                Swal.fire({ icon: 'info', title: t('HolidaysImport.noDataInFile'), showConfirmButton: true })
                 return
             }
             holidays.value = imported
             showModal.value = true
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'นำเข้าไฟล์ล้มเหลว', text: err?.message || '', showConfirmButton: true })
+            Swal.fire({ icon: 'error', title: t('HolidaysImport.importFileFailed'), text: err?.message || '', showConfirmButton: true })
         }
         fileInput.value.value = ''
     }
@@ -143,11 +148,11 @@ async function confirmImport() {
     loading.value = true
     try {
         emit('imported', holidays.value)
-        Swal.fire({ icon: 'success', title: `นำเข้าวันหยุดสำเร็จ ${holidays.value.length} รายการ`, showConfirmButton: false, timer: 1500 })
+        Swal.fire({ icon: 'success', title: t('HolidaysImport.importSuccess', { count: holidays.value.length }), showConfirmButton: false, timer: 1500 })
         holidays.value = []
         showModal.value = false
     } catch (e) {
-        Swal.fire({ icon: 'error', title: 'นำเข้าวันหยุดไม่สำเร็จ', text: e?.message || '', showConfirmButton: true })
+        Swal.fire({ icon: 'error', title: t('HolidaysImport.importFailed'), text: e?.message || '', showConfirmButton: true })
     } finally {
         loading.value = false
     }

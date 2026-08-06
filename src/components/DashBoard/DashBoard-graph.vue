@@ -5,26 +5,26 @@
                 <div class="card bg-base-100 shadow-xl">
                     <div class="card-body">
                         <div class="flex items-center justify-between lg:flex gap-2 hidden lg:flex">
-                            <h2 class="card-title flex items-center gap-2">สถิติรายวัน
+                            <h2 class="card-title flex items-center gap-2">{{ $t('DashBoardGraph.dailyStats') }}
                                 <div class="flex items-center gap-1">
                                     <span class="badge badge-outline text-xs">{{ weekLabel }}</span>
                                 </div>
                             </h2>
                             <router-link to="/home/report/stats" class="btn btn-xs btn-ghost">
-                                ดูเพิ่มเติม →
+                                {{ $t('DashBoardGraph.viewMore') }}
                             </router-link>
                         </div>
                         <div class="flex items-center justify-between gap-2 lg:hidden">
                             <div class="flex flex-col items-start">
-                                <span class="font-bold text-lg leading-tight">สถิติ</span>
-                                <span class="font-bold text-lg leading-tight">รายวัน</span>
+                                <span class="font-bold text-lg leading-tight">{{ $t('DashBoardGraph.dailyStats')
+                                    }}</span>
                             </div>
                             <div class="flex-1 flex justify-center">
                                 <span class="px-4 py-1 border rounded-full text-xs font-medium bg-base-100 shadow-sm">{{
                                     weekLabel }}</span>
                             </div>
                             <router-link to="/home/report/stats" class="btn btn-xs btn-ghost whitespace-nowrap">
-                                ดูเพิ่มเติม →
+                                {{ $t('DashBoardGraph.viewMore') }}
                             </router-link>
                         </div>
                         <div class="h-80">
@@ -39,8 +39,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import reportApi from '../../api/report.js'
 
+const { t, locale } = useI18n()
 const props = defineProps({
     date: {
         type: String,
@@ -81,13 +83,23 @@ function formatDateISO(d) {
     return d.toISOString().split('T')[0]
 }
 
-function formatDateThai(date) {
+function formatDateRange(date) {
     const d = new Date(date)
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-    const day = d.getDate()
-    const month = thaiMonths[d.getMonth()]
-    const buddhistYear = d.getFullYear() + 543
-    return `${day} ${month} ${buddhistYear}`
+    const currentLocale = locale.value || 'th'
+
+    if (currentLocale === 'en') {
+        return d.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        })
+    }
+
+    return d.toLocaleDateString('th-TH-u-ca-buddhist', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    })
 }
 
 function getMonday(d) {
@@ -106,7 +118,7 @@ function getSunday(monday) {
 const weekLabel = computed(() => {
     const monday = getMonday(currentWeekStart.value)
     const sunday = getSunday(monday)
-    return `${formatDateThai(monday)} - ${formatDateThai(sunday)}`
+    return `${formatDateRange(monday)} - ${formatDateRange(sunday)}`
 })
 
 async function fetchDailyStats() {
@@ -210,19 +222,18 @@ function buildBarChart(start, end) {
     const { primary, primaryLight, secondary, secondaryLight } = getThemeColors()
     const black = 'rgba(0,0,0,0.85)'
     const red = 'rgba(239,68,68,0.85)'
-    const blue = 'rgba(59,130,246,0.7)'
 
     const isTeacher = localStorage.getItem('residentRole') === 'teacher'
     let datasets = [
-        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primary, borderColor: primary },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black },
-        { label: 'นักเรียน (ไม่ได้สแกน)', data: studentNotScan, backgroundColor: red, borderColor: red }
+        { label: t('DashBoardGraph.studentOntime'), data: studentOntime, backgroundColor: primary, borderColor: primary },
+        { label: t('DashBoardGraph.studentLate'), data: studentLate, backgroundColor: black, borderColor: black },
+        { label: t('DashBoardGraph.studentNotScan'), data: studentNotScan, backgroundColor: red, borderColor: red }
     ]
     if (!isTeacher) {
         datasets.push(
-            { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondary, borderColor: secondary },
-            { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black },
-            { label: 'ครู (ไม่ได้สแกน)', data: teacherNotScan, backgroundColor: red, borderColor: red }
+            { label: t('DashBoardGraph.teacherOntime'), data: teacherOntime, backgroundColor: secondary, borderColor: secondary },
+            { label: t('DashBoardGraph.teacherLate'), data: teacherLate, backgroundColor: black, borderColor: black },
+            { label: t('DashBoardGraph.teacherNotScan'), data: teacherNotScan, backgroundColor: red, borderColor: red }
         )
     }
 
@@ -232,8 +243,6 @@ function buildBarChart(start, end) {
             const { ctx, chartArea } = chart
             if (!ctx || !chartArea) return
             if (isTeacher) return
-
-            // if (window.innerWidth < 640) return
 
             const days = chart.data.labels.length
 
@@ -295,7 +304,7 @@ function buildBarChart(start, end) {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('DashBoardData.student'), (stuLeft + stuRight) / 2, chartArea.top + 30)
                     ctx.restore()
 
                     ctx.save()
@@ -303,7 +312,7 @@ function buildBarChart(start, end) {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('DashBoardData.teacher'), (teaLeft + teaRight) / 2, chartArea.top + 30)
                     ctx.restore()
                 }
             }
@@ -335,7 +344,7 @@ function buildBarChart(start, end) {
                         },
                         footer: (items) => {
                             const total = items.reduce((sum, it) => sum + it.parsed.y, 0)
-                            return 'รวม: ' + Math.round(total)
+                            return t('DashBoardGraph.total', { total: Math.round(total) })
                         }
                     }
                 },
@@ -398,19 +407,12 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.slide-up-enter-active {
-    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
+.slide-up-enter-active,
 .slide-up-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-up-enter-from {
-    opacity: 0;
-    transform: translateY(60px);
-}
-
+.slide-up-enter-from,
 .slide-up-leave-to {
     opacity: 0;
     transform: translateY(60px);

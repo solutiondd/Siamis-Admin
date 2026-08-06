@@ -3,10 +3,10 @@
         <div class="mb-3 flex justify-end items-center gap-3 flex-wrap">
             <div v-if="auth.user?.role === 'teacher'" class="flex gap-2 flex-wrap justify-end">
                 <span class="score-badge !py-[4px] !px-[10px] bg-emerald-50 text-emerald-700 cursor-help"
-                    title="คะแนนที่เพิ่มให้นักเรียนคนนี่">ให้แล้ว +{{
-                        teacherGivenScore }}</span>
+                    :title="$t('ConductTable.givenScoreTitle')">{{
+                        $t('ConductTable.givenScore', { score: teacherGivenScore }) }}</span>
                 <span class="score-badge !py-[4px] !px-[10px] bg-blue-50 text-blue-700 cursor-help"
-                    title="คะแนนที่ยังสามารถเพิ่มให้นักเรียนคนนี่ได้">คงเหลือ {{ teacherRemainingScore
+                    :title="$t('ConductTable.remainingScoreTitle')">{{ $t('ConductTable.remainingScore', { score: teacherRemainingScore })
                     }}</span>
             </div>
             <ExportDocs v-if="auth.user?.role !== 'teacher'" :studentInfo="studentInfo" :conductList="conductList" />
@@ -16,32 +16,31 @@
             <div class="flex justify-between items-start">
                 <div>
                     <div class="font-bold text-[#1e293b] text-[1.15rem] mb-[2px]">{{ studentInfo.name }}</div>
-                    <div class="text-[#334155] mb-[2px]">รหัส: {{ studentInfo.userid }}</div>
-                    <div class="text-[#334155]">ระดับชั้น: {{ mapGradeDisplay(studentInfo.grade) }} ห้อง {{
-                        studentInfo.classroom }}
+                    <div class="text-[#334155] mb-[2px]">{{ $t('ConductTable.studentCode', { id: studentInfo.userid }) }}</div>
+                    <div class="text-[#334155]">{{ $t('ConductTable.gradeLevel', { grade: mapGradeDisplay(studentInfo.grade), room: studentInfo.classroom }) }}
                     </div>
                 </div>
                 <div class="flex flex-col items-end min-w-[80px] ml-[24px]">
-                    <span class="text-[#64748b] font-medium text-[0.95rem] mb-[2px]">คะแนน</span>
+                    <span class="text-[#64748b] font-medium text-[0.95rem] mb-[2px]">{{ $t('ConductTable.scoreHeader') }}</span>
                     <span class="font-bold text-[#2563eb] text-[1.35rem]">{{ studentInfo.score }}</span>
                     <div class="flex gap-2 mt-[6px] flex-wrap justify-end">
-                        <span class="score-badge badge-deduct">หัก {{ totalDeducted }}</span>
-                        <span class="score-badge badge-add">เพิ่ม +{{ totalAdded }}</span>
-                        <span class="score-badge badge-net">สุทธิ {{ totalNet >= 0 ? '+' : '' }}{{ totalNet }}</span>
+                        <span class="score-badge badge-deduct">{{ $t('ConductTable.deductedScore', { score: totalDeducted }) }}</span>
+                        <span class="score-badge badge-add">{{ $t('ConductTable.addedScore', { score: totalAdded }) }}</span>
+                        <span class="score-badge badge-net">{{ $t('ConductTable.netScore', { prefix: totalNet >= 0 ? '+' : '', score: totalNet }) }}</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-if="loading" class="flex items-center justify-center text-[#3b82f6] text-[1.1rem] m-4">กำลังโหลดข้อมูล...
+        <div v-if="loading" class="flex items-center justify-center text-[#3b82f6] text-[1.1rem] m-4">{{ $t('ConductTable.loading') }}
         </div>
         <div v-else>
             <table class="conduct-table">
                 <thead>
                     <tr>
-                        <th>ประเภท</th>
-                        <th>รายการ</th>
-                        <th>หัก</th>
-                        <th>เพิ่ม</th>
+                        <th>{{ $t('ConductTable.typeHeader') }}</th>
+                        <th>{{ $t('ConductTable.listHeader') }}</th>
+                        <th>{{ $t('ConductTable.deductHeader') }}</th>
+                        <th>{{ $t('ConductTable.addHeader') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -49,16 +48,16 @@
                     <tr v-for="item in paginatedList" :key="item._id">
                         <td>{{ item.behavior_type }}</td>
                         <td>{{ item.behavior }}</td>
-                        <td v-if="item.behavior_type !== 'บำเพ็ญประโยชน์'" :class="'score-negative'">{{ item.score }}
+                        <td v-if="item.behavior_type !== $t('ConductTable.meritTypeName')" :class="'score-negative'">{{ item.score }}
                         </td>
                         <td v-else></td>
-                        <td v-if="item.behavior_type === 'บำเพ็ญประโยชน์'" :class="'score-positive'">{{ item.score }}
+                        <td v-if="item.behavior_type === $t('ConductTable.meritTypeName')" :class="'score-positive'">{{ item.score }}
                         </td>
                         <td v-else></td>
                         <td class="">
                             <div class="flex items-center justify-center gap-2">
                                 <button class="text-blue-600 hover:text-blue-700 transition-colors"
-                                    @click="viewDetail(item)" aria-label="ดูรายละเอียด">
+                                    @click="viewDetail(item)" :aria-label="$t('ConductTable.viewDetail')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -68,7 +67,7 @@
                                     </svg>
                                 </button>
                                 <button class="text-red-500 hover:text-red-700 transition-colors"
-                                    @click="confirmDelete(item)" aria-label="ลบ">
+                                    @click="confirmDelete(item)" :aria-label="$t('ConductTable.delete')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -81,7 +80,7 @@
                 </tbody>
             </table>
             <div v-if="conductList.length === 0"
-                class="flex items-center justify-center text-[#64748b] text-[1.1rem] m-4">ไม่พบข้อมูล</div>
+                class="flex items-center justify-center text-[#64748b] text-[1.1rem] m-4">{{ $t('ConductTable.noData') }}</div>
         </div>
 
         <div v-if="totalPages > 1" class="flex justify-center mt-4">
@@ -106,6 +105,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ConductService } from '../../api/conduct.js'
 import Detail from './Detail.vue'
 import ExportDocs from './ExportDocs.vue'
@@ -113,6 +113,7 @@ import Swal from 'sweetalert2'
 import { useAuthStore } from '../../stores/auth'
 import { mapGradeDisplay } from '../../utils/gradeSystem'
 
+const { t, locale } = useI18n()
 const auth = useAuthStore()
 const conductList = ref([])
 const loading = ref(true)
@@ -140,12 +141,12 @@ const teacherIdFromToken = computed(() => {
 
 const totalDeducted = computed(() =>
     conductList.value
-        .filter(i => i.behavior_type !== 'บำเพ็ญประโยชน์')
+        .filter(i => i.behavior_type !== t('ConductTable.meritTypeName'))
         .reduce((sum, i) => sum + Number(i.score), 0)
 )
 const totalAdded = computed(() =>
     conductList.value
-        .filter(i => i.behavior_type === 'บำเพ็ญประโยชน์')
+        .filter(i => i.behavior_type === t('ConductTable.meritTypeName'))
         .reduce((sum, i) => sum + Number(i.score), 0)
 )
 const totalNet = computed(() => totalDeducted.value + totalAdded.value)
@@ -201,7 +202,8 @@ const emit = defineEmits(['conduct-updated'])
 
 function formatDate(dateStr) {
     const d = new Date(dateStr)
-    return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    const currentLang = locale.value === 'th' ? 'th-TH' : 'en-US'
+    return d.toLocaleDateString(currentLang, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function viewDetail(item) {
@@ -211,23 +213,23 @@ function viewDetail(item) {
 
 async function confirmDelete(item) {
     const result = await Swal.fire({
-        title: 'ยืนยันการลบ?',
-        text: `ลบรายการ "${item.behavior}" ของนักเรียนนี้?`,
+        title: t('ConductTable.confirmDeleteTitle'),
+        text: t('ConductTable.confirmDeleteText', { behavior: item.behavior }),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('ConductTable.confirmButton'),
+        cancelButtonText: t('ConductTable.cancelButton'),
         confirmButtonColor: '#dc2626',
     })
     if (!result.isConfirmed) return
     try {
         const service = new ConductService()
         await service.deleteConduct(item._id)
-        await Swal.fire('ลบสำเร็จ', '', 'success')
+        await Swal.fire(t('ConductTable.deleteSuccess'), '', 'success')
         await loadConductList(props.studentId)
         emit('conduct-updated', props.studentId)
     } catch (e) {
-        Swal.fire('เกิดข้อผิดพลาด', e.message || 'ลบไม่สำเร็จ', 'error')
+        Swal.fire(t('ConductTable.errorTitle'), e.message || t('ConductTable.deleteFailed'), 'error')
     }
 }
 

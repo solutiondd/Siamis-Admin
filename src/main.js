@@ -8,10 +8,12 @@ import { createPinia } from "pinia";
 import { useAuthStore } from "./stores/auth";
 import axios from "axios";
 import { UserService } from "./api/User.js";
+import { i18n } from "./i18n";
 
 const app = createApp(App);
 
 app.use(createPinia());
+app.use(i18n);
 app.use(router);
 
 const authStore = useAuthStore();
@@ -34,7 +36,7 @@ axios.interceptors.response.use(
     if (status === 401 && skipAuthRedirect) {
       return Promise.reject(error);
     }
-    
+
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       if (localStorage.getItem("refresh_token")) {
@@ -61,14 +63,14 @@ axios.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // ป้องกันการคลิกขวาบนรูปภาพทั่วทั้งหมด
-document.addEventListener('contextmenu', (e) => {
-    if (e.target.tagName === 'IMG') {
-        e.preventDefault();
-    }
+document.addEventListener("contextmenu", (e) => {
+  if (e.target.tagName === "IMG") {
+    e.preventDefault();
+  }
 });
 
 app.mount("#app");

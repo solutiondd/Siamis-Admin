@@ -1,15 +1,15 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h1 class="text-lg md:text-3xl font-bold">ตารางขาดเรียน/ขาดงาน</h1>
+            <h1 class="text-lg md:text-3xl font-bold">{{ $t('Missed.title') }}</h1>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium">จาก</label>
+                    <label class="text-sm font-medium">{{ $t('Missed.fromDate') }}</label>
                     <input v-model="filters.start" type="date" :max="filters.end" @change="fetchData"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium">ถึง</label>
+                    <label class="text-sm font-medium">{{ $t('Missed.toDate') }}</label>
                     <input v-model="filters.end" type="date" :min="filters.start" :max="getDefaultDate()"
                         @change="fetchData"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
@@ -21,39 +21,39 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.typeLabel') }}</span>
                     </label>
                     <select v-model="filters.role" @change="handleRoleChange"
                         class="select select-sm select-bordered w-full">
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">ครู</option>
+                        <option value="student">{{ $t('Missed.typeStudent') }}</option>
+                        <option value="teacher">{{ $t('Missed.typeTeacher') }}</option>
                     </select>
                 </div>
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ค้นหาชื่อ/รหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.searchLabel') }}</span>
                     </label>
-                    <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
+                    <input v-model="filters.search" type="text" :placeholder="$t('Missed.searchPlaceholder')"
                         class="input input-sm input-bordered w-full" />
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.gradeLabel') }}</span>
                     </label>
                     <select v-model="filters.grade" @change="handleGradeChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกชั้นปี</option>
+                        <option value="">{{ $t('Missed.allGrades') }}</option>
                         <option v-for="grade in allGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
                         </option>
                     </select>
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกห้อง</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.classroomLabel') }}</span>
                     </label>
                     <select v-model="filters.classroom" @change="handleClassroomChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกห้อง</option>
+                        <option value="">{{ $t('Missed.allClassrooms') }}</option>
                         <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
@@ -61,7 +61,7 @@
                     class="form-control md:col-start-4 flex flex-col items-center md:items-end md:justify-end md:h-full">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('Missed.gradeClassroomBadge') }}</span>
                         <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
@@ -91,11 +91,13 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MissedTable from '../../../components/Report/MissedTable.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem'
 
+const { t } = useI18n()
 const residentRole = localStorage.getItem('residentRole') || ''
 const teacherGrade = localStorage.getItem('grade') || ''
 const teacherClassroom = localStorage.getItem('classroom') || ''
@@ -164,7 +166,7 @@ const fetchData = async () => {
             missedData.value = response.data || []
         }
     } catch (err) {
-        error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
+        error.value = t('Missed.fetchError')
         console.error('Error fetching missed report:', err)
     } finally {
         loading.value = false
@@ -230,8 +232,6 @@ const handleClassroomChange = () => {
     pagination.value.page = 1
     fetchData()
 }
-
-
 
 const paginatedData = computed(() => {
     const start = (pagination.value.page - 1) * pagination.value.limit;

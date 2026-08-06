@@ -1,7 +1,7 @@
 <template>
     <dialog ref="updateModal" class="modal">
         <div class="modal-box w-11/12 max-w-2xl">
-            <h3 class="font-bold text-lg mb-4 text-primary">แก้ไขอุปกรณ์</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ t('DeviceUpdate.title') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="form-control">
@@ -14,7 +14,7 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">IP Address</span>
+                        <span class="label-text">{{ t('device.ipAddress') }}</span>
                     </label>
                     <input :value="currentDevice?.ipaddress" type="text" class="input input-bordered w-full bg-base-200"
                         disabled />
@@ -22,32 +22,32 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">สถานที่ <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.location') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model="formData.location" type="text" placeholder="กรอกสถานที่ติดตั้ง"
+                    <input v-model="formData.location" type="text" :placeholder="t('device.enterLocation')"
                         class="input input-bordered w-full" required />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ประเภทประตู <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.gateType') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="formData.gate_type" class="select select-bordered w-full" required>
-                        <option value="" disabled>เลือกประเภทประตู</option>
-                        <option value="in">ทางเข้า (In)</option>
-                        <option value="out">ทางออก (Out)</option>
+                        <option value="" disabled>{{ t('device.selectGateType') }}</option>
+                        <option value="in">{{ t('DeviceUpdate.gateInWithLabel') }}</option>
+                        <option value="out">{{ t('DeviceUpdate.gateOutWithLabel') }}</option>
                     </select>
                 </div>
 
                 <div v-if="featureFlags.device.enableUseCase" class="form-control">
                     <label class="label">
-                        <span class="label-text">Use Case <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.useCase') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="formData.usecase" class="select select-bordered w-full" required>
-                        <option value="" disabled>เลือก Use Case</option>
-                        <option value="access_control">Access Control</option>
-                        <option value="attendance">Attendance</option>
-                        <option value="person_confirmation">Person Confirmation</option>
+                        <option value="" disabled>{{ t('device.selectUseCase') }}</option>
+                        <option value="access_control">{{ t('device.useCaseAccessControl') }}</option>
+                        <option value="attendance">{{ t('device.useCaseAttendance') }}</option>
+                        <option value="person_confirmation">{{ t('device.useCasePersonConfirmation') }}</option>
                     </select>
                 </div>
 
@@ -62,25 +62,25 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Username อุปกรณ์</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.deviceUsername') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
-                        <input v-model="formData.device_username" type="text" placeholder="กรอก Username"
+                        <input v-model="formData.device_username" type="text" :placeholder="t('device.enterUsername')"
                             class="input input-bordered w-full" :required="Boolean(formData.device_password)" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Password อุปกรณ์</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.devicePassword') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <div class="relative">
                             <input v-model="formData.device_password" :type="showDevicePassword ? 'text' : 'password'"
-                                placeholder="กรอก Password" class="input input-bordered w-full pr-12"
+                                :placeholder="t('device.enterPassword')" class="input input-bordered w-full pr-12"
                                 :required="Boolean(formData.device_username)" />
                             <button type="button" class="btn btn-ghost btn-sm absolute right-1 top-1/2 -translate-y-1/2"
                                 @click="showDevicePassword = !showDevicePassword"
-                                :aria-label="showDevicePassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+                                :aria-label="showDevicePassword ? t('device.hidePassword') : t('device.showPassword')">
                                 <svg v-if="showDevicePassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -101,15 +101,15 @@
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
                         <input v-model="formData.use_attendance_time" type="checkbox" class="toggle toggle-warning" />
-                        <span class="label-text">เปิดใช้งานช่วงเวลาบันทึกเข้าเรียน</span>
+                        <span class="label-text">{{ t('device.attendanceEnabled') }}</span>
                     </label>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">เวลาเริ่มเช็คชื่อ</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.attendanceStart') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <input v-model="formData.attendance_start_time" type="time" class="input input-bordered w-full"
                             :disabled="!formData.use_attendance_time" />
@@ -117,8 +117,8 @@
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">เวลาสิ้นสุดเช็คชื่อ</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.attendanceEnd') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <input v-model="formData.attendance_end_time" type="time" class="input input-bordered w-full"
                             :disabled="!formData.use_attendance_time" />
@@ -126,20 +126,20 @@
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('common.cancel') }}</button>
                     <button type="submit" class="btn btn-warning">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        บันทึกการแก้ไข
+                        {{ t('common.save') }}
                     </button>
                 </div>
             </form>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
+            <button @click="closeModal">{{ t('common.close') }}</button>
         </form>
     </dialog>
 </template>
@@ -148,10 +148,12 @@
 import { ref } from 'vue'
 import Swal from 'sweetalert2'
 import featureFlags from '../../config/featureFlags.js'
+import { useI18n } from 'vue-i18n'
 
 const updateModal = ref(null)
 const emit = defineEmits(['success'])
 const showDevicePassword = ref(false)
+const { t } = useI18n()
 
 const currentDevice = ref(null)
 const formData = ref({
@@ -279,9 +281,9 @@ const handleSubmit = () => {
     if ((device_username && !device_password) || (!device_username && device_password)) {
         Swal.fire({
             icon: 'warning',
-            title: 'กรอกข้อมูลไม่ครบ',
-            text: 'กรุณากรอก Username และ Password ให้ครบทั้งคู่',
-            confirmButtonText: 'ตกลง'
+            title: t('DeviceUpdate.incompleteCredentialTitle'),
+            text: t('DeviceUpdate.incompleteCredentialText'),
+            confirmButtonText: t('common.ok')
         })
         return
     }
@@ -299,8 +301,8 @@ const handleSubmit = () => {
     if (!hasChanges) {
         Swal.fire({
             icon: 'info',
-            title: 'ไม่มีการเปลี่ยนแปลง',
-            text: 'ยังไม่มีข้อมูลที่แก้ไข',
+            title: t('DeviceUpdate.noChangesTitle'),
+            text: t('DeviceUpdate.noChangesText'),
             timer: 1200,
             showConfirmButton: false
         })

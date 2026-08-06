@@ -1,7 +1,7 @@
 <template>
     <div class="w-full space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h2 class="text-lg md:text-3xl font-bold">ตารางการลา</h2>
+            <h2 class="text-lg md:text-3xl font-bold">{{ $t('LeaveReq.title') }}</h2>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <input v-model="filters.start_date" type="date" :max="today"
                     class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
@@ -14,40 +14,40 @@
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ค้นหารหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('LeaveReq.searchLabel') }}</span>
                     </label>
-                    <input v-model="filters.search" type="text" placeholder="กรอกรหัส"
+                    <input v-model="filters.search" type="text" :placeholder="$t('LeaveReq.searchPlaceholder')"
                         class="input input-sm input-bordered w-full" />
                 </div>
 
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">สถานะ</span>
+                        <span class="label-text text-sm font-medium">{{ $t('LeaveReq.statusLabel') }}</span>
                     </label>
                     <select v-model="filters.status" class="select select-sm select-bordered w-full">
-                        <option value="">ทั้งหมด</option>
-                        <option value="pending">รอดำเนินการ</option>
-                        <option value="approved">อนุมัติแล้ว</option>
-                        <option value="rejected">ไม่อนุมัติ</option>
-                        <option value="cancelled">ยกเลิก</option>
+                        <option value="">{{ $t('LeaveReq.allStatus') }}</option>
+                        <option value="pending">{{ $t('LeaveReq.statusPending') }}</option>
+                        <option value="approved">{{ $t('LeaveReq.statusApproved') }}</option>
+                        <option value="rejected">{{ $t('LeaveReq.statusRejected') }}</option>
+                        <option value="cancelled">{{ $t('LeaveReq.statusCancelled') }}</option>
                     </select>
                 </div>
 
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('LeaveReq.typeLabel') }}</span>
                     </label>
                     <select v-model="filters.role" class="select select-sm select-bordered w-full">
-                        <option value="">ทั้งหมด</option>
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">ครู</option>
+                        <option value="">{{ $t('LeaveReq.typeAll') }}</option>
+                        <option value="student">{{ $t('LeaveReq.typeStudent') }}</option>
+                        <option value="teacher">{{ $t('LeaveReq.typeTeacher') }}</option>
                     </select>
                 </div>
 
                 <div v-if="residentRole === 'teacher'" class="form-control flex justify-end items-center md:items-end">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('LeaveReq.gradeClassroomBadge') }}</span>
                         <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>

@@ -1,20 +1,20 @@
 <template>
     <dialog class="modal" :class="{ 'modal-open': isOpen }">
         <div class="modal-box max-w-md border border-base-200">
-            <h3 class="font-bold text-lg text-base-content mb-1">แก้ไขเวลาอนุโลมการเช็คชื่อ</h3>
-            <p class="text-xs text-base-content/50 mb-4">กำหนดสัดส่วนเวลาเรียนแยกตามรายกลุ่ม</p>
+            <h3 class="font-bold text-lg text-base-content mb-1">{{ t('allowanceModal.editTitle') }}</h3>
+            <p class="text-xs text-base-content/50 mb-4">{{ t('allowanceModal.editSubtitle') }}</p>
 
             <div class="space-y-6 my-4">
                 <div v-for="(rule, index) in localRules" :key="index" class="p-4 border border-base-200 rounded-xl bg-base-50/30">
                     <div class="flex justify-between items-center mb-3">
                         <span class="font-bold text-md capitalize text-primary">
-                            {{ rule.role === 'student' ? 'กลุ่มนักเรียน' : 'กลุ่มคุณครู' }}
+                            {{ rule.role === 'student' ? t('allowanceModal.studentGroup') : t('allowanceModal.teacherGroup') }}
                         </span>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label py-1">
-                            <span class="label-text-alt font-medium">เวลาอนุโลมสาย (น.)</span>
+                            <span class="label-text-alt font-medium">{{ t('allowanceModal.allowanceTimeLabel') }}</span>
                         </label>
                         <input 
                             type="time" 
@@ -26,7 +26,7 @@
 
                     <!-- <div class="form-control mt-3">
                         <label class="label cursor-pointer justify-between py-1">
-                            <span class="label-text-alt font-medium">เปิดใช้งานการอนุโลมสถานะนี้</span>
+                            <span class="label-text-alt font-medium">{{ t('allowanceModal.enableRoleAllowance') }}</span>
                             <input 
                                 type="checkbox" 
                                 v-model="rule.enabled" 
@@ -39,11 +39,11 @@
 
             <div class="modal-action gap-2 mt-6">
                 <button @click="handleClose" class="btn btn-ghost btn-sm" :disabled="submitting">
-                    ยกเลิก
+                    {{ t('common.cancel') }}
                 </button>
                 <button @click="handleSave" class="btn btn-primary btn-sm text-white" :disabled="submitting">
                     <span v-if="submitting" class="loading loading-spinner loading-xs"></span>
-                    บันทึก
+                    {{ t('common.save') }}
                 </button>
             </div>
         </div>
@@ -53,7 +53,10 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { AllowanceService } from '../../api/allowance';
+
+const { t } = useI18n();
 
 const props = defineProps({
     isOpen: { type: Boolean, default: false },

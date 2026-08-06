@@ -8,14 +8,14 @@
             <table class="table table-zebra w-full text-sm">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th>ชั้น</th>
-                        <th>ห้อง</th>
-                        <th class="max-[582px]:hidden">ผู้สร้าง</th>
-                        <th>วันที่</th>
-                        <th class="text-center max-[509px]:hidden">จำนวนทั้งหมด</th>
-                        <th class="text-center max-[509px]:hidden">ผ่าน</th>
-                        <th class="text-center max-[509px]:hidden">ไม่ผ่าน</th>
-                        <th class="text-center">จัดการ</th>
+                        <th>{{ $t('ReportUniformInspectionTable.grade') }}</th>
+                        <th>{{ $t('ReportUniformInspectionTable.classroom') }}</th>
+                        <th class="max-[582px]:hidden">{{ $t('ReportUniformInspectionTable.creator') }}</th>
+                        <th>{{ $t('ReportUniformInspectionTable.date') }}</th>
+                        <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.total') }}</th>
+                        <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.pass') }}</th>
+                        <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.notPass') }}</th>
+                        <th class="text-center">{{ $t('ReportUniformInspectionTable.action') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -23,14 +23,14 @@
                         <td>{{ item.grade ? mapGradeDisplay(item.grade) : '-' }}</td>
                         <td>{{ item.classroom ?? '-' }}</td>
                         <td class="max-[582px]:hidden">{{ item.inspector?.name || '-' }}</td>
-                        <td>{{ formatThaiDate(item.date) }}</td>
+                        <td>{{ formatDate(item.date) }}</td>
                         <td class="text-center max-[509px]:hidden">{{ item.summary?.total ?? 0 }}</td>
                         <td class="text-center max-[509px]:hidden">{{ item.summary?.pass ?? 0 }}</td>
                         <td class="text-center max-[509px]:hidden">{{ item.summary?.not_pass ?? 0 }}</td>
                         <td class="text-center">
                             <div class="flex items-center justify-center gap-2">
                                 <button @click="openDetail(item)" class="bg-transparent border-none shadow-none p-0"
-                                    title="ดูรายละเอียดเพิ่มเติม">
+                                    :title="$t('ReportUniformInspectionTable.viewDetail')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="#3b82f6">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -40,7 +40,7 @@
                                     </svg>
                                 </button>
                                 <button @click="openDelete(item)" class="bg-transparent border-none shadow-none p-0"
-                                    v-if="canDeleteUniformInspection" title="ลบรายการ">
+                                    v-if="canDeleteUniformInspection" :title="$t('ReportUniformInspectionTable.delete')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="#ef4444">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -51,7 +51,7 @@
                         </td>
                     </tr>
                     <tr v-if="!sortedRows.length">
-                        <td colspan="8" class="text-center text-gray-500 py-6">ไม่พบข้อมูลการตรวจระเบียบการแต่งตัว</td>
+                        <td colspan="8" class="text-center text-gray-500 py-6">{{ $t('ReportUniformInspectionTable.noData') }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -62,17 +62,21 @@
                 <div class="join">
                     <button class="join-item btn btn-sm" :disabled="pagination.page <= 1"
                         @click="changePage(pagination.page - 1)">
-                        ก่อนหน้า
+                        {{ $t('ReportUniformInspectionTable.prev') }}
                     </button>
                     <button class="join-item btn btn-sm btn-active">{{ pagination.page }}/{{ totalPages }}</button>
                     <button class="join-item btn btn-sm" :disabled="pagination.page >= totalPages"
                         @click="changePage(pagination.page + 1)">
-                        ถัดไป
+                        {{ $t('ReportUniformInspectionTable.next') }}
                     </button>
                 </div>
             </div>
             <div class="text-center text-sm text-base-content/60">
-                ทั้งหมด {{ pagination.total }} รายการ (หน้า {{ pagination.page }} / {{ totalPages }})
+                {{ $t('ReportUniformInspectionTable.summaryTotal', {
+                    total: pagination.total,
+                    page: pagination.page,
+                    totalPages: totalPages
+                }) }}
             </div>
         </div>
 
@@ -83,6 +87,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { UniformInspectionService } from '../../api/uniform_inspection';
 import UniformInspectionDetail from './UniformInspectionDetail.vue';
 import UniformInspectionDelete from './UniformInspectionDelete.vue';
@@ -102,6 +107,7 @@ const props = defineProps({
     },
 });
 
+const { locale } = useI18n();
 const uniformInspectionService = new UniformInspectionService();
 const detailRef = ref(null);
 const deleteRef = ref(null);
@@ -138,11 +144,12 @@ const sortedRows = computed(() => {
     });
 });
 
-const formatThaiDate = (dateStr) => {
+const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
     if (Number.isNaN(date.getTime())) return '-';
-    return new Intl.DateTimeFormat('th-TH', {
+    const dateLocale = locale.value === 'th' ? 'th-TH' : 'en-US';
+    return new Intl.DateTimeFormat(dateLocale, {
         day: '2-digit',
         month: 'short',
         year: 'numeric',

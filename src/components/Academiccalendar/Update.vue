@@ -1,26 +1,26 @@
 <template>
     <dialog ref="modalRef" :id="modalId" class="modal">
         <div class="modal-box max-w-4xl">
-            <h3 class="font-bold text-lg mb-2 text-primary">แก้ไขปฏิทินการศึกษา ปี {{ year }}</h3>
-            <p class="text-sm text-base-content/70 mb-4">แก้ไขหรือเพิ่มรายการทั้งหมดของปีนี้ แล้วกดบันทึกครั้งเดียว
+            <h3 class="font-bold text-lg mb-2 text-primary">{{ t('academicCalendarModal.updateTitle', { year }) }}</h3>
+            <p class="text-sm text-base-content/70 mb-4">{{ t('academicCalendarModal.updateSubtitle') }}
             </p>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="max-h-[60vh] overflow-y-auto pr-1 space-y-3">
                     <div v-for="(term, index) in formTerms" :key="index" class="rounded-lg border border-base-300 p-3">
                         <div class="flex items-center justify-between mb-3">
-                            <p class="font-semibold">รายการที่ {{ index + 1 }}</p>
+                            <p class="font-semibold">{{ t('academicCalendarModal.itemIndex', { index: index + 1 }) }}</p>
                             <button type="button" class="btn btn-xs btn-outline btn-error"
                                 :disabled="loading || formTerms.length <= 1" @click="removeTerm(index)">
-                                ลบรายการนี้
+                                {{ t('academicCalendarModal.removeItem') }}
                             </button>
                         </div>
 
                         <div class="form-control mb-2">
                             <label class="label">
-                                <span class="label-text">รายการ <span class="text-error">*</span></span>
+                                <span class="label-text">{{ t('academicCalendarModal.itemName') }} <span class="text-error">*</span></span>
                             </label>
-                            <input v-model.trim="term.term" type="text" placeholder="เช่น เทอมที่ 1"
+                            <input v-model.trim="term.term" type="text" :placeholder="t('academicCalendarModal.termPlaceholder')"
                                 class="input input-bordered" :class="{ 'input-error': fieldErrors[index]?.term }" />
                             <label v-if="fieldErrors[index]?.term" class="label">
                                 <span class="label-text-alt text-error">{{ fieldErrors[index].term }}</span>
@@ -30,7 +30,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">วันเริ่มต้น <span class="text-error">*</span></span>
+                                    <span class="label-text">{{ t('academicCalendarModal.startDate') }} <span class="text-error">*</span></span>
                                 </label>
                                 <input v-model="term.start_date" type="date" class="input input-bordered"
                                     :class="{ 'input-error': fieldErrors[index]?.start_date }" />
@@ -41,7 +41,7 @@
 
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">วันสิ้นสุด <span class="text-error">*</span></span>
+                                    <span class="label-text">{{ t('academicCalendarModal.endDate') }} <span class="text-error">*</span></span>
                                 </label>
                                 <input v-model="term.end_date" type="date" class="input input-bordered"
                                     :class="{ 'input-error': fieldErrors[index]?.end_date }" />
@@ -54,7 +54,7 @@
                 </div>
 
                 <button type="button" class="btn btn-outline btn-primary btn-sm" @click="addTerm" :disabled="loading">
-                    + เพิ่มรายการ
+                    + {{ t('academicCalendarModal.addItem') }}
                 </button>
 
                 <div v-if="errorMessage" class="alert alert-error">
@@ -68,11 +68,11 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-ghost" @click="handleClose" :disabled="loading">
-                        ยกเลิก
+                        {{ t('common.cancel') }}
                     </button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึกทั้งหมด</span>
+                        <span v-else>{{ t('common.saveAll') }}</span>
                     </button>
                 </div>
             </form>
@@ -85,7 +85,10 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AcademicCalendarService } from '../../api/academiccalendar'
+
+const { t } = useI18n()
 
 const props = defineProps({
     isOpen: {
@@ -156,7 +159,7 @@ const applyDuplicateTermError = (duplicateTermName) => {
     let found = false
     formTerms.value.forEach((term, index) => {
         if ((term.term || '').trim().toLowerCase() === target) {
-            fieldErrors.value[index].term = 'ชื่อซ้ำกันในรายการ'
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.duplicateNameInList')
             found = true
         }
     })
@@ -170,22 +173,22 @@ const validateForm = () => {
 
     formTerms.value.forEach((term, index) => {
         if (!term.term || !term.term.trim()) {
-            fieldErrors.value[index].term = 'กรุณากรอกชื่อ'
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.requiredName')
             isValid = false
         }
 
         if (!term.start_date) {
-            fieldErrors.value[index].start_date = 'กรุณาเลือกวันเริ่มต้น'
+            fieldErrors.value[index].start_date = t('academicCalendarModal.errors.requiredStartDate')
             isValid = false
         }
 
         if (!term.end_date) {
-            fieldErrors.value[index].end_date = 'กรุณาเลือกวันสิ้นสุด'
+            fieldErrors.value[index].end_date = t('academicCalendarModal.errors.requiredEndDate')
             isValid = false
         }
 
         if (term.start_date && term.end_date && term.start_date >= term.end_date) {
-            fieldErrors.value[index].end_date = 'วันสิ้นสุดต้องหลังจากวันเริ่มต้น'
+            fieldErrors.value[index].end_date = t('academicCalendarModal.errors.endDateBeforeStartDate')
             isValid = false
         }
     })
@@ -197,8 +200,8 @@ const validateForm = () => {
 
         if (firstIndexByTerm.has(key)) {
             const firstIndex = firstIndexByTerm.get(key)
-            fieldErrors.value[firstIndex].term = 'ชื่อซ้ำกันในรายการ'
-            fieldErrors.value[index].term = 'ชื่อซ้ำกันในรายการ'
+            fieldErrors.value[firstIndex].term = t('academicCalendarModal.errors.duplicateNameInList')
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.duplicateNameInList')
             isValid = false
             return
         }
@@ -234,11 +237,11 @@ const handleSubmit = async () => {
 
         if (duplicateTermName) {
             applyDuplicateTermError(duplicateTermName)
-            errorMessage.value = `ชื่อซ้ำกัน: ${duplicateTermName}`
+            errorMessage.value = t('academicCalendarModal.errors.duplicateNameBackend', { name: duplicateTermName })
             return
         }
 
-        errorMessage.value = error.response?.data?.error || error.response?.data?.message || 'เกิดข้อผิดพลาดในการแก้ไขปฏิทินการศึกษา'
+        errorMessage.value = error.response?.data?.error || error.response?.data?.message || t('academicCalendarModal.errors.updateFail')
     } finally {
         loading.value = false
     }

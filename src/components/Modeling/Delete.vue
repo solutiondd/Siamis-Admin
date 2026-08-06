@@ -4,7 +4,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
-        <span class="button-text">{{ isDeleting ? 'กำลังลบ...' : 'ลบ' }}</span>
+        <span class="button-text">{{ isDeleting ? t('ModelingDelete.deleting') : t('common.delete') }}</span>
     </button>
 </template>
 
@@ -12,6 +12,9 @@
 import { ref } from 'vue';
 import ModelingService from '../../api/modeling.js';
 import Swal from 'sweetalert2';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     modelingId: {
@@ -40,12 +43,12 @@ const handleDelete = async () => {
         await props.beforeAction();
     }
     const result = await Swal.fire({
-        title: 'ยืนยันการลบ',
-        html: `ต้องการลบ Modeling ของ<br><strong>${props.name}</strong><br>อุปกรณ์: <strong>${props.location}</strong><br>หรือไม่?`,
+        title: t('ModelingDelete.confirmTitle'),
+        html: t('ModelingDelete.confirmHtml', { name: props.name, location: props.location }),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('common.delete'),
+        cancelButtonText: t('common.cancel'),
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#6b7280'
     });
@@ -57,8 +60,8 @@ const handleDelete = async () => {
             if (response.message === 'Success') {
                 Swal.fire({
                     icon: 'success',
-                    title: 'สำเร็จ',
-                    text: 'ลบ Modeling สำเร็จ',
+                    title: t('ModelingDelete.successTitle'),
+                    text: t('ModelingDelete.successText'),
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -68,8 +71,8 @@ const handleDelete = async () => {
             console.error('Error deleting modeling:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: error.response?.data?.message || 'ไม่สามารถลบ Modeling ได้'
+                title: t('ModelingDelete.errorTitle'),
+                text: error.response?.data?.message || t('ModelingDelete.errorText')
             });
         } finally {
             isDeleting.value = false;

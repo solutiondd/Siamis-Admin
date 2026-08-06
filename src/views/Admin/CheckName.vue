@@ -3,9 +3,10 @@
         <div class="w-full bg-white rounded-lg shadow-sm p-6">
             <div class="mb-6">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">เช็คชื่อ</h2>
+                    <h2 class="text-2xl font-bold text-gray-800">{{ $t('checkName.title') }}</h2>
                     <div class="flex items-center gap-2">
-                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">วันที่</label>
+                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">{{ $t('checkName.date')
+                            }}</label>
                         <input v-model="selectedDate" type="date" class="input input-bordered input-sm"
                             @change="loadUsers" />
                     </div>
@@ -13,33 +14,36 @@
 
                 <div class="grid grid-cols-2 gap-3 gap-y-3 items-end lg:grid-cols-4 lg:gap-4">
                     <div class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ค้นหาชื่อ/รหัส</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.searchLabel')
+                            }}</label>
                         <input v-model="searchQuery" type="text" class="input input-bordered w-full"
-                            placeholder="ชื่อหรือรหัส..." @input="handleSearch" />
+                            :placeholder="$t('checkName.searchPlaceholder')" @input="handleSearch" />
                     </div>
                     <div v-if="residentRole !== 'teacher'" class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ประเภท</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.type') }}</label>
                         <select v-model="selectedRole" class="select select-bordered w-full" @change="handleRoleChange">
-                            <option value="student">นักเรียน</option>
-                            <option value="teacher">ครู</option>
+                            <option value="student">{{ $t('checkName.student') }}</option>
+                            <option value="teacher">{{ $t('checkName.teacher') }}</option>
                         </select>
                     </div>
                     <template v-if="selectedRole === 'student'">
                         <div v-if="residentRole !== 'teacher'" class="w-full">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">ชั้นเรียน</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.classLabel')
+                                }}</label>
                             <select v-model="selectedGrade" class="select select-bordered w-full"
                                 @change="handleGradeChange">
-                                <option value="">เลือกชั้นเรียน</option>
+                                <option value="">{{ $t('checkName.selectClass') }}</option>
                                 <option v-for="grade in gradeList" :key="grade" :value="grade">
                                     {{ mapGradeDisplay(grade) }}
                                 </option>
                             </select>
                         </div>
                         <div v-if="residentRole !== 'teacher'" class="w-full">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">ห้องเรียน</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.roomLabel')
+                                }}</label>
                             <select v-model="selectedClassroom" class="select select-bordered w-full"
                                 @change="loadUsers">
-                                <option value="">เลือกห้องเรียน</option>
+                                <option value="">{{ $t('checkName.selectRoom') }}</option>
                                 <option v-for="classroom in filteredClassrooms" :key="classroom._id"
                                     :value="classroom.classroom">
                                     {{ classroom.classroom }}
@@ -49,17 +53,19 @@
                         <div v-if="residentRole === 'teacher'"
                             class="w-full col-span-1 lg:col-start-4 flex justify-end">
                             <div class="p-2 text-white bg-primary rounded-md text-center min-w-[120px]">
-                                <span class="block text-sm font-medium text-secondary">ชั้นปี / ห้อง</span>
+                                <span class="block text-sm font-medium text-secondary">{{ $t('checkName.gradeRoom')
+                                    }}</span>
                                 <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                             </div>
                         </div>
                     </template>
                     <template v-else>
                         <div v-if="residentRole !== 'teacher'" class="w-full col-span-2 lg:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">แผนก</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{
+                                $t('checkName.departmentLabel') }}</label>
                             <select v-model="selectedDepartment" class="select select-bordered w-full"
                                 @change="loadUsers">
-                                <option value="">เลือกแผนก</option>
+                                <option value="">{{ $t('checkName.selectDepartment') }}</option>
                                 <option v-for="dept in departmentList" :key="dept" :value="dept">
                                     {{ dept }}
                                 </option>
@@ -79,6 +85,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { StudentService } from '../../api/student';
 import { TeacherService } from '../../api/teacher';
 import { ClassRoomService } from '../../api/class-room';
@@ -91,6 +98,8 @@ import CheckNameTable from '../../components/CheckName/Table.vue';
 import featureFlags from '../../config/featureFlags';
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem';
 import Swal from 'sweetalert2';
+
+const { t } = useI18n();
 
 const studentService = new StudentService();
 const teacherService = new TeacherService();
@@ -156,7 +165,7 @@ const loadClassrooms = async () => {
             }
         }
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดรายชื่อห้องเรียนได้', 'error');
+        Swal.fire($t('classroomPage.loadErrorTitle'), error?.response?.data?.error || error?.message || $t('classroomPage.loadErrorText'), 'error');
         console.error('Load classrooms error:', error);
     }
 };
@@ -497,7 +506,7 @@ const loadUsers = async () => {
         loading.value = true;
         try {
             const response = await studentService.getStudents(selectedGrade.value, selectedClassroom.value);
-            const studentList = response.data || [];
+            Swal.fire(t('classroomPage.loadErrorTitle'), error?.response?.data?.error || error?.message || t('classroomPage.loadErrorText'), 'error');
             allStudents.value = studentList;
             students.value = studentList;
             await mapDailyStatus(studentList, 'student');

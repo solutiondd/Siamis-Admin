@@ -3,12 +3,11 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between items-center gap-2 md:gap-4">
             <div class="flex flex-col">
                 <h1 class="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-0">
-                    สถิติการเข้า-ออก
+                    {{ $t('ReportStats.title') }}
                 </h1>
                 <div v-if="residentRole === 'teacher'" class="mb-2 flex items-center gap-2">
-                    <span class="label-text text-sm font-medium text-secondary">ชั้นปี / ห้อง</span>
-                    <span class="font-bold text-secondary">{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom
-                        }}</span>
+                    <span class="label-text text-sm font-medium text-secondary">{{ $t('ReportStats.gradeClassroom') }}</span>
+                    <span class="font-bold text-secondary">{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                 </div>
             </div>
             <div
@@ -16,8 +15,8 @@
                 <div class="md:w-auto mb-2 md:mb-0 w-full">
                     <select v-model="viewMode" @change="handleViewModeChange"
                         class="select select-xs sm:select-sm select-bordered w-full md:w-auto">
-                        <option value="week">รายอาทิตย์</option>
-                        <option value="month">รายเดือน</option>
+                        <option value="week">{{ $t('ReportStats.weekly') }}</option>
+                        <option value="month">{{ $t('ReportStats.monthly') }}</option>
                     </select>
                 </div>
                 <div v-if="viewMode === 'week'" class="flex items-center gap-1 sm:gap-2 w-full md:w-auto">
@@ -59,7 +58,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    {{ compareMode ? 'ปิดการเปรียบเทียบ' : 'เปรียบเทียบ' }}
+                    {{ compareMode ? $t('ReportStats.closeCompare') : $t('ReportStats.compare') }}
                 </button>
             </div>
         </div>
@@ -68,36 +67,36 @@
             <div class="space-y-4">
                 <div v-if="primary.data" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="stat bg-base-100 shadow rounded-lg p-3">
-                        <div class="stat-title text-xs">นักเรียนทั้งหมด</div>
+                        <div class="stat-title text-xs">{{ $t('ReportStats.totalStudents') }}</div>
                         <div class="stat-value text-2xl text-primary">{{ primary.data.total_students || 0 }}</div>
                     </div>
                     <div class="stat bg-base-100 shadow rounded-lg p-3">
-                        <div class="stat-title text-xs">ครูทั้งหมด</div>
+                        <div class="stat-title text-xs">{{ $t('ReportStats.totalTeachers') }}</div>
                         <div class="stat-value text-2xl text-secondary">{{ primary.data.total_teachers || 0 }}</div>
                     </div>
                 </div>
 
                 <div v-if="primary.stats" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="card bg-primary/100 shadow-sm p-3">
-                        <div class="text-xs font-medium text-white">วันที่เข้ามากที่สุด</div>
+                        <div class="text-xs font-medium text-white">{{ $t('ReportStats.mostEntryDate') }}</div>
                         <div class="text-lg font-bold text-warning">{{ primary.stats.maxDay.date }}</div>
-                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxDay.total }} คน</div>
+                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxDay.total }} {{ $t('ReportStats.peopleUnit') }}</div>
                     </div>
                     <div class="card bg-warning/100 shadow-sm p-3">
-                        <div class="text-xs font-medium text-white">วันที่สายมากที่สุด</div>
+                        <div class="text-xs font-medium text-white">{{ $t('ReportStats.mostLateDate') }}</div>
                         <div class="text-lg font-bold text-primary">{{ primary.stats.maxLateDay.date }}</div>
-                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxLateDay.late }} คน
+                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxLateDay.late }} {{ $t('ReportStats.peopleUnit') }}
                         </div>
                     </div>
                 </div>
 
                 <div v-if="primary.data" class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
                     <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
-                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">กราฟ</h3>
+                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">{{ $t('ReportStats.chart') }}</h3>
                         <select v-model="primary.chartType" @change="buildPrimaryChart"
                             class="select select-xs sm:select-sm select-bordered">
-                            <option value="bar">กราฟแท่ง</option>
-                            <option value="line">กราฟเส้น</option>
+                            <option value="bar">{{ $t('ReportStats.barChart') }}</option>
+                            <option value="line">{{ $t('ReportStats.lineChart') }}</option>
                         </select>
                     </div>
                     <div class="h-80 sm:h-48 md:h-80 transition-all duration-300">
@@ -109,7 +108,7 @@
             <div v-if="compareMode && !isMdOrLess" class="space-y-1 sm:space-y-2 md:space-y-4">
                 <div class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
                     <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
-                        <h2 class="text-xs sm:text-base md:text-lg font-semibold">ช่วงที่ 2 (เปรียบเทียบ)</h2>
+                        <h2 class="text-xs sm:text-base md:text-lg font-semibold">{{ $t('ReportStats.comparePeriod2') }}</h2>
                         <div class="flex items-center gap-2">
                             <div v-if="viewMode === 'week'" class="flex items-center gap-2">
                                 <button @click="navigateCompareWeek(-1)" class="btn btn-xs btn-circle">
@@ -153,24 +152,24 @@
 
                 <div v-if="compare.stats" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="card bg-success/10 shadow-sm p-3">
-                        <div class="text-xs font-medium">วันที่เข้ามากที่สุด</div>
+                        <div class="text-xs font-medium">{{ $t('ReportStats.mostEntryDate') }}</div>
                         <div class="text-lg font-bold text-success">{{ compare.stats.maxDay.date }}</div>
-                        <div class="text-xs text-base-content/70">{{ compare.stats.maxDay.total }} คน</div>
+                        <div class="text-xs text-base-content/70">{{ compare.stats.maxDay.total }} {{ $t('ReportStats.peopleUnit') }}</div>
                     </div>
                     <div class="card bg-warning/10 shadow-sm p-3">
-                        <div class="text-xs font-medium">วันที่สายมากที่สุด</div>
+                        <div class="text-xs font-medium">{{ $t('ReportStats.mostLateDate') }}</div>
                         <div class="text-lg font-bold text-warning">{{ compare.stats.maxLateDay.date }}</div>
-                        <div class="text-xs text-base-content/70">{{ compare.stats.maxLateDay.late }} คน</div>
+                        <div class="text-xs text-base-content/70">{{ compare.stats.maxLateDay.late }} {{ $t('ReportStats.peopleUnit') }}</div>
                     </div>
                 </div>
 
                 <div v-if="compare.data" class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
                     <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
-                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">กราฟ</h3>
+                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">{{ $t('ReportStats.chart') }}</h3>
                         <select v-model="compare.chartType" @change="buildCompareChart"
                             class="select select-xs sm:select-sm select-bordered">
-                            <option value="bar">กราฟแท่ง</option>
-                            <option value="line">กราฟเส้น</option>
+                            <option value="bar">{{ $t('ReportStats.barChart') }}</option>
+                            <option value="line">{{ $t('ReportStats.lineChart') }}</option>
                         </select>
                     </div>
                     <div class="h-80 sm:h-48 md:h-80 transition-all duration-300">
@@ -184,8 +183,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import reportApi from '../../api/report.js'
 import { mapGradeDisplay } from '../../utils/gradeSystem'
+
+const { t } = useI18n()
 
 const residentRole = localStorage.getItem('residentRole') || ''
 const teacherGrade = localStorage.getItem('grade') || ''
@@ -499,7 +501,6 @@ function buildPrimaryChart() {
     const map = {}
     dailyStats.forEach(s => { map[`${s.role}_${s.date}`] = s })
 
-
     const studentOntime = []
     const studentLate = []
     const teacherOntime = []
@@ -534,15 +535,13 @@ function buildPrimaryChart() {
     const yellow = 'rgba(234, 179, 8, 0.9)'
     const red = 'rgba(220,38,38,0.85)'
 
-
-
     let datasets = [
-        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black },
-        { label: 'นักเรียน (ไม่ได้สแกน)', data: studentNotScan, backgroundColor: red, borderColor: red },
-        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black },
-        { label: 'ครู (ไม่ได้สแกน)', data: teacherNotScan, backgroundColor: red, borderColor: red }
+        { label: t('ReportStats.studentOntime'), data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor },
+        { label: t('ReportStats.studentLate'), data: studentLate, backgroundColor: black, borderColor: black },
+        { label: t('ReportStats.studentNotScan'), data: studentNotScan, backgroundColor: red, borderColor: red },
+        { label: t('ReportStats.teacherOntime'), data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor },
+        { label: t('ReportStats.teacherLate'), data: teacherLate, backgroundColor: black, borderColor: black },
+        { label: t('ReportStats.teacherNotScan'), data: teacherNotScan, backgroundColor: red, borderColor: red }
     ]
 
     if (primary.value.chartType === 'line') {
@@ -558,9 +557,9 @@ function buildPrimaryChart() {
             return color
         }
         datasets.forEach(ds => {
-            if (ds.label === 'นักเรียน (ตรงเวลา)') {
+            if (ds.label === t('ReportStats.studentOntime')) {
                 ds.borderColor = blue
-            } else if (ds.label === 'ครู (ตรงเวลา)') {
+            } else if (ds.label === t('ReportStats.teacherOntime')) {
                 ds.borderColor = yellow
             }
 
@@ -569,19 +568,17 @@ function buildPrimaryChart() {
             ds.tension = 0.4
             ds.pointRadius = 0
             ds.pointHoverRadius = 0
-            const isLate = /สาย/.test(ds.label)
+            const isLate = ds.label.includes(t('ReportStats.studentLate').replace(/[^a-zA-Zก-๙]/g, '')) || ds.label.includes('สาย') || ds.label.includes('Late')
             const alpha = isLate ? 0.22 : 0.18
             ds.backgroundColor = toFill(ds.borderColor, alpha)
         })
     }
-
 
     const groupLabelPlugin = {
         id: 'groupLabelPlugin',
         afterDatasetsDraw(chart) {
             const { ctx, chartArea } = chart
             if (!ctx || !chartArea) return
-            // if (window.innerWidth < 640) return
             if (chart.data.datasets.length < 6) return
             const days = chart.data.labels.length
             for (let i = 0; i < days; i++) {
@@ -631,7 +628,7 @@ function buildPrimaryChart() {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('ReportStats.studentLabel'), (stuLeft + stuRight) / 2, chartArea.top + 30)
                     ctx.restore()
 
                     ctx.save()
@@ -639,7 +636,7 @@ function buildPrimaryChart() {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('ReportStats.teacherLabel'), (teaLeft + teaRight) / 2, chartArea.top + 30)
                     ctx.restore()
                 }
             }
@@ -706,7 +703,6 @@ function buildCompareChart() {
     const map = {}
     dailyStats.forEach(s => { map[`${s.role}_${s.date}`] = s })
 
-
     const studentOntime = []
     const studentLate = []
     const teacherOntime = []
@@ -741,15 +737,13 @@ function buildCompareChart() {
     const yellow = 'rgba(234, 179, 8, 0.9)'
     const red = 'rgba(220,38,38,0.85)'
 
-
-
     let datasets = [
-        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black },
-        { label: 'นักเรียน (ไม่ได้สแกน)', data: studentNotScan, backgroundColor: red, borderColor: red },
-        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black },
-        { label: 'ครู (ไม่ได้สแกน)', data: teacherNotScan, backgroundColor: red, borderColor: red }
+        { label: t('ReportStats.studentOntime'), data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor },
+        { label: t('ReportStats.studentLate'), data: studentLate, backgroundColor: black, borderColor: black },
+        { label: t('ReportStats.studentNotScan'), data: studentNotScan, backgroundColor: red, borderColor: red },
+        { label: t('ReportStats.teacherOntime'), data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor },
+        { label: t('ReportStats.teacherLate'), data: teacherLate, backgroundColor: black, borderColor: black },
+        { label: t('ReportStats.teacherNotScan'), data: teacherNotScan, backgroundColor: red, borderColor: red }
     ]
 
     if (compare.value.chartType === 'line') {
@@ -765,9 +759,9 @@ function buildCompareChart() {
             return color
         }
         datasets.forEach(ds => {
-            if (ds.label === 'นักเรียน (ตรงเวลา)') {
+            if (ds.label === t('ReportStats.studentOntime')) {
                 ds.borderColor = blue
-            } else if (ds.label === 'ครู (ตรงเวลา)') {
+            } else if (ds.label === t('ReportStats.teacherOntime')) {
                 ds.borderColor = yellow
             }
 
@@ -776,7 +770,7 @@ function buildCompareChart() {
             ds.tension = 0.4
             ds.pointRadius = 0
             ds.pointHoverRadius = 0
-            const isLate = /สาย/.test(ds.label)
+            const isLate = ds.label.includes(t('ReportStats.studentLate').replace(/[^a-zA-Zก-๙]/g, '')) || ds.label.includes('สาย') || ds.label.includes('Late')
             const alpha = isLate ? 0.22 : 0.18
             ds.backgroundColor = toFill(ds.borderColor, alpha)
         })
@@ -836,7 +830,7 @@ function buildCompareChart() {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('ReportStats.studentLabel'), (stuLeft + stuRight) / 2, chartArea.top + 30)
                     ctx.restore()
 
                     ctx.save()
@@ -844,7 +838,7 @@ function buildCompareChart() {
                     ctx.fillStyle = '#222'
                     ctx.textAlign = 'center'
                     ctx.textBaseline = 'middle'
-                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.fillText(t('ReportStats.teacherLabel'), (teaLeft + teaRight) / 2, chartArea.top + 30)
                     ctx.restore()
                 }
             }

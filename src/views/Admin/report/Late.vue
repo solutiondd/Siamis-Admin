@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h1 class="text-lg md:text-3xl font-bold">ตารางมาสาย</h1>
+            <h1 class="text-lg md:text-3xl font-bold">{{ $t('Late.title') }}</h1>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <input v-model="filters.start" type="date" @change="fetchData" :max="getDefaultDate()"
                     class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
@@ -15,39 +15,39 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Late.typeLabel') }}</span>
                     </label>
                     <select v-model="filters.role" @change="handleRoleChange"
                         class="select select-sm select-bordered w-full">
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">ครู</option>
+                        <option value="student">{{ $t('Late.typeStudent') }}</option>
+                        <option value="teacher">{{ $t('Late.typeTeacher') }}</option>
                     </select>
                 </div>
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ค้นหาชื่อ/รหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Late.searchLabel') }}</span>
                     </label>
-                    <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
+                    <input v-model="filters.search" type="text" :placeholder="$t('Late.searchPlaceholder')"
                         class="input input-sm input-bordered w-full" @input="fetchData" />
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Late.gradeLabel') }}</span>
                     </label>
                     <select v-model="filters.grade" @change="handleGradeChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกชั้นปี</option>
+                        <option value="">{{ $t('Late.allGrades') }}</option>
                         <option v-for="grade in allGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
                         </option>
                     </select>
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกห้อง</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Late.classroomLabel') }}</span>
                     </label>
                     <select v-model="filters.classroom" @change="handleClassroomChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกห้อง</option>
+                        <option value="">{{ $t('Late.allClassrooms') }}</option>
                         <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
@@ -55,7 +55,7 @@
                     class="form-control md:col-start-4 flex flex-col items-center md:items-end md:justify-end md:h-full">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('Late.gradeClassroomBadge') }}</span>
                         <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
@@ -90,12 +90,14 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import LateTable from '../../../components/Report/LateTable.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem'
 import { AllowanceService } from '../../../api/allowance';
 
+const { t } = useI18n()
 const residentRole = localStorage.getItem('residentRole') || ''
 const teacherGrade = localStorage.getItem('grade') || ''
 const teacherClassroom = localStorage.getItem('classroom') || ''
@@ -179,7 +181,7 @@ const fetchData = async () => {
             pagination.value.page = 1
         }
     } catch (err) {
-        error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
+        error.value = t('Late.fetchError')
         console.error('Error fetching late report:', err)
     } finally {
         loading.value = false

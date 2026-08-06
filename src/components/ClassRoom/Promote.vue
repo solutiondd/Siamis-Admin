@@ -5,20 +5,22 @@
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0l-5 5m5-5l5 5" />
             </svg>
-            <span>เลื่อนชั้น</span>
+            <span>{{ $t('ClassroomPromote.promoteBtn') }}</span>
         </template>
         <template v-else>
-            <span>กำลังดำเนินการ...</span>
+            <span>{{ $t('ClassroomPromote.processing') }}</span>
         </template>
     </button>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ClassRoomService } from '../../api/class-room'
 import { StudentService } from '../../api/student'
 import { mapGradeDisplay } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const emit = defineEmits(['success'])
 const loading = ref(false)
 const classRoomService = new ClassRoomService()
@@ -28,14 +30,15 @@ async function handlePromote() {
     const { default: Swal } = await import('sweetalert2')
     const terminalGradeA = mapGradeDisplay('ม.3')
     const terminalGradeB = mapGradeDisplay('ม.6')
+    
     // Confirm 1
     const confirm1 = await Swal.fire({
         icon: 'warning',
-        title: `การยืนยันครั้งนี้จะลบชั้น ${terminalGradeA} และ ${terminalGradeB} ออกทุกห้อง`,
-        text: 'ยืนยันใช่ไหม?',
+        title: t('ClassroomPromote.confirmOneTitle', { gradeA: terminalGradeA, gradeB: terminalGradeB }),
+        text: t('ClassroomPromote.confirmOneText'),
         showCancelButton: true,
-        confirmButtonText: 'ยืนยัน',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('ClassroomPromote.btnConfirm'),
+        cancelButtonText: t('ClassroomPromote.btnCancel'),
         confirmButtonColor: '#2563eb',
         cancelButtonColor: '#d33',
         didOpen: () => {
@@ -47,32 +50,16 @@ async function handlePromote() {
     // Confirm 2
     const confirm2 = await Swal.fire({
         icon: 'warning',
-        title: 'ยืนยันการเลื่อนชั้นใช่ไหม?',
+        title: t('ClassroomPromote.confirmTwoTitle'),
         showCancelButton: true,
-        confirmButtonText: 'ยืนยัน',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('ClassroomPromote.btnConfirm'),
+        cancelButtonText: t('ClassroomPromote.btnCancel'),
         confirmButtonColor: '#2563eb',
         cancelButtonColor: '#d33',
         didOpen: () => {
             document.getElementById('app').removeAttribute('aria-hidden')
         }
     })
-    // if (!confirm2.isConfirmed) return
-
-    // Confirm 3
-    // const confirm3 = await Swal.fire({
-    //     icon: 'warning',
-    //     title: 'การยืนยันครั้งนี้จะลบนักเรียนชั้น ม.3 และ ม.6 ทุกห้องออกด้วย',
-    //     text: 'ยืนยันการลบใช่หรือไหม?',
-    //     showCancelButton: true,
-    //     confirmButtonText: 'ยืนยัน',
-    //     cancelButtonText: 'ยกเลิก',
-    //     confirmButtonColor: '#2563eb',
-    //     cancelButtonColor: '#d33',
-    //     didOpen: () => {
-    //         document.getElementById('app').removeAttribute('aria-hidden')
-    //     }
-    // })
     if (!confirm2.isConfirmed) return
 
     loading.value = true
@@ -82,7 +69,7 @@ async function handlePromote() {
         await classRoomService.promoteClassRoom({})
         await Swal.fire({
             icon: 'success',
-            title: 'ลบข้อมูลและเลื่อนชั้นสำเร็จ',
+            title: t('ClassroomPromote.successTitle'),
             showConfirmButton: false,
             timer: 1800,
             didOpen: () => {
@@ -93,8 +80,8 @@ async function handlePromote() {
     } catch (error) {
         await Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error.response?.data?.error || 'ไม่สามารถลบข้อมูลหรืเลื่อนชั้นได้',
+            title: t('ClassroomPromote.errorTitle'),
+            text: error.response?.data?.error || t('ClassroomPromote.defaultErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

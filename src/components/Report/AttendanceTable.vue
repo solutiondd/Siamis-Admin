@@ -7,29 +7,29 @@
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                ส่งออก Excel
+                {{ $t('ReportAttendanceTable.exportExcel') }}
             </button>
         </div>
         <div class="hidden lg:block bg-base-100 rounded-lg shadow-lg overflow-x-auto">
             <table class="table table-zebra w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th class="text-center">รหัส</th>
-                        <th class="text-center">โปรไฟล์</th>
-                        <th>ชื่อ-สกุล</th>
-                        <th class="text-center">ตำแหน่ง</th>
-                        <th class="text-center">ชั้นเรียน/แผนก</th>
-                        <th class="text-center">วันที่</th>
-                        <th class="text-center">เข้า</th>
-                        <th v-if="featureFlags.attendance.enableLineupColumn" class="text-center">เข้าแถว</th>
-                        <th class="text-center">ออก</th>
-                        <th class="text-center">รายละเอียด</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.code') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.profile') }}</th>
+                        <th>{{ $t('ReportAttendanceTable.fullName') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.position') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.classOrDepartment') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.date') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.entry') }}</th>
+                        <th v-if="featureFlags.attendance.enableLineupColumn" class="text-center">{{ $t('ReportAttendanceTable.lineup') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.exit') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTable.details') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="data.length === 0">
                         <td colspan="10" class="text-center py-8 text-base-content/60">
-                            ไม่พบข้อมูล
+                            {{ $t('ReportAttendanceTable.noData') }}
                         </td>
                     </tr>
                     <template v-for="item in data" :key="item._id">
@@ -62,19 +62,19 @@
                                     <span v-if="extractAttendanceByUsecase(item.attendances[0]).entry"
                                         class="badge badge-success badge-sm">{{
                                             extractAttendanceByUsecase(item.attendances[0]).entry.time }}</span>
-                                    <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                    <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                 </td>
                                 <td v-if="featureFlags.attendance.enableLineupColumn" class="text-center">
                                     <span v-if="extractAttendanceByUsecase(item.attendances[0]).lineup"
                                         class="badge badge-success badge-sm">{{
                                             extractAttendanceByUsecase(item.attendances[0]).lineup.time }}</span>
-                                    <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                    <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                 </td>
                                 <td class="text-center">
                                     <span v-if="extractAttendanceByUsecase(item.attendances[0]).exit"
                                         class="badge badge-success badge-sm">{{
                                             extractAttendanceByUsecase(item.attendances[0]).exit.time }}</span>
-                                    <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                    <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                 </td>
                                 <td class="text-center">
                                     <button @click="$emit('viewDetail', item, item.attendances[0])"
@@ -101,19 +101,19 @@
                                         <span v-if="extractAttendanceByUsecase(att).entry"
                                             class="badge badge-success badge-sm">{{
                                                 extractAttendanceByUsecase(att).entry.time }}</span>
-                                        <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                        <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                     </td>
                                     <td v-if="featureFlags.attendance.enableLineupColumn" class="text-center">
                                         <span v-if="extractAttendanceByUsecase(att).lineup"
                                             class="badge badge-success badge-sm">{{
                                                 extractAttendanceByUsecase(att).lineup.time }}</span>
-                                        <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                        <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                     </td>
                                     <td class="text-center">
                                         <span v-if="extractAttendanceByUsecase(att).exit"
                                             class="badge badge-success badge-sm">{{
                                                 extractAttendanceByUsecase(att).exit.time }}</span>
-                                        <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                        <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                                     </td>
                                     <td class="text-center">
                                         <button @click="$emit('viewDetail', item, att)"
@@ -154,10 +154,10 @@
                                 <span v-else>{{ formatGradeClassroomDisplay(item.grade, item.classroom) }}</span>
                             </td>
                             <td class="text-center">-</td>
-                            <td class="text-center"><span class="badge badge-error badge-sm">ไม่มี</span></td>
+                            <td class="text-center"><span class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span></td>
                             <td v-if="featureFlags.attendance.enableLineupColumn" class="text-center"><span
-                                    class="badge badge-error badge-sm">ไม่มี</span></td>
-                            <td class="text-center"><span class="badge badge-error badge-sm">ไม่มี</span></td>
+                                    class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span></td>
+                            <td class="text-center"><span class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span></td>
                             <td class="text-center">
                                 <button @click="$emit('viewDetail', item)" class="btn btn-sm btn-info btn-outline">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
@@ -178,7 +178,7 @@
         <div class="lg:hidden space-y-4">
             <div v-if="data.length === 0"
                 class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                ไม่พบข้อมูล
+                {{ $t('ReportAttendanceTable.noData') }}
             </div>
             <div v-for="item in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
                 <div class="flex justify-between items-start">
@@ -206,7 +206,7 @@
 
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                        <span class="text-base-content/60">{{ item.department ? 'แผนก:' : 'ชั้นเรียน:' }}</span>
+                        <span class="text-base-content/60">{{ item.department ? $t('ReportAttendanceTable.department') : $t('ReportAttendanceTable.classroom') }}</span>
                         <p class="font-medium">{{ item.department || formatGradeClassroomDisplay(item.grade,
                             item.classroom) }}
                         </p>
@@ -223,25 +223,25 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2 mb-2">
                             <div class="flex-1 text-center">
-                                <span class="text-xs text-base-content/60 block">เข้า</span>
+                                <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.entry') }}</span>
                                 <span v-if="extractAttendanceByUsecase(att).entry"
                                     class="badge badge-success badge-sm">{{
                                         extractAttendanceByUsecase(att).entry.time }}</span>
-                                <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                             </div>
                             <div v-if="featureFlags.attendance.enableLineupColumn" class="flex-1 text-center">
-                                <span class="text-xs text-base-content/60 block">เข้าแถว</span>
+                                <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.lineup') }}</span>
                                 <span v-if="extractAttendanceByUsecase(att).lineup"
                                     class="badge badge-success badge-sm">{{
                                         extractAttendanceByUsecase(att).lineup.time }}</span>
-                                <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                             </div>
                             <div class="flex-1 text-center">
-                                <span class="text-xs text-base-content/60 block">ออก</span>
+                                <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.exit') }}</span>
                                 <span v-if="extractAttendanceByUsecase(att).exit"
                                     class="badge badge-success badge-sm">{{
                                         extractAttendanceByUsecase(att).exit.time }}</span>
-                                <span v-else class="badge badge-error badge-sm">ไม่มี</span>
+                                <span v-else class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                             </div>
                         </div>
                         <button @click="$emit('viewDetail', item, att)" class="btn btn-sm btn-info btn-outline w-full">
@@ -252,7 +252,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            ดูรายละเอียด
+                            {{ $t('ReportAttendanceTable.viewDetails') }}
                         </button>
                     </div>
                 </template>
@@ -260,16 +260,16 @@
                     <div class="grid gap-2 mb-2"
                         :class="featureFlags.attendance.enableLineupColumn ? 'grid-cols-3' : 'grid-cols-2'">
                         <div class="flex-1 text-center">
-                            <span class="text-xs text-base-content/60 block">เข้า</span>
-                            <span class="badge badge-error badge-sm">ไม่มี</span>
+                            <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.entry') }}</span>
+                            <span class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                         </div>
                         <div v-if="featureFlags.attendance.enableLineupColumn" class="flex-1 text-center">
-                            <span class="text-xs text-base-content/60 block">เข้าแถว</span>
-                            <span class="badge badge-error badge-sm">ไม่มี</span>
+                            <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.lineup') }}</span>
+                            <span class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                         </div>
                         <div class="flex-1 text-center">
-                            <span class="text-xs text-base-content/60 block">ออก</span>
-                            <span class="badge badge-error badge-sm">ไม่มี</span>
+                            <span class="text-xs text-base-content/60 block">{{ $t('ReportAttendanceTable.exit') }}</span>
+                            <span class="badge badge-error badge-sm">{{ $t('ReportAttendanceTable.none') }}</span>
                         </div>
                     </div>
                     <button @click="$emit('viewDetail', item)" class="btn btn-sm btn-info btn-outline w-full">
@@ -280,7 +280,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        ดูรายละเอียด
+                        {{ $t('ReportAttendanceTable.viewDetails') }}
                     </button>
                 </template>
             </div>
@@ -289,13 +289,13 @@
 
     <div class="mt-4 flex flex-wrap gap-4 text-xs">
         <div class="flex items-center gap-2 text-white">
-            <span class="badge badge-warning badge-xs">เข้าแถว</span> เวลาแรกจาก person_confirmation
+            <span class="badge badge-warning badge-xs">{{ $t('ReportAttendanceTable.lineup') }}</span> {{ $t('ReportAttendanceTable.lineupLegend') }}
         </div>
         <div class="flex items-center gap-2 text-white">
-            <span class="badge badge-success badge-xs">เวลา</span> แสดงเวลาที่เข้า/ออก
+            <span class="badge badge-success badge-xs">{{ $t('ReportAttendanceTable.date') }}</span> {{ $t('ReportAttendanceTable.timeLegend') }}
         </div>
         <div class="flex items-center gap-2 text-white">
-            <span class="badge badge-error badge-xs">ไม่มี</span> ไม่มีข้อมูลเวลา
+            <span class="badge badge-error badge-xs">{{ $t('ReportAttendanceTable.none') }}</span> {{ $t('ReportAttendanceTable.noDataLegend') }}
         </div>
     </div>
 
@@ -319,7 +319,7 @@
     </div>
 
     <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4 text-white">
-        ทั้งหมด {{ pagination.total_items }} รายการ (หน้า {{ pagination.page }} / {{ pagination.total_pages }})
+        {{ $t('ReportAttendanceTable.totalItems', { total: pagination.total_items, page: pagination.page, totalPages: pagination.total_pages }) }}
     </div>
 
     <dialog ref="imageModal" class="modal">
@@ -332,7 +332,7 @@
                 class="w-full h-auto max-h-[90vh] object-contain" />
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ $t('ReportAttendanceTable.close') }}</button>
         </form>
     </dialog>
 </template>
@@ -343,8 +343,10 @@ import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
 import featureFlags from '../../config/featureFlags.js'
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const loadingExport = ref(false)
 
 function normalizeCellValue(value) {
@@ -398,8 +400,8 @@ async function exportAllToExcel() {
             const first = att.timeStamps.map(ts => ts.timestamp).sort()[0]
             if (!first) return '-'
             const time = first.split(' ')[1]
-            if (time > '08:01:00') return 'มาสาย'
-            return 'มาปกติ'
+            if (time > '08:01:00') return t('ReportAttendanceTable.statusLate')
+            return t('ReportAttendanceTable.statusOnTime')
         }
 
         function getFirstTimeByUsecase(att, usecase) {
@@ -432,56 +434,63 @@ async function exportAllToExcel() {
             if (item.attendances && item.attendances.length > 0) {
                 item.attendances.forEach(att => {
                     const row = {
-                        'รหัส': normalizeCellValue(item.userid),
-                        'ชื่อ-สกุล': normalizeCellValue(item.name),
-                        'ตำแหน่ง': normalizeCellValue(item.position),
-                        'ชั้นเรียน/แผนก': formatClassOrDepartment(item),
-                        'วันที่': formatDateTH(att.date),
-                        'เวลาเข้า': getFirstTimeByUsecase(att, 'attendance') !== '-' ? getFirstTimeByUsecase(att, 'attendance') : getLegacyEntryTime(att),
-                        'เวลาออก': getFirstTimeByUsecase(att, 'attendance') !== '-' ? getLegacyExitTime({
+                        [t('ReportAttendanceTable.code')]: normalizeCellValue(item.userid),
+                        [t('ReportAttendanceTable.fullName')]: normalizeCellValue(item.name),
+                        [t('ReportAttendanceTable.position')]: normalizeCellValue(item.position),
+                        [t('ReportAttendanceTable.classOrDepartment')]: formatClassOrDepartment(item),
+                        [t('ReportAttendanceTable.date')]: formatDateTH(att.date),
+                        [t('ReportAttendanceTable.entry')]: getFirstTimeByUsecase(att, 'attendance') !== '-' ? getFirstTimeByUsecase(att, 'attendance') : getLegacyEntryTime(att),
+                        [t('ReportAttendanceTable.exit')]: getFirstTimeByUsecase(att, 'attendance') !== '-' ? getLegacyExitTime({
                             ...att,
                             timeStamps: att.timeStamps.filter(ts => ts.usecase === 'attendance')
                         }) : getLegacyExitTime(att),
-                        'สถานะ': getStatus(att),
+                        [t('ReportAttendanceTable.status')]: getStatus(att),
                     }
                     if (featureFlags.attendance.enableLineupColumn) {
-                        row['เข้าแถว'] = getFirstTimeByUsecase(att, 'person_confirmation')
+                        row[t('ReportAttendanceTable.lineup')] = getFirstTimeByUsecase(att, 'person_confirmation')
                     }
                     rows.push(row)
                 })
             } else {
                 const row = {
-                    'รหัส': normalizeCellValue(item.userid),
-                    'ชื่อ-สกุล': normalizeCellValue(item.name),
-                    'ตำแหน่ง': normalizeCellValue(item.position),
-                    'ชั้นเรียน/แผนก': formatClassOrDepartment(item),
-                    'วันที่': '-',
-                    'เวลาเข้า': '-',
-                    'เวลาออก': '-',
-                    'สถานะ': '-',
+                    [t('ReportAttendanceTable.code')]: normalizeCellValue(item.userid),
+                    [t('ReportAttendanceTable.fullName')]: normalizeCellValue(item.name),
+                    [t('ReportAttendanceTable.position')]: normalizeCellValue(item.position),
+                    [t('ReportAttendanceTable.classOrDepartment')]: formatClassOrDepartment(item),
+                    [t('ReportAttendanceTable.date')]: '-',
+                    [t('ReportAttendanceTable.entry')]: '-',
+                    [t('ReportAttendanceTable.exit')]: '-',
+                    [t('ReportAttendanceTable.status')]: '-',
                 }
                 if (featureFlags.attendance.enableLineupColumn) {
-                    row['เข้าแถว'] = '-'
+                    row[t('ReportAttendanceTable.lineup')] = '-'
                 }
                 rows.push(row)
             }
         })
 
         const workbook = new ExcelJS.Workbook()
-        const worksheet = workbook.addWorksheet('AttendanceDetail')
+        const worksheet = workbook.addWorksheet(t('ReportAttendanceTable.excelSheetName'))
 
         const dateRangeText = filters.start && filters.end ? `(${formatDateTH(filters.start)} - ${formatDateTH(filters.end)})` : ''
-        worksheet.addRow([`รายงานข้อมูลการเข้า-ออก ${dateRangeText}`])
+        worksheet.addRow([t('ReportAttendanceTable.exportTitle', { dateRange: dateRangeText })])
         const mergeRange = featureFlags.attendance.enableLineupColumn ? 'A1:I1' : 'A1:H1'
         worksheet.mergeCells(mergeRange)
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' }
         worksheet.getCell('A1').font = { bold: true }
 
-        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่', 'เวลาเข้า']
+        const header = [
+            t('ReportAttendanceTable.code'),
+            t('ReportAttendanceTable.fullName'),
+            t('ReportAttendanceTable.position'),
+            t('ReportAttendanceTable.classOrDepartment'),
+            t('ReportAttendanceTable.date'),
+            t('ReportAttendanceTable.entry')
+        ]
         if (featureFlags.attendance.enableLineupColumn) {
-            header.push('เข้าแถว')
+            header.push(t('ReportAttendanceTable.lineup'))
         }
-        header.push('เวลาออก', 'สถานะ')
+        header.push(t('ReportAttendanceTable.exit'), t('ReportAttendanceTable.status'))
         worksheet.addRow(header)
 
         rows.forEach(row => {
@@ -501,7 +510,7 @@ async function exportAllToExcel() {
         const buffer = await workbook.xlsx.writeBuffer()
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `AttendanceDetail_${filters.start || ''}_${filters.end || ''}.xlsx`)
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Excel')
+        alert(t('ReportAttendanceTable.excelError'))
         console.error(e)
     } finally {
         loadingExport.value = false

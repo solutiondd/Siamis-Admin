@@ -4,7 +4,7 @@
             <div class="flex flex-row justify-between gap-2 mb-3">
                 <div class="flex items-center gap-2">
                     <h4 class="card-title font-bold flex items-center gap-2 m-0">
-                        <p class="fas fa-tasks text-sm sm:text-lg">ความคืบหน้าการสแกน</p>
+                        <p class="fas fa-tasks text-sm sm:text-lg">{{ $t('DashBoardProgress.title') }}</p>
                     </h4>
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
                 </div>
@@ -19,14 +19,17 @@
                 <table class="table w-full text-black">
                     <thead class="bg-gray-100 text-gray-700 font-semibold text-sm border-b border-gray-200">
                         <tr>
-                            <th class="py-3 px-4 text-left">ระดับชั้น</th>
-                            <th class="text-center py-3 col-total">ทั้งหมด</th>
-                            <th class="text-center py-3 col-sexdata">ชาย</th>
-                            <th class="text-center py-3 col-sexdata">หญิง</th>
-                            <th class="text-center py-3 text-primary font-bold col-arrival">มาทั้งหมด</th>
-                            <th class="text-center py-3 text-green-600 col-timedata">ตรงเวลา</th>
-                            <th class="text-center py-3 text-orange-600 col-timedata">สาย</th>
-                            <th class="text-center py-3 t w-full sm:w-1/3">มา / ยังไม่มา</th>
+                            <th class="py-3 px-4 text-left">{{ $t('DashBoardProgress.gradeLevel') }}</th>
+                            <th class="text-center py-3 col-total">{{ $t('DashBoardProgress.total') }}</th>
+                            <th class="text-center py-3 col-sexdata">{{ $t('DashBoardProgress.male') }}</th>
+                            <th class="text-center py-3 col-sexdata">{{ $t('DashBoardProgress.female') }}</th>
+                            <th class="text-center py-3 text-primary font-bold col-arrival">{{
+                                $t('DashBoardProgress.totalArrived') }}</th>
+                            <th class="text-center py-3 text-green-600 col-timedata">{{ $t('DashBoardProgress.ontime')
+                                }}</th>
+                            <th class="text-center py-3 text-orange-600 col-timedata">{{ $t('DashBoardProgress.late') }}
+                            </th>
+                            <th class="text-center py-3 t w-full sm:w-1/3">{{ $t('DashBoardProgress.status') }}</th>
                         </tr>
                     </thead>
 
@@ -84,7 +87,7 @@
                                         </span>
 
                                         <div class="tooltip tooltip-top before:text-xs before:max-w-none flex-1"
-                                            :data-tip="`มาแล้ว ${gradeGroup.arrive} คน / ยังไม่มา ${gradeGroup.total - gradeGroup.arrive} คน`">
+                                            :data-tip="$t('DashBoardProgress.tooltip', { arrive: gradeGroup.arrive, notArrive: gradeGroup.total - gradeGroup.arrive })">
                                             <div class="flat-bar-container cursor-pointer">
                                                 <div class="flat-fill-green"
                                                     :style="{ width: gradeGroup.percent + '%' }"></div>
@@ -105,8 +108,9 @@
                                 'hover:bg-gray-100 border-b border-gray-100 transition-colors text-gray-700'
                             ]">
                                 <td class="pl-8 py-2.5 text-gray-900">
-                                    <span class="text-full">{{ formatGradeTitle(gradeGroup.grade) }} ห้อง {{
-                                        room.classroom }}</span>
+                                    <span class="text-full">{{ formatGradeTitle(gradeGroup.grade) }} {{
+                                        $t('DashBoardProgress.room') }} {{
+                                            room.classroom }}</span>
                                     <span class="text-short">{{ gradeGroup.grade }}/{{ room.classroom }}</span>
                                 </td>
                                 <td class="text-center py-2.5 text-gray-600 col-total">{{ room.total }}</td>
@@ -123,7 +127,7 @@
                                         </span>
 
                                         <div class="tooltip tooltip-top before:text-xs before:max-w-none flex-1"
-                                            :data-tip="`มาแล้ว ${room.arrive} คน / ยังไม่มา ${room.total - room.arrive} คน`">
+                                            :data-tip="$t('DashBoardProgress.tooltip', { arrive: room.arrive, notArrive: room.total - room.arrive })">
                                             <div class="flat-bar-container h-2.5 cursor-pointer">
                                                 <div class="flat-fill-green" :style="{ width: room.percent + '%' }">
                                                 </div>
@@ -142,7 +146,7 @@
 
                         <tr v-if="processedData.length === 0 && !loading">
                             <td colspan="8" class="text-center py-8 text-gray-400 bg-gray-50">
-                                ไม่มีข้อมูลความคืบหน้าในวันนี้
+                                {{ $t('DashBoardProgress.noData') }}
                             </td>
                         </tr>
                     </tbody>
@@ -154,7 +158,9 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
     data: {
         type: Array,

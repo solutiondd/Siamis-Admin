@@ -3,7 +3,7 @@
         <div class="flex justify-end items-center">
             <button class="btn btn-sm btn-primary" :disabled="loading" @click="fetchRiskStudents">
                 <span v-if="loading" class="loading loading-spinner loading-xs mr-2"></span>
-                รีเฟรช
+                {{ t('ReportAtRiskStudent.refresh') }}
             </button>
         </div>
 
@@ -15,20 +15,20 @@
             <table class="table table-zebra w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th class="text-center">ลำดับ</th>
-                        <th class="text-center">รหัส</th>
-                        <th class="text-center">โปรไฟล์</th>
-                        <th>ชื่อ-สกุล</th>
-                        <th class="text-center">ชั้น/ห้อง</th>
-                        <th class="text-center">คะแนนเสี่ยง</th>
+                        <th class="text-center">{{ t('ReportAtRiskStudent.colIndex') }}</th>
+                        <th class="text-center">{{ t('ReportAtRiskStudent.colCode') }}</th>
+                        <th class="text-center">{{ t('ReportAtRiskStudent.colProfile') }}</th>
+                        <th>{{ t('ReportAtRiskStudent.colName') }}</th>
+                        <th class="text-center">{{ t('ReportAtRiskStudent.colClassroom') }}</th>
+                        <th class="text-center">{{ t('ReportAtRiskStudent.colRiskScore') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="loading">
-                        <td colspan="6" class="text-center py-8 text-base-content/60">กำลังโหลดข้อมูล...</td>
+                        <td colspan="6" class="text-center py-8 text-base-content/60">{{ t('ReportAtRiskStudent.loading') }}</td>
                     </tr>
                     <tr v-else-if="riskStudents.length === 0">
-                        <td colspan="6" class="text-center py-8 text-base-content/60">ไม่พบข้อมูล</td>
+                        <td colspan="6" class="text-center py-8 text-base-content/60">{{ t('ReportAtRiskStudent.noData') }}</td>
                     </tr>
                     <tr v-for="(item, index) in riskStudents" :key="item._id || item.userid" class="hover">
                         <td class="text-center">{{ index + 1 }}</td>
@@ -52,7 +52,7 @@
                         <td class="text-center">
                             <button type="button" class="badge hover:opacity-90 cursor-pointer"
                                 :class="scoreBadgeClass(item.score)" @click="openConductByStudent(item)"
-                                :title="`จัดการคะแนนของ ${item.name || item.userid || 'นักเรียน'}`">
+                                :title="t('ReportAtRiskStudent.manageScoreTitle', { name: item.name || item.userid || t('ReportAtRiskStudent.defaultStudent') })">
                                 {{ item.score ?? '-' }}
                             </button>
                         </td>
@@ -63,11 +63,11 @@
 
         <div class="lg:hidden space-y-4">
             <div v-if="loading" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                กำลังโหลดข้อมูล...
+                {{ t('ReportAtRiskStudent.loading') }}
             </div>
             <div v-else-if="riskStudents.length === 0"
                 class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                ไม่พบข้อมูล
+                {{ t('ReportAtRiskStudent.noData') }}
             </div>
 
             <div v-for="(item, index) in riskStudents" :key="item._id || item.userid"
@@ -89,12 +89,12 @@
                     <div class="flex-1">
                         <div class="badge badge-primary badge-sm mb-2">{{ index + 1 }}</div>
                         <h3 class="font-bold text-base">{{ item.name || '-' }}</h3>
-                        <p class="text-sm text-base-content/70">รหัส: {{ item.userid || '-' }}</p>
+                        <p class="text-sm text-base-content/70">{{ t('ReportAtRiskStudent.colCode') }}: {{ item.userid || '-' }}</p>
                     </div>
 
                     <button type="button" class="badge hover:opacity-90 cursor-pointer"
                         :class="scoreBadgeClass(item.score)" @click="openConductByStudent(item)"
-                        :title="`จัดการคะแนนของ ${item.name || item.userid || 'นักเรียน'}`">
+                        :title="t('ReportAtRiskStudent.manageScoreTitle', { name: item.name || item.userid || t('ReportAtRiskStudent.defaultStudent') })">
                         {{ item.score ?? '-' }}
                     </button>
                 </div>
@@ -103,11 +103,11 @@
 
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                        <span class="text-base-content/60">ระดับชั้น</span>
+                        <span class="text-base-content/60">{{ t('ReportAtRiskStudent.gradeLevel') }}</span>
                         <p class="font-medium">{{ mapGradeDisplay(item.grade) || '-' }}</p>
                     </div>
                     <div>
-                        <span class="text-base-content/60">ห้อง</span>
+                        <span class="text-base-content/60">{{ t('ReportAtRiskStudent.room') }}</span>
                         <p class="font-medium">{{ item.classroom || '-' }}</p>
                     </div>
                 </div>
@@ -119,9 +119,11 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import reportApi from "../../api/report.js";
 import { formatGradeClassroomDisplay, mapGradeDisplay } from '../../utils/gradeSystem';
 
+const { t } = useI18n();
 const imgProfileBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL;
 const router = useRouter();
 
@@ -138,7 +140,7 @@ const fetchRiskStudents = async () => {
         riskStudents.value = Array.isArray(response?.data) ? response.data : [];
     } catch (error) {
         riskStudents.value = [];
-        errorMessage.value = "ไม่สามารถดึงข้อมูลนักเรียนกลุ่มเสี่ยงได้";
+        errorMessage.value = t("ReportAtRiskStudent.fetchError");
         console.error("Error loading risk student report:", error);
     } finally {
         loading.value = false;
@@ -189,5 +191,3 @@ const openConductByStudent = (item) => {
 
 onMounted(fetchRiskStudents);
 </script>
-
-<style scoped></style>

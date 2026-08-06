@@ -1,42 +1,42 @@
 <template>
     <dialog ref="createModal" class="modal">
         <div class="modal-box w-11/12 max-w-2xl">
-            <h3 class="font-bold text-lg mb-4 text-primary">เพิ่มอุปกรณ์ใหม่</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ t('device.addTitle') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Serial Number <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.serialNumber') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model="formData.serial_number" type="text" placeholder="กรอก Serial Number"
+                    <input v-model="formData.serial_number" type="text" :placeholder="t('device.enterSerialNumber')"
                         class="input input-bordered w-full" required />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">สถานที่ <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.location') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model="formData.location" type="text" placeholder="กรอกสถานที่ติดตั้ง"
+                    <input v-model="formData.location" type="text" :placeholder="t('device.enterLocation')"
                         class="input input-bordered w-full" required />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ประเภทประตู <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.gateType') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="formData.gate_type" class="select select-bordered w-full" required>
-                        <option value="" disabled>เลือกประเภทประตู</option>
-                        <option value="in">ทางเข้า (In)</option>
-                        <option value="out">ทางออก (Out)</option>
+                        <option value="" disabled>{{ t('device.selectGateType') }}</option>
+                        <option value="in">{{ t('device.gateIn') }}</option>
+                        <option value="out">{{ t('device.gateOut') }}</option>
                     </select>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ประเภทอุปกรณ์ <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.deviceType') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="formData.device_type" class="select select-bordered w-full" required>
-                        <option value="" disabled>เลือกประเภทอุปกรณ์</option>
+                        <option value="" disabled>{{ t('device.selectDeviceType') }}</option>
                         <option value="ipcam">IP Cam</option>
                         <option value="Aifacescan">AI Face Scan</option>
                         <option value="intfacecam">Int Face Cam</option>
@@ -49,24 +49,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Username อุปกรณ์</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.deviceUsername') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
-                        <input v-model="formData.device_username" type="text" placeholder="กรอก Username"
+                        <input v-model="formData.device_username" type="text" :placeholder="t('device.enterUsername')"
                             class="input input-bordered w-full" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Password อุปกรณ์</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.devicePassword') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <div class="relative">
                             <input v-model="formData.device_password" :type="showDevicePassword ? 'text' : 'password'"
-                                placeholder="กรอก Password" class="input input-bordered w-full pr-12" />
+                                :placeholder="t('device.enterPassword')" class="input input-bordered w-full pr-12" />
                             <button type="button" class="btn btn-ghost btn-sm absolute right-1 top-1/2 -translate-y-1/2"
                                 @click="showDevicePassword = !showDevicePassword"
-                                :aria-label="showDevicePassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'">
+                                :aria-label="showDevicePassword ? t('device.hidePassword') : t('device.showPassword')">
                                 <svg v-if="showDevicePassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -86,47 +86,41 @@
 
                 <div v-if="featureFlags.device.enableUseCase" class="form-control">
                     <label class="label">
-                        <span class="label-text">Use Case <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('device.useCase') }} <span class="text-error">*</span></span>
                     </label>
                     <select v-model="formData.usecase" class="select select-bordered w-full" required>
-                        <option value="" disabled>เลือก Use Case</option>
-                        <option value="access_control">Access Control</option>
-                        <option value="attendance">Attendance</option>
-                        <option value="person_confirmation">Person Confirmation</option>
+                        <option value="" disabled>{{ t('device.selectUseCase') }}</option>
+                        <option value="access_control">{{ t('device.useCaseAccessControl') }}</option>
+                        <option value="attendance">{{ t('device.useCaseAttendance') }}</option>
+                        <option value="person_confirmation">{{ t('device.useCasePersonConfirmation') }}</option>
                     </select>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text" :class="{'text-error': macError}">MAC Address</span>
-                        <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                        <span class="label-text" :class="{ 'text-error': macError }">{{ t('device.macAddress') }}</span>
+                        <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                     </label>
-                    <input 
-                        v-model="formData.mac" 
-                        type="text" 
-                        placeholder="เช่น 00:15:18:23:59:90 หรือ 00-15-18-23-59-90"
-                        class="input input-bordered w-full" 
-                        :class="{'input-error text-error': macError}"
-                        @input="validateMac"
-                        @blur="validateMac"
-                    />
+                    <input v-model="formData.mac" type="text" :placeholder="'00:15:18:23:59:90 / 00-15-18-23-59-90'"
+                        class="input input-bordered w-full" :class="{ 'input-error text-error': macError }"
+                        @input="validateMac" @blur="validateMac" />
                     <label v-if="macError" class="label">
-                        <span class="label-text-alt text-error">รูปแบบ MAC Address ไม่ถูกต้อง (เช่น 00:15:18:23:59:90)</span>
+                        <span class="label-text-alt text-error">{{ t('device.macInvalid') }}</span>
                     </label>
                 </div>
 
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
                         <input v-model="formData.use_attendance_time" type="checkbox" class="toggle toggle-primary" />
-                        <span class="label-text">เปิดใช้งานช่วงเวลาบันทึกเข้าเรียน</span>
+                        <span class="label-text">{{ t('device.attendanceEnabled') }}</span>
                     </label>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">เวลาเริ่มเช็คชื่อ</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.attendanceStart') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <input v-model="formData.attendance_start_time" type="time" class="input input-bordered w-full"
                             :disabled="!formData.use_attendance_time" />
@@ -134,8 +128,8 @@
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">เวลาสิ้นสุดเช็คชื่อ</span>
-                            <span class="label-text-alt text-base-content/60">(ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('device.attendanceEnd') }}</span>
+                            <span class="label-text-alt text-base-content/60">({{ t('device.optional') }})</span>
                         </label>
                         <input v-model="formData.attendance_end_time" type="time" class="input input-bordered w-full"
                             :disabled="!formData.use_attendance_time" />
@@ -143,31 +137,33 @@
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('device.cancel') }}</button>
                     <button type="submit" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        เพิ่มอุปกรณ์
+                        {{ t('device.create') }}
                     </button>
                 </div>
             </form>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
+            <button @click="closeModal">{{ t('common.close') }}</button>
         </form>
     </dialog>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import featureFlags from '../../config/featureFlags.js'
 
 const createModal = ref(null)
 const emit = defineEmits(['success'])
 const showDevicePassword = ref(false)
 const macError = ref(false)
+const { t } = useI18n()
 
 const formData = ref({
     serial_number: '',
@@ -185,7 +181,7 @@ const formData = ref({
 
 const validateMac = () => {
     const macValue = formData.value.mac ? formData.value.mac.trim() : ''
-    
+
     if (!macValue) {
         macError.value = false
         return

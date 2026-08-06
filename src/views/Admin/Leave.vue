@@ -1,13 +1,13 @@
 <template>
 	<div class="max-[944px]:pt-16">
 		<div class="mb-4 flex items-center justify-between gap-3">
-			<h2 class="text-2xl font-bold text-white">จัดการรายการลา</h2>
+			<h2 class="text-2xl font-bold text-white">{{ $t('Leave.title') }}</h2>
 			<button type="button" class="btn btn-primary btn-sm" @click="openCreateModal">
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
 					stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 				</svg>
-				เพิ่มรายการ</button>
+				{{ $t('Leave.addItem') }}</button>
 		</div>
 
 		<LeaveTable ref="leaveTableRef" class="bg-white w-full shadow-sm" />

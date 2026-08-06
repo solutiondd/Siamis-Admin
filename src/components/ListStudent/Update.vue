@@ -1,12 +1,12 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box max-w-2xl">
-            <h3 class="font-bold text-lg mb-4">แก้ไขนักเรียน</h3>
+            <h3 class="font-bold text-lg mb-4">{{ $t('StudentUpdate.title') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold">รูปภาพ <span
-                            class="text-gray-500">(ไม่บังคับ)</span></label>
+                    <label class="block text-sm font-semibold">{{ $t('StudentUpdate.imageLabel') }} <span
+                            class="text-gray-500">{{ $t('StudentUpdate.optional') }}</span></label>
 
                     <div v-if="currentImage || previewImage" class="relative flex justify-center mb-2">
                         <div class="relative">
@@ -32,8 +32,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพนักเรียน</span>
-                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                                <span class="text-sm font-medium text-gray-700">{{ $t('StudentUpdate.chooseImage')
+                                    }}</span>
+                                <span class="text-xs text-gray-500">{{ $t('StudentUpdate.imageFormatLimit') }}</span>
                             </span>
                             <input id="pictureInputUpdate" type="file" @change="handleFileChange"
                                 accept="image/jpeg,image/jpg"
@@ -45,26 +46,26 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
-                        <label class="label"><span class="label-text">รหัสนักเรียน</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.studentId') }}</span></label>
                         <input v-model="formData.userid" type="text" class="input input-bordered" required
                             :class="{ 'input-error': useridError }" autocomplete="off" />
                         <label v-if="useridError" class="label"><span class="label-text-alt text-error">{{ useridError
-                        }}</span></label>
+                                }}</span></label>
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">คำนำหน้า</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.prefix') }}</span></label>
                         <select v-model="formData.pre_name" class="select select-bordered" required>
-                            <option value="">เลือกคำนำหน้า</option>
-                            <option value="เด็กชาย">เด็กชาย</option>
-                            <option value="เด็กหญิง">เด็กหญิง</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นางสาว">นางสาว</option>
+                            <option value="">{{ $t('StudentUpdate.selectPrefix') }}</option>
+                            <option value="เด็กชาย">{{ $t('StudentUpdate.boy') }}</option>
+                            <option value="เด็กหญิง">{{ $t('StudentUpdate.girl') }}</option>
+                            <option value="นาย">{{ $t('StudentUpdate.mr') }}</option>
+                            <option value="นางสาว">{{ $t('StudentUpdate.miss') }}</option>
                         </select>
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">ชื่อ</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.firstName') }}</span></label>
                         <input v-model="formData.first_name" type="text" class="input input-bordered" required
                             @input="validateFirstName" :class="{ 'input-error': firstNameError }" autocomplete="off" />
                         <label v-if="firstNameError" class="label"><span class="label-text-alt text-error">{{
@@ -72,7 +73,7 @@
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">นามสกุล</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.lastName') }}</span></label>
                         <input v-model="formData.last_name" type="text" class="input input-bordered" required
                             @input="validateLastName" :class="{ 'input-error': lastNameError }" autocomplete="off" />
                         <label v-if="lastNameError" class="label"><span class="label-text-alt text-error">{{
@@ -80,19 +81,19 @@
                     </div>
 
                     <div v-if="auth.user?.role !== 'teacher'" class="form-control">
-                        <label class="label"><span class="label-text">ชั้นปี</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.grade') }}</span></label>
                         <select v-model="formData.grade" @change="handleGradeChange" class="select select-bordered"
                             required>
-                            <option value="">เลือกชั้นปี</option>
+                            <option value="">{{ $t('StudentUpdate.selectGrade') }}</option>
                             <option v-for="grade in availableGrades" :key="grade" :value="grade">{{
                                 mapGradeDisplay(grade) }}</option>
                         </select>
                     </div>
 
                     <div v-if="auth.user?.role !== 'teacher'" class="form-control">
-                        <label class="label"><span class="label-text">ห้อง</span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.classroom') }}</span></label>
                         <select v-model="formData.classroom" class="select select-bordered" required>
-                            <option value="">เลือกห้อง</option>
+                            <option value="">{{ $t('StudentUpdate.selectClassroom') }}</option>
                             <option v-for="room in availableClassrooms" :key="room" :value="room">
                                 {{ room }}
                             </option>
@@ -100,17 +101,17 @@
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">เลขบัตร RFID <span
-                                    class="text-gray-500">(ไม่บังคับ)</span></span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.rfidCard') }} <span
+                                    class="text-gray-500">{{ $t('StudentUpdate.optional') }}</span></span></label>
                         <input v-model="formData.rfid" type="text" class="input input-bordered" @input="validateRfid"
                             autocomplete="off" />
                         <label v-if="rfidError" class="label"><span class="label-text-alt text-error">{{ rfidError
-                        }}</span></label>
+                                }}</span></label>
                     </div>
 
                     <div class="form-control">
-                        <label class="label"><span class="label-text">เบอร์โทรผู้ปกครอง <span
-                                    class="text-gray-500">(ไม่บังคับ)</span></span></label>
+                        <label class="label"><span class="label-text">{{ $t('StudentUpdate.guardianPhone') }} <span
+                                    class="text-gray-500">{{ $t('StudentUpdate.optional') }}</span></span></label>
                         <input v-model="formData.guardian_phone" type="text" class="input input-bordered"
                             @input="validateGuardianPhone" :class="{ 'input-error': guardianPhoneError }"
                             autocomplete="off" />
@@ -122,10 +123,11 @@
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" class="btn btn-ghost" @click="closeModal">ยกเลิก</button>
+                    <button type="button" class="btn btn-ghost" @click="closeModal">{{ $t('StudentUpdate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading || !isFormValid">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ $t('StudentUpdate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -135,10 +137,12 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { StudentService } from '../../api/student'
 import { useAuthStore } from '../../stores/auth'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
 const getPictureUrl = (pic) => {
@@ -191,13 +195,13 @@ const availableClassrooms = computed(() => {
 
 const nameRegex = /^[A-Za-z\u0E00-\u0E7F]+$/
 const validateFirstName = () => {
-    if (!formData.value.first_name) firstNameError.value = 'กรุณากรอกชื่อ'
-    else if (!nameRegex.test(formData.value.first_name)) firstNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+    if (!formData.value.first_name) firstNameError.value = t('StudentUpdate.errRequiredFirstName')
+    else if (!nameRegex.test(formData.value.first_name)) firstNameError.value = t('StudentUpdate.errNameFormat')
     else firstNameError.value = ''
 }
 const validateLastName = () => {
-    if (!formData.value.last_name) lastNameError.value = 'กรุณากรอกนามสกุล'
-    else if (!nameRegex.test(formData.value.last_name)) lastNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+    if (!formData.value.last_name) lastNameError.value = t('StudentUpdate.errRequiredLastName')
+    else if (!nameRegex.test(formData.value.last_name)) lastNameError.value = t('StudentUpdate.errNameFormat')
     else lastNameError.value = ''
 }
 
@@ -207,7 +211,7 @@ const validateRfid = () => {
         return true
     }
     if (!/^\d+$/.test(formData.value.rfid)) {
-        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        rfidError.value = t('StudentUpdate.errRfidNumber')
         return false
     }
     rfidError.value = ''
@@ -220,7 +224,7 @@ const validateGuardianPhone = () => {
         return true
     }
     if (!/^\d+$/.test(formData.value.guardian_phone)) {
-        guardianPhoneError.value = 'เบอร์โทรผู้ปกครองต้องเป็นตัวเลขเท่านั้น'
+        guardianPhoneError.value = t('StudentUpdate.errPhoneOption')
         return false
     }
     guardianPhoneError.value = ''
@@ -229,245 +233,242 @@ const validateGuardianPhone = () => {
 
 const isFormValid = computed(() => {
     return (
+        !firstNameError.value &&
+        !lastNameError.value &&
+        !rfidError.value &&
+        !guardianPhoneError.value &&
         formData.value.userid &&
         formData.value.pre_name &&
         formData.value.first_name &&
         formData.value.last_name &&
         formData.value.grade &&
         formData.value.classroom &&
-        !firstNameError.value &&
-        !lastNameError.value &&
-        !rfidError.value &&
-        !guardianPhoneError.value &&
         !fileError.value
     )
 })
 
-const parseName = (name) => {
-    if (!name) return { pre: '', first: '', last: '' }
-    const parts = name.trim().split(/\s+/)
-    return {
-        pre: parts[0] || '',
-        first: parts[1] || '',
-        last: parts.slice(2).join(' ') || ''
+const handleGradeChange = () => {
+    formData.value.classroom = ''
+    if (availableClassrooms.value.length > 0) {
+        formData.value.classroom = availableClassrooms.value[0]
     }
 }
 
-const openModal = async (student) => {
-    studentId.value = student.id
-    const parsed = parseName(student.name)
+const openModal = (studentData) => {
+    studentId.value = studentData._id || studentData.id
     formData.value = {
-        userid: student.userid || student.code || '',
-        pre_name: parsed.pre,
-        first_name: parsed.first,
-        last_name: parsed.last,
-        grade: student.grade || '',
-        classroom: student.room || '',
+        userid: studentData.userid || studentData.code || '',
+        pre_name: studentData.pre_name || '',
+        first_name: studentData.first_name || '',
+        last_name: studentData.last_name || '',
+        grade: studentData.grade || '',
+        classroom: studentData.classroom || studentData.room || '',
         picture: null,
-        rfid: student.rfid !== undefined && student.rfid !== null ? String(student.rfid) : '',
-        guardian_phone: student.guardian_phone !== undefined && student.guardian_phone !== null
-            ? String(student.guardian_phone)
-            : ''
+        rfid: studentData.rfid || '',
+        guardian_phone: studentData.guardian_phone || ''
     }
-    currentImage.value = getPictureUrl(student.picture) || ''
-    previewImage.value = ''
-    fileError.value = ''
-    firstNameError.value = ''
-    lastNameError.value = ''
-    useridError.value = ''
-    rfidError.value = ''
-    guardianPhoneError.value = ''
 
-    if (student.picture) {
-        try {
-            const response = await fetch(student.picture)
-            const blob = await response.blob()
-            if (blob.size > 70 * 1024) {
-                const resizedBlob = await resizeImage(blob, 70, 0)
-                if (resizedBlob.size <= 70 * 1024) {
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        currentImage.value = e.target.result
-                        previewImage.value = ''
-                    }
-                    reader.readAsDataURL(resizedBlob)
-                    formData.value.picture = new File([resizedBlob], 'student.jpg', { type: 'image/jpeg' })
-                } else {
-                    fileError.value = `ขนาดรูปนักเรียนเกิน 70KB (${(blob.size / 1024).toFixed(2)}KB)`
-                }
-            }
-        } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการตรวจสอบหรือปรับขนาดรูปภาพ'
+    if (!formData.value.first_name && !formData.value.last_name && studentData.name) {
+        const cleanName = studentData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)\s*/, '').trim()
+        const parts = cleanName.split(/\s+/)
+        formData.value.first_name = parts[0] || ''
+        formData.value.last_name = parts.slice(1).join(' ') || ''
+    }
+
+    if (!formData.value.pre_name && studentData.name) {
+        const match = studentData.name.match(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)/)
+        if (match) {
+            formData.value.pre_name = match[1]
         }
     }
 
-    if (formData.value.classroom && availableClassrooms.value.length > 0 && availableClassrooms.value.includes(formData.value.classroom)) {
-        formData.value.classroom = availableClassrooms.value[0]
-    }
+    currentImage.value = studentData.picture ? getPictureUrl(studentData.picture) : ''
+    previewImage.value = ''
+    fileError.value = ''
+    useridError.value = ''
+    firstNameError.value = ''
+    lastNameError.value = ''
+    rfidError.value = ''
+    guardianPhoneError.value = ''
     modalRef.value?.showModal()
 }
 
 const closeModal = () => {
     modalRef.value?.close()
+    previewImage.value = ''
+    currentImage.value = ''
+    fileError.value = ''
+    useridError.value = ''
+    firstNameError.value = ''
+    lastNameError.value = ''
     rfidError.value = ''
     guardianPhoneError.value = ''
 }
 
-const handleGradeChange = () => {
-    if (availableClassrooms.value.length > 0) {
-        formData.value.classroom = availableClassrooms.value[0]
-    } else {
-        formData.value.classroom = ''
+const handleFileChange = async (event) => {
+    const file = event.target.files[0]
+    fileError.value = ''
+
+    if (file) {
+        if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
+            fileError.value = t('StudentUpdate.errOnlyJpg')
+            event.target.value = ''
+            return
+        }
+        try {
+            const resizedBlob = await resizeImage(file, 70, 450)
+            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' })
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                previewImage.value = e.target.result
+            }
+            reader.readAsDataURL(resizedBlob)
+        } catch (err) {
+            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ'
+            event.target.value = ''
+        }
     }
 }
-
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
-        const img = new window.Image();
-        const reader = new FileReader();
+        const img = new window.Image()
+        const reader = new FileReader()
         reader.onload = (e) => {
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const maxBytes = maxSizeKB * 1024;
-                let width = targetWidth > 0 ? targetWidth : img.width;
-                let height = Math.max(1, Math.round((img.height * width) / img.width));
-                let quality = 0.9;
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+                const maxBytes = maxSizeKB * 1024
+                let width = targetWidth > 0 ? targetWidth : img.width
+                let height = Math.max(1, Math.round((img.height * width) / img.width))
+                let quality = 0.9
 
                 function tryCompress() {
-                    canvas.width = Math.max(1, Math.round(width));
-                    canvas.height = Math.max(1, Math.round(height));
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.width = Math.max(1, Math.round(width))
+                    canvas.height = Math.max(1, Math.round(height))
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
+                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ')
 
                         if (b.size <= maxBytes) {
-                            resolve(b);
-                            return;
+                            resolve(b)
+                            return
                         }
 
                         if (quality > 0.45) {
-                            quality -= 0.07;
-                            tryCompress();
-                            return;
+                            quality -= 0.07
+                            tryCompress()
+                            return
                         }
 
                         if (width > 120) {
-                            width = Math.max(120, Math.round(width * 0.9));
-                            height = Math.max(1, Math.round((img.height * width) / img.width));
-                            quality = 0.9;
-                            tryCompress();
-                            return;
+                            width = Math.max(120, Math.round(width * 0.9))
+                            height = Math.max(1, Math.round((img.height * width) / img.width))
+                            quality = 0.9
+                            tryCompress()
+                            return
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
-                    }, 'image/jpeg', quality);
+                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`)
+                    }, 'image/jpeg', quality)
                 }
 
-                tryCompress();
-            };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
-            img.src = e.target.result;
-        };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
-        reader.readAsDataURL(file);
-    });
-}
-
-const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    fileError.value = '';
-    if (file) {
-        if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น';
-            event.target.value = '';
-            return;
+                tryCompress()
+            }
+            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง')
+            img.src = e.target.result
         }
-        try {
-            const resizedBlob = await resizeImage(file, 70, 450);
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.value = e.target.result;
-            };
-            reader.readAsDataURL(resizedBlob);
-        } catch (err) {
-            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
-            event.target.value = '';
-        }
-    }
+        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ')
+        reader.readAsDataURL(file)
+    })
 }
 
 const removeImage = () => {
     previewImage.value = ''
     currentImage.value = ''
+    fileError.value = ''
     formData.value.picture = null
     const fileInput = document.getElementById('pictureInputUpdate')
-    if (fileInput) fileInput.value = ''
+    if (fileInput) {
+        fileInput.value = ''
+    }
 }
 
 const handleSubmit = async () => {
-    validateFirstName(); validateLastName();
-    if (!validateRfid()) return;
-    if (!validateGuardianPhone()) return;
-    useridError.value = '';
+    validateFirstName()
+    validateLastName()
+    validateRfid()
+    validateGuardianPhone()
+
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'ข้อมูลไม่ถูกต้อง',
-            text: 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง',
-            confirmButtonColor: '#2563eb',
-            didOpen: () => { document.getElementById('app')?.removeAttribute('aria-hidden') }
-        })
-        return
-    }
-    loading.value = true
-    try {
-        const studentService = new StudentService()
-        const { ...data } = formData.value
-        const response = await studentService.updateStudent(studentId.value, data)
-        if (response.message === 'Success') {
-            const { default: Swal } = await import('sweetalert2')
-            Swal.fire({
-                icon: 'success',
-                title: 'บันทึกสำเร็จ',
-                text: 'แก้ไขข้อมูลนักเรียนเรียบร้อยแล้ว',
-                timer: 2000,
-                showConfirmButton: false,
-                didOpen: () => {
-                    document.getElementById('app')?.removeAttribute('aria-hidden')
-                }
-            })
-            emit('success')
-            closeModal()
-        }
-    } catch (error) {
-        const duplicate = error?.response?.status === 409 || (error?.response?.data?.error && error.response.data.error.includes('duplicate student userid'));
-        if (duplicate) {
-            useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น';
-            return;
-        }
-        console.error('Update student error:', error)
-        closeModal();
-        const { default: Swal } = await import('sweetalert2')
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขข้อมูลนักเรียนได้',
+            title: t('StudentUpdate.errInvalidDataTitle'),
+            text: t('StudentUpdate.errInvalidDataText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')
             }
         })
+        return
+    }
+
+    loading.value = true
+    try {
+        const studentService = new StudentService()
+        const updateData = { ...formData.value }
+
+        if (!updateData.picture) {
+            delete updateData.picture
+        }
+
+        const response = await studentService.updateStudent(studentId.value, updateData)
+
+        if (response.message === 'Success') {
+            closeModal()
+            emit('success')
+        } else {
+            const errStr = String(response.message).replace(/\s+/g, '').toLowerCase()
+            if (errStr.includes('duplicatestudentuserid')) {
+                useridError.value = t('StudentUpdate.errDuplicateId')
+            } else {
+                const { default: Swal } = await import('sweetalert2')
+                Swal.fire({
+                    icon: 'error',
+                    title: t('StudentUpdate.errTitle'),
+                    text: response.message || t('StudentUpdate.errUpdateFail'),
+                    confirmButtonColor: '#2563eb',
+                    didOpen: () => {
+                        document.getElementById('app')?.removeAttribute('aria-hidden')
+                    }
+                })
+            }
+        }
+    } catch (err) {
+        const errStr = String(err?.response?.data?.error || err?.message || '').replace(/\s+/g, '').toLowerCase()
+        if (errStr.includes('duplicatestudentuserid')) {
+            useridError.value = t('StudentUpdate.errDuplicateId')
+        } else {
+            const errorMessage = err?.response?.data?.error || err?.message || t('StudentUpdate.errUpdateFail')
+            const { default: Swal } = await import('sweetalert2')
+            Swal.fire({
+                icon: 'error',
+                title: t('StudentUpdate.errTitle'),
+                text: errorMessage,
+                confirmButtonColor: '#2563eb',
+                didOpen: () => {
+                    document.getElementById('app')?.removeAttribute('aria-hidden')
+                }
+            })
+        }
     } finally {
         loading.value = false
     }
 }
 
-defineExpose({ openModal, closeModal })
+defineExpose({
+    openModal
+})
 </script>
-
-<style scoped></style>

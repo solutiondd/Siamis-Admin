@@ -7,20 +7,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01M5.07 19h13.86A2.07 2.07 0 0021 16.93V7.07A2.07 2.07 0 0018.93 5H5.07A2.07 2.07 0 003 7.07v9.86A2.07 2.07 0 005.07 19z" />
                 </svg>
-                ยืนยันการลบ
+                {{ $t('ReportUniformInspectionDelete.confirmTitle') }}
             </h3>
             <p class="text-sm mb-4" v-if="inspection">
-                ต้องการลบรายงานการตรวจระเบียบ
-                <span class="font-semibold">วันที่ {{ formatDate(inspection.date) }}</span>
-                ชั้น <span class="font-semibold">{{ inspection.grade }}/{{ inspection.classroom }}</span> ใช่หรือไม่?
+                {{ $t('ReportUniformInspectionDelete.confirmText', {
+                    date: formatDate(inspection.date),
+                    grade: inspection.grade,
+                    classroom: inspection.classroom
+                }) }}
             </p>
-            <p v-else class="text-sm mb-4">กำลังเตรียมข้อมูล...</p>
+            <p v-else class="text-sm mb-4">{{ $t('ReportUniformInspectionDelete.preparingData') }}</p>
 
             <div class="flex justify-end gap-2 mt-2">
-                <button class="btn btn-sm" @click="close" :disabled="loading">ยกเลิก</button>
+                <button class="btn btn-sm" @click="close" :disabled="loading">{{ $t('ReportUniformInspectionDelete.cancel') }}</button>
                 <button class="btn btn-sm btn-error" @click="confirmDelete" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    <span v-else>ลบ</span>
+                    <span v-else>{{ $t('ReportUniformInspectionDelete.delete') }}</span>
                 </button>
             </div>
         </div>
@@ -32,10 +34,12 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Swal from 'sweetalert2'
 import { ConductService } from '../../api/conduct'
 import { UniformInspectionService } from '../../api/uniform_inspection'
 
+const { t, locale } = useI18n()
 const dialogRef = ref(null)
 const inspection = ref(null)
 const loading = ref(false)
@@ -58,7 +62,8 @@ function close() {
 function formatDate(dateStr) {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const dateLocale = locale.value === 'th' ? 'th-TH-u-ca-buddhist' : 'en-US'
+    return date.toLocaleDateString(dateLocale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -86,14 +91,18 @@ async function confirmDelete() {
         emit('success')
         await Swal.fire({
             icon: 'success',
-            title: 'ลบสำเร็จ',
-            text: 'ลบรายงานการตรวจระเบียบเรียบร้อยแล้ว',
+            title: t('ReportUniformInspectionDelete.deleteSuccessTitle'),
+            text: t('ReportUniformInspectionDelete.deleteSuccessText'),
             showConfirmButton: false,
             timer: 1600,
         })
     } catch (e) {
         console.error('Delete uniform inspection error:', e)
-        Swal.fire('เกิดข้อผิดพลาด', 'ลบรายงานการตรวจระเบียบไม่สำเร็จ', 'error')
+        Swal.fire(
+            t('ReportUniformInspectionDelete.errorTitle'),
+            t('ReportUniformInspectionDelete.errorText'),
+            'error'
+        )
     } finally {
         loading.value = false
     }

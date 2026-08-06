@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6 max-[944px]:pt-14">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการนักเรียน</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">{{ $t('Student.title') }}</h2>
             <div v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
                 class="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button class="btn btn-success btn-sm" @click="openImportModal">
@@ -12,14 +12,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 10l4 4m0 0l4-4m-4 4V4" />
                     </svg>
-                    นำเข้า Excel
+                    {{ $t('Student.importExcel') }}
                 </button>
                 <button class="btn btn-primary btn-sm" @click="openCreateModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มนักเรียน
+                    {{ $t('Student.addStudent') }}
                 </button>
                 <button v-if="auth.user?.role !== 'teacher' && isTerminalSecondaryGrade(selectedGrade)"
                     class="btn btn-error btn-sm" @click="openDeleteAllModal">
@@ -28,7 +28,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    ลบทั้งหมด {{ mapGradeDisplay(selectedGrade) }}
+                    {{ $t('Student.deleteAll', { grade: mapGradeDisplay(selectedGrade) }) }}
                 </button>
             </div>
         </div>
@@ -39,12 +39,12 @@
                     <div v-if="auth.user?.role !== 'teacher'" class="form-control w-full sm:w-auto"
                         :class="searchUserid ? 'opacity-50 pointer-events-none' : ''">
                         <label class="label py-1">
-                            <span class="label-text text-sm">ชั้นปี</span>
+                            <span class="label-text text-sm">{{ $t('Student.grade') }}</span>
                         </label>
                         <select v-model="selectedGrade" @change="handleGradeChange"
                             class="select select-bordered select-sm w-full sm:w-32"
                             :disabled="isQueryFilter || !!searchUserid">
-                            <option v-if="lineConnectFilter !== ''" value="">ทั้งหมด</option>
+                            <option v-if="lineConnectFilter !== ''" value="">{{ $t('Student.all') }}</option>
                             <option v-for="grade in availableGrades" :key="grade" :value="grade">{{
                                 mapGradeDisplay(grade) }}</option>
                         </select>
@@ -53,36 +53,36 @@
                     <div v-if="auth.user?.role !== 'teacher'" class="form-control w-full sm:w-auto"
                         :class="searchUserid ? 'opacity-50 pointer-events-none' : ''">
                         <label class="label py-1">
-                            <span class="label-text text-sm">ห้อง</span>
+                            <span class="label-text text-sm">{{ $t('Student.classroom') }}</span>
                         </label>
                         <select v-model="selectedClassroom" @change="fetchStudents"
                             class="select select-bordered select-sm w-full sm:w-24"
                             :disabled="isQueryFilter || !!searchUserid">
-                            <option v-if="lineConnectFilter !== ''" value="">ทั้งหมด</option>
+                            <option v-if="lineConnectFilter !== ''" value="">{{ $t('Student.all') }}</option>
                             <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
                         </select>
                     </div>
 
                     <div class="w-full sm:flex-1">
                         <label class="label py-1">
-                            <span class="label-text text-sm">ค้นหารหัส</span>
+                            <span class="label-text text-sm">{{ $t('Student.searchId') }}</span>
                         </label>
                         <div class="relative flex gap-2">
                             <input v-model="searchUserid" @input="debouncedSearchByUserid" type="text"
-                                placeholder="ค้นหาชื่อหรือรหัสนักเรียน..." class="input input-bordered input-sm w-full"
+                                :placeholder="$t('Student.searchPlaceholder')" class="input input-bordered input-sm w-full"
                                 :disabled="lineConnectFilter !== ''" />
                         </div>
                     </div>
                     <div v-if="featureFlags.student.enableLineStatusFilter"
                         class="form-control max-[1000px]:basis-full">
                         <label class="label py-1">
-                            <span class="label-text text-sm">สถานะ LINE</span>
+                            <span class="label-text text-sm">{{ $t('Student.lineStatus') }}</span>
                         </label>
                         <select v-model="lineConnectFilter" @change="handleLineConnectFilterChange"
                             class="select select-bordered select-sm w-full sm:w-36">
-                            <option value="">ทั้งหมด</option>
-                            <option value="connected">เชื่อม LINE</option>
-                            <option value="notconnected">ยังไม่เชื่อม LINE</option>
+                            <option value="">{{ $t('Student.all') }}</option>
+                            <option value="connected">{{ $t('Student.lineConnected') }}</option>
+                            <option value="notconnected">{{ $t('Student.lineNotConnected') }}</option>
                         </select>
                     </div>
                     <div class="flex justify-between sm:justify-start w-full sm:w-auto gap-2">
@@ -93,13 +93,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                รีเซ็ต
+                                {{ $t('Student.reset') }}
                             </button>
                         </div>
 
                         <div class="flex sm:form-control w-auto gap-1">
                             <label class="label py-1">
-                                <span class="label-text text-sm">แถวต่อหน้า</span>
+                                <span class="label-text text-sm">{{ $t('Student.rowsPerPage') }}</span>
                             </label>
                             <select v-model.number="itemsPerPage" @change="handleItemsPerPageChange"
                                 class="select select-bordered select-sm">
@@ -144,7 +144,7 @@
                 </div>
             </div>
             <div class="text-sm text-base-content/60 text-center text-white">
-                ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
+                {{ $t('Student.paginationSummary', { total: totalItems, current: currentPage, totalPages: totalPages }) }}
             </div>
         </div>
     </div>
@@ -153,6 +153,7 @@
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import StudentTable from '../../components/ListStudent/Table.vue'
 import CreateModal from '../../components/ListStudent/Create.vue'
 import ImportExcalModal from '../../components/ListStudent/ImportExcal.vue'
@@ -167,6 +168,7 @@ import { useAuthStore } from '../../stores/auth'
 import featureFlags from '../../config/featureFlags'
 import { isTerminalSecondaryGrade, mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const isQueryFilter = ref(false)
 const auth = useAuthStore()
 const route = useRoute()

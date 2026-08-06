@@ -18,29 +18,31 @@
                 </div>
                 <div>
                     <div class="font-bold text-lg">{{ student.name }}</div>
-                    <div class="text-sm text-base-content/70">รหัส: {{ studentCode }}</div>
-                    <div class="text-sm">ระดับชั้น: {{ mapGradeDisplay(student.grade) }} ห้อง {{ studentRoom }}</div>
+                    <div class="text-sm text-base-content/70">{{ $t('StudentDetail.code') }} {{ studentCode }}</div>
+                    <div class="text-sm">{{ $t('StudentDetail.gradeAndRoom', {
+                        grade: mapGradeDisplay(student.grade),
+                        room: studentRoom }) }}</div>
                     <div v-if="studentGuardianPhone" class="text-sm text-base-content/70">
-                        เบอร์ผู้ปกครอง: {{ studentGuardianPhone }}
+                        {{ $t('StudentDetail.guardianPhone') }} {{ studentGuardianPhone }}
                     </div>
                     <div v-if="student?.rfid !== undefined && student?.rfid !== null && String(student.rfid).trim() !== ''"
-                        class="text-sm text-base-content/70">rfid: {{ student.rfid }}</div>
+                        class="text-sm text-base-content/70">{{ $t('StudentDetail.rfid') }} {{ student.rfid }}</div>
                     <div class="mt-1">
                         <button v-if="canOpenConduct" type="button" class="badge badge-sm font-semibold cursor-pointer"
                             :class="getScoreBadgeClass(studentScore)" @click="goToConduct"
-                            title="ไปหน้าบันทึกพฤติกรรมของนักเรียนคนนี้">
-                            คะแนน {{ studentScore }}
+                            :title="$t('StudentDetail.scoreTitle')">
+                            {{ $t('StudentDetail.score', { score: studentScore }) }}
                         </button>
                         <span v-else class="badge badge-sm font-semibold" :class="getScoreBadgeClass(studentScore)">
-                            คะแนน {{ studentScore }}
+                            {{ $t('StudentDetail.score', { score: studentScore }) }}
                         </span>
                     </div>
                 </div>
             </div>
             <div class="mb-2 font-semibold flex items-center gap-2">
-                <span>ปฏิทินการเรียน</span>
+                <span>{{ $t('StudentDetail.academicCalendar') }}</span>
                 <select v-model="selectedMonth" class="select select-bordered select-xs">
-                    <option v-for="(m, idx) in monthsTH" :key="idx" :value="idx">{{ m }}</option>
+                    <option v-for="(m, idx) in monthsList" :key="idx" :value="idx">{{ m }}</option>
                 </select>
                 <select v-model="selectedYear" class="select select-bordered select-xs">
                     <option v-for="y in yearOptions" :key="y" :value="y">{{ y + 543 }}</option>
@@ -50,7 +52,7 @@
                 <table class="table table-xs w-full text-center">
                     <thead>
                         <tr>
-                            <th v-for="d in daysShort" :key="d">{{ d }}</th>
+                            <th v-for="d in daysList" :key="d">{{ d }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,20 +96,22 @@
             </dialog>
             <div class="mt-4 text-xs grid grid-cols-7 gap-3 max-[650px]:grid-cols-3">
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span>
-                    มาเรียน</div>
+                    {{ $t('StudentDetail.attendanceStatus.present') }}</div>
                 <div class="flex items-center gap-1"><span
-                        class="inline-block w-4 h-4 rounded-full bg-yellow-400"></span> มาสาย</div>
+                        class="inline-block w-4 h-4 rounded-full bg-yellow-400"></span> {{
+                            $t('StudentDetail.attendanceStatus.late') }}</div>
                 <div class="flex items-center gap-1"><span
-                        class="inline-block w-4 h-4 rounded-full bg-emerald-400"></span> ลา</div>
+                        class="inline-block w-4 h-4 rounded-full bg-emerald-400"></span> {{
+                            $t('StudentDetail.attendanceStatus.leave') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-pink-300"></span>
-                    กิจกรรม</div>
+                    {{ $t('StudentDetail.attendanceStatus.activity') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
-                    ไม่ได้สแกน</div>
+                    {{ $t('StudentDetail.attendanceStatus.absent') }}</div>
                 <div class="flex items-center gap-1"><span class="inline-block w-4 h-4 rounded-full bg-gray-400"></span>
-                    วันหยุด</div>
+                    {{ $t('StudentDetail.attendanceStatus.holiday') }}</div>
                 <div class="flex items-center gap-1"><span
                         class="inline-block w-4 h-4 rounded-full bg-violet-300"></span>
-                    ปิดเทอม/ช่วงพิเศษ</div>
+                    {{ $t('StudentDetail.attendanceStatus.vacation') }}</div>
             </div>
         </div>
     </div>
@@ -115,6 +119,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import reportApi from '../../api/report'
@@ -125,6 +130,7 @@ import { ActivityService } from '../../api/activity'
 import AttendanceInfo from '../AttendanceInfo.vue'
 import { mapGradeDisplay } from '../../utils/gradeSystem'
 
+const { t, tm } = useI18n()
 const emit = defineEmits(['close'])
 const props = defineProps({
     student: { type: Object, required: true },
@@ -133,8 +139,9 @@ const props = defineProps({
 const router = useRouter()
 const auth = useAuthStore()
 const today = new Date()
-const monthsTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']
-const daysShort = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส']
+
+const monthsList = computed(() => tm('StudentDetail.monthsTH') || [])
+const daysList = computed(() => tm('StudentDetail.daysShort') || [])
 
 const selectedMonth = ref(today.getMonth())
 const selectedYear = ref(today.getFullYear())
@@ -249,7 +256,7 @@ const approvedLeaveMap = computed(() => {
         const endDate = strToDate(leaveRequest?.end_date || leaveRequest?.start_date)
         if (!startDate || !endDate) return
 
-        const leaveTypeName = leaveRequest?.leave_type_id?.name || 'ลา'
+        const leaveTypeName = leaveRequest?.leave_type_id?.name || t('StudentDetail.leaveLabel')
         const reason = leaveRequest?.reason || ''
         const cursor = new Date(startDate)
         const lastDate = endDate < startDate ? startDate : endDate
@@ -285,7 +292,7 @@ const activityMap = computed(() => {
             }
 
             map[dateKey].push({
-                name: activity?.activity_name || 'มีกิจกรรม',
+                name: activity?.activity_name || t('StudentDetail.activityLabel'),
                 startTime: activity?.start_time || '',
                 endTime: activity?.end_time || '',
                 location: activity?.location || '',
@@ -304,7 +311,7 @@ const isTermOneOrTwo = (termName) => {
 
 const getAcademicTermStatus = (dateObj) => {
     const dstr = dateToStr(dateObj)
-    if (!dstr) return { inTerm: false, label: 'ปิดเทอม' }
+    if (!dstr) return { inTerm: false, label: t('StudentDetail.termClosed') }
 
     const matchedTerm = academicTerms.value.find((term) => {
         const start = normalizeDateInput(term.start_date)
@@ -313,13 +320,13 @@ const getAcademicTermStatus = (dateObj) => {
         return dstr >= start && dstr <= end
     })
 
-    if (!matchedTerm) return { inTerm: false, label: 'ปิดเทอม' }
+    if (!matchedTerm) return { inTerm: false, label: t('StudentDetail.termClosed') }
 
     if (isTermOneOrTwo(matchedTerm.term)) {
-        return { inTerm: true, label: matchedTerm.term || 'ช่วงเวลาเรียน' }
+        return { inTerm: true, label: matchedTerm.term || t('StudentDetail.termStudy') }
     }
 
-    return { inTerm: false, label: matchedTerm.term || 'ปิดเทอม' }
+    return { inTerm: false, label: matchedTerm.term || t('StudentDetail.termClosed') }
 }
 
 const getHolidayTitle = (dateObj) => {
@@ -341,9 +348,9 @@ const getActivityTitle = (dateObj) => {
                 : (item.startTime || item.endTime || '')
             const detailParts = [timeRange, item.location].filter(Boolean)
             if (detailParts.length > 0) {
-                return `กิจกรรม: ${item.name} (${detailParts.join(' | ')})`
+                return t('StudentDetail.activityPrefix', { name: item.name }) + ` (${detailParts.join(' | ')})`
             }
-            return `กิจกรรม: ${item.name}`
+            return t('StudentDetail.activityPrefix', { name: item.name })
         })
         .join('\n')
 }
@@ -354,15 +361,15 @@ const getDayTitle = (dateObj) => {
 
     const holidayTitle = getHolidayTitle(dateObj)
     if (holidayTitle) {
-        labels.push(`วันหยุด: ${holidayTitle}`)
+        labels.push(`${t('StudentDetail.holidayPrefix')} ${holidayTitle}`)
     }
 
     const leaveInfo = approvedLeaveMap.value[dateToStr(dateObj)]
     if (leaveInfo) {
         if (leaveInfo.reason) {
-            labels.push(`ลา (${leaveInfo.leaveType}): ${leaveInfo.reason}`)
+            labels.push(`${t('StudentDetail.leavePrefix', { type: leaveInfo.leaveType })} ${leaveInfo.reason}`)
         } else {
-            labels.push(`ลา (${leaveInfo.leaveType})`)
+            labels.push(`${t('StudentDetail.leavePrefix', { type: leaveInfo.leaveType })}`)
         }
     }
 
@@ -376,7 +383,7 @@ const getDayTitle = (dateObj) => {
     }
 
     const termStatus = getAcademicTermStatus(dateObj)
-    return termStatus.label || 'ปิดเทอม'
+    return termStatus.label || t('StudentDetail.termClosed')
 }
 
 const openAttendanceInfo = (dateObj) => {

@@ -3,10 +3,10 @@
         <div class="flex items-center justify-end gap-3">
             <button v-if="hasSelectedStatus" class="btn btn-primary btn-sm mr-auto" :disabled="autoSaving || loading"
                 @click="emit('save')">
-                {{ autoSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
+                {{ autoSaving ? t('common.loading') : t('uniformInspection.save') }}
             </button>
             <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-700">รายการ:</label>
+                <label class="text-sm text-gray-700">{{ t('uniformInspection.itemsPerPage') }}</label>
                 <select v-model.number="pageSize" class="select select-sm select-bordered w-18"
                     @change="handlePageSizeChange">
                     <option :value="10">10</option>
@@ -14,7 +14,7 @@
                     <option :value="30">30</option>
                     <option :value="50">50</option>
                 </select>
-                <span class="text-sm text-gray-700">ต่อหน้า</span>
+                <span class="text-sm text-gray-700">{{ t('uniformInspection.perPage') }}</span>
             </div>
         </div>
 
@@ -26,10 +26,10 @@
             <table class="table table-zebra w-full text-xs sm:text-[10px] xl:text-sm">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th class="w-40 max-[444px]:w-28 text-center">สถานะ</th>
-                        <th class="w-48 max-[444px]:hidden">รายละเอียด</th>
+                        <th>{{ t('uniformInspection.code') }}</th>
+                        <th>{{ t('uniformInspection.name') }}</th>
+                        <th class="w-40 max-[444px]:w-28 text-center">{{ t('uniformInspection.status') }}</th>
+                        <th class="w-48 max-[444px]:hidden">{{ t('uniformInspection.detail') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,14 +48,14 @@
                                     class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                     <span v-if="localInspectionData[student._id]?.ispass === true"
                                         class="badge badge-success max-[444px]:badge-xs">
-                                        ผ่าน
+                                        {{ t('uniformInspection.pass') }}
                                     </span>
                                     <span v-else-if="localInspectionData[student._id]?.ispass === false"
                                         class="badge badge-error max-[444px]:badge-xs">
-                                        ไม่ผ่าน
+                                        {{ t('uniformInspection.fail') }}
                                     </span>
                                     <span v-else class="badge badge-ghost max-[444px]:badge-xs">
-                                        ว่าง
+                                        {{ t('uniformInspection.empty') }}
                                     </span>
                                 </button>
 
@@ -70,7 +70,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            ผ่านระเบียบ
+                                            {{ t('uniformInspection.passRule') }}
                                         </button>
                                     </li>
                                     <li>
@@ -82,7 +82,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            ไม่ผ่านระเบียบ
+                                            {{ t('uniformInspection.failRule') }}
                                         </button>
                                     </li>
                                     <li>
@@ -94,7 +94,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            ล้างสถานะ
+                                            {{ t('uniformInspection.clearStatus') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                             <div v-else-if="localInspectionData[student._id]?.ispass === true" class="text-success">
-                                เรียบร้อย
+                                {{ t('uniformInspection.complete') }}
                             </div>
                         </td>
                     </tr>
@@ -137,17 +137,18 @@
             </div>
 
             <div v-if="students.length > 0" class="text-center text-sm text-gray-600">
-                ทั้งหมด {{ students.length }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
+                {{ t('uniformInspection.totalItems', { count: students.length, page: currentPage, total: totalPages })
+                }}
             </div>
         </div>
 
         <dialog v-if="failModal.show" class="modal modal-open">
             <div class="modal-box w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6 overflow-x-hidden">
-                <h3 class="font-bold text-lg mb-4">บันทึกการแต่งกายไม่ผ่านระเบียบ</h3>
+                <h3 class="font-bold text-lg mb-4">{{ t('uniformInspection.failRecordTitle') }}</h3>
 
                 <div class="form-control w-full mb-3">
                     <label class="label">
-                        <span class="label-text">สาเหตุที่ไม่ผ่าน</span>
+                        <span class="label-text">{{ t('uniformInspection.failReasonLabel') }}</span>
                     </label>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -162,18 +163,18 @@
 
                 <div class="form-control w-full mb-3">
                     <label class="label">
-                        <span class="label-text">ปัญหาอื่นๆ (ไม่บังคับ)</span>
+                        <span class="label-text">{{ t('uniformInspection.otherIssueLabel') }}</span>
                     </label>
                     <input type="text" v-model="failModal.form.customIssue" class="input input-bordered"
-                        placeholder="เช่น ทรงผมไม่ถูกระเบียบ" />
+                        :placeholder="t('uniformInspection.otherIssuePlaceholder')" />
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">หมายเหตุ (ไม่บังคับ)</span>
+                        <span class="label-text">{{ t('uniformInspection.remarkLabel') }}</span>
                     </label>
                     <select v-model="failModal.form.remark" class="select select-bordered w-full">
-                        <option value="">ไม่เลือก (ไม่หักคะแนน)</option>
+                        <option value="">{{ t('uniformInspection.noRemark') }}</option>
                         <option v-for="option in remarkOptions" :key="option" :value="option">
                             {{ option }}
                         </option>
@@ -181,8 +182,9 @@
                 </div>
 
                 <div class="modal-action">
-                    <button class="btn" @click="closeFailModal">ยกเลิก</button>
-                    <button class="btn btn-primary" :disabled="autoSaving" @click="saveFailStatus">บันทึก</button>
+                    <button class="btn" @click="closeFailModal">{{ t('uniformInspection.cancel') }}</button>
+                    <button class="btn btn-primary" :disabled="autoSaving" @click="saveFailStatus">{{
+                        t('uniformInspection.save') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop" @click="closeFailModal">
@@ -194,7 +196,9 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Swal from 'sweetalert2';
+const { t, locale } = useI18n();
 
 const props = defineProps({
     students: {
@@ -234,23 +238,29 @@ const currentPage = ref(1);
 const localInspectionData = ref({});
 const autoSaving = computed(() => props.saving);
 
-const issueOptions = [
-    'รองเท้าไม่ถูกระเบียบ',
-    'ทรงผมไม่ถูกระเบียบ',
-    'เสื้อไม่ถูกระเบียบ',
-    'กางเกง/กระโปรงไม่ถูกระเบียบ',
-    'เครื่องประดับไม่ถูกระเบียบ',
-];
+const issueOptions = computed(() => {
+    locale.value;
+    return [
+        t('uniformInspection.issue.shoes'),
+        t('uniformInspection.issue.hair'),
+        t('uniformInspection.issue.shirt'),
+        t('uniformInspection.issue.pants'),
+        t('uniformInspection.issue.accessories'),
+    ];
+});
 
-const remarkOptions = [
-    'ตักเตือน ลงบันทึก -5 คะแนน',
-    'แจ้ง หรือ เชิญผู้ปกครองรับทราบ -10 คะแนน',
-    'เชิญผู้ปกครองทำ จค.กก.1/1 ครั้งที่ 1 -15 คะแนน',
-    'เชิญผู้ปกครองทำ จค.กก.1/1 ครั้งที่ 2 -15 คะแนน',
-    'เชิญผู้ปกครองทำทัณฑ์บน -30 คะแนน',
-];
+const remarkOptions = computed(() => {
+    locale.value;
+    return [
+        t('uniformInspection.remark.warn'),
+        t('uniformInspection.remark.parentNotice'),
+        t('uniformInspection.remark.meeting1'),
+        t('uniformInspection.remark.meeting2'),
+        t('uniformInspection.remark.probation'),
+    ];
+});
 
-const DEFAULT_REMARK = 'ตักเตือน ลงบันทึก -5 คะแนน';
+const getDefaultRemark = () => t('uniformInspection.remark.warn');
 
 const failModal = ref({
     show: false,
@@ -258,7 +268,7 @@ const failModal = ref({
     form: {
         issues: [],
         customIssue: '',
-        remark: DEFAULT_REMARK,
+        remark: getDefaultRemark(),
     },
 });
 
@@ -336,12 +346,12 @@ const openFailModal = (studentId) => {
     const existing = localInspectionData.value[studentId] || {};
     const existingIssues = Array.isArray(existing.issues) ? existing.issues : [];
 
-    const selectedPresetIssues = existingIssues.filter((issue) => issueOptions.includes(issue));
-    const customIssues = existingIssues.filter((issue) => !issueOptions.includes(issue));
+    const selectedPresetIssues = existingIssues.filter((issue) => issueOptions.value.includes(issue));
+    const customIssues = existingIssues.filter((issue) => !issueOptions.value.includes(issue));
     const hasSavedRemark = Object.prototype.hasOwnProperty.call(existing, 'remark');
     const selectedRemark = hasSavedRemark
-        ? (remarkOptions.includes(existing.remark) ? existing.remark : '')
-        : DEFAULT_REMARK;
+        ? (remarkOptions.value.includes(existing.remark) ? existing.remark : '')
+        : getDefaultRemark();
 
     failModal.value.studentId = studentId;
     failModal.value.form = {
@@ -368,7 +378,7 @@ const saveFailStatus = () => {
 
     const issues = [...failModal.value.form.issues, ...customIssueList];
     if (!issues.length) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกหรือระบุสาเหตุอย่างน้อย 1 รายการ', 'warning');
+        Swal.fire(t('uniformInspection.warnings.title'), t('uniformInspection.warnings.selectAtLeastOne'), 'warning');
         return;
     }
 

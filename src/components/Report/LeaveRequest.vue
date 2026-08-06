@@ -8,11 +8,11 @@
             <table class="table table-zebra w-full text-sm">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th class="hidden xl:table-cell">ตำแหน่ง</th>
-                        <th class="hidden md:table-cell">วันที่ลา</th>
-                        <th>สถานะ</th>
+                        <th>{{ $t('ReportLeaveRequest.code') }}</th>
+                        <th>{{ $t('ReportLeaveRequest.name') }}</th>
+                        <th class="hidden xl:table-cell">{{ $t('ReportLeaveRequest.position') }}</th>
+                        <th class="hidden md:table-cell">{{ $t('ReportLeaveRequest.leaveDate') }}</th>
+                        <th>{{ $t('ReportLeaveRequest.sta') }}</th>
                         <th class="text-center"></th>
                     </tr>
                 </thead>
@@ -30,7 +30,7 @@
                         </td>
                         <td class="text-center">
                             <button @click="openDetail(request)" class="bg-transparent border-none shadow-none p-0"
-                                title="ดูข้อมูลเพิ่มเติม">
+                                :title="$t('ReportLeaveRequest.moreInfo')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="#3b82f6">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -42,7 +42,7 @@
                         </td>
                     </tr>
                     <tr v-if="!leaveRequests.length">
-                        <td colspan="6" class="text-center text-gray-500 py-6">ไม่พบข้อมูลใบลา</td>
+                        <td colspan="6" class="text-center text-gray-500 py-6">{{ $t('ReportLeaveRequest.noData') }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -54,8 +54,11 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { LeaveService } from '../../api/leave';
 import LeaveReqDetail from './LeaveReqDetail.vue';
+
+const { t, locale } = useI18n();
 
 const props = defineProps({
     filters: {
@@ -80,15 +83,16 @@ const teacherGrade = localStorage.getItem('grade') || '';
 const teacherClassroom = localStorage.getItem('classroom') || '';
 
 const formatRole = (role) => {
-    if (role === 'student') return 'นักเรียน';
-    if (role === 'teacher') return 'ครู';
+    if (role === 'student') return t('ReportLeaveRequest.role.student');
+    if (role === 'teacher') return t('ReportLeaveRequest.role.teacher');
     return role || '-';
 };
 
 const formatDate = (date) => {
     if (!date) return '-';
     const d = new Date(date);
-    return new Intl.DateTimeFormat('th-TH', {
+    const dateLocale = locale.value === 'th' ? 'th-TH' : 'en-US';
+    return new Intl.DateTimeFormat(dateLocale, {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -97,10 +101,9 @@ const formatDate = (date) => {
 
 const formatStatus = (status) => {
     if (!status) return '-';
-    if (status === 'approved') return 'อนุมัติแล้ว';
-    if (status === 'pending') return 'รอดำเนินการ';
-    if (status === 'rejected') return 'ไม่อนุมัติ';
-    if (status === 'cancelled') return 'ยกเลิก';
+    if (['approved', 'pending', 'rejected', 'cancelled'].includes(status)) {
+        return t(`ReportLeaveRequest.status.${status}`);
+    }
     return status;
 };
 

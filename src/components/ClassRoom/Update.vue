@@ -1,19 +1,19 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box overflow-visible">
-            <h3 class="font-bold text-lg mb-4">แก้ไขห้องเรียน</h3>
+            <h3 class="font-bold text-lg mb-4">{{ t('classroomUpdate.title') }}</h3>
             <form @submit.prevent="handleSubmit" class="space-y-4">
 
                 <div class="flex flex-row gap-4">
                     <div class="form-control flex-1">
                         <label class="label">
-                            <span class="label-text">ชั้นปี</span>
+                            <span class="label-text">{{ t('classroomUpdate.grade') }}</span>
                         </label>
                         <input type="text" :value="formData.grade" class="input input-bordered w-full" disabled />
                     </div>
                     <div class="form-control flex-1">
                         <label class="label">
-                            <span class="label-text">ห้อง</span>
+                            <span class="label-text">{{ t('classroomUpdate.classroom') }}</span>
                         </label>
                         <input type="text" :value="formData.classroom" class="input input-bordered w-full" disabled />
                     </div>
@@ -21,18 +21,19 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ครูที่ปรึกษา (คนที่ 1)</span>
+                        <span class="label-text">{{ t('classroomUpdate.adviserOne') }}</span>
                     </label>
                     <div class="relative z-[50]" ref="adviserBoxRef">
                         <input ref="adviserInputRef" v-model="adviserQuery" type="text"
-                            class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกครู..."
+                            class="input input-bordered w-full" :placeholder="t('classroomUpdate.searchTeacher')"
                             @focus="adviserOpen = true" @input="adviserOpen = true" />
                         <button v-if="formData.adviser" type="button"
-                            class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser">ลบ</button>
+                            class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser">{{
+                                t('classroomUpdate.remove') }}</button>
                         <ul v-if="adviserOpen"
                             class="bg-base-100 rounded-box shadow border absolute z-[50] bottom-full left-0 mb-2 w-full max-h-[40vh] overflow-y-auto overflow-x-hidden flex flex-col columns-1">
                             <li v-if="!filteredTeachersByAdviserQuery.length" class="px-3 py-2 text-sm opacity-70">
-                                ไม่พบครูที่ตรงกับคำค้นหา
+                                {{ t('classroomUpdate.noTeacherMatch') }}
                             </li>
                             <li v-for="teacher in filteredTeachersByAdviserQuery" :key="teacher._id || teacher.id">
                                 <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200"
@@ -46,23 +47,24 @@
                 <div class="flex justify-center my-2">
                     <button type="button" class="btn btn-outline btn-xs" @click="swapAdvisers"
                         :disabled="!formData.adviser && !formData.adviser2">
-                        ⇅ สลับครูที่ปรึกษา
+                        ⇅ {{ t('classroomUpdate.swapAdvisers') }}
                     </button>
                 </div>
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ครูที่ปรึกษา (คนที่ 2)</span>
+                        <span class="label-text">{{ t('classroomUpdate.adviserTwo') }}</span>
                     </label>
                     <div class="relative z-[50]" ref="adviser2BoxRef">
                         <input ref="adviser2InputRef" v-model="adviser2Query" type="text"
-                            class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกครู..."
+                            class="input input-bordered w-full" :placeholder="t('classroomUpdate.searchTeacher')"
                             @focus="adviser2Open = true" @input="adviser2Open = true" />
                         <button v-if="formData.adviser2" type="button"
-                            class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser2">ลบ</button>
+                            class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser2">{{
+                                t('classroomUpdate.remove') }}</button>
                         <ul v-if="adviser2Open"
                             class="bg-base-100 rounded-box shadow border absolute z-[50] bottom-full left-0 mb-2 w-full max-h-[50vh] overflow-y-auto overflow-x-hidden flex flex-col columns-1">
                             <li v-if="!filteredTeachersByAdviser2Query.length" class="px-3 py-2 text-sm opacity-70">
-                                ไม่พบครูที่ตรงกับคำค้นหา
+                                {{ t('classroomUpdate.noTeacherMatch') }}
                             </li>
                             <li v-for="teacher in filteredTeachersByAdviser2Query" :key="teacher._id || teacher.id">
                                 <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200"
@@ -79,15 +81,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 16h-1v-4h-1m1-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z" />
                         </svg>
-                        ครูที่ปรึกษาคนที่ 2 จะถูกเลื่อนขึ้นเป็นครูที่ปรึกษาคนที่ 1 อัตโนมัติเมื่อบันทึก
+                        {{ t('classroomUpdate.adviserTwoWillMoveUp') }}
                     </div>
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('classroomUpdate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ t('classroomUpdate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -98,7 +101,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 const router = useRouter()
+const { t } = useI18n()
 
 const props = defineProps({
     teachers: {
@@ -251,7 +256,7 @@ const handleSubmit = async () => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'warning',
-                title: 'กรุณาเลือกครูที่ปรึกษาอย่างน้อย 1 คน',
+                title: t('classroomUpdate.chooseAdviser'),
                 confirmButtonColor: '#2563eb',
                 didOpen: () => {
                     document.getElementById('app').removeAttribute('aria-hidden')
@@ -266,7 +271,7 @@ const handleSubmit = async () => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'warning',
-                title: 'ไม่สามารถเลือกครูคนเดียวกันซ้ำได้',
+                title: t('classroomUpdate.duplicateAdviser'),
                 confirmButtonColor: '#2563eb',
                 didOpen: () => {
                     document.getElementById('app').removeAttribute('aria-hidden')

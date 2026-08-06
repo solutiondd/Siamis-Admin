@@ -1,14 +1,14 @@
 <template>
     <dialog ref="modalRef" :id="modalId" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4 text-error">ลบปฏิทินการศึกษา</h3>
+            <h3 class="font-bold text-lg mb-4 text-error">{{ t('academicCalendarModal.deleteTitle') }}</h3>
 
             <div class="py-4">
                 <p class="text-base-content mb-4">
-                    คุณต้องการลบปฏิทินการศึกษา <span class="font-bold text-error">ปี {{ year }}</span> ใช่หรือไม่?
+                    {{ t('academicCalendarModal.deleteConfirmText') }} <span class="font-bold text-error">{{ t('academicCalendarModal.yearText', { year }) }}</span> {{ t('common.right') }}?
                 </p>
                 <p class="text-sm text-base-content/70">
-                    ข้อมูลทั้งหมดจะถูกลบออกและไม่สามารถกู้คืนได้
+                    {{ t('academicCalendarModal.deleteWarning') }}
                 </p>
             </div>
 
@@ -23,11 +23,11 @@
 
             <div class="modal-action">
                 <button type="button" class="btn btn-ghost" @click="handleClose" :disabled="loading">
-                    ยกเลิก
+                    {{ t('common.cancel') }}
                 </button>
                 <button type="button" class="btn btn-error text-white" @click="handleDelete" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                    <span v-else>ลบ</span>
+                    <span v-else>{{ t('common.delete') }}</span>
                 </button>
             </div>
         </div>
@@ -39,7 +39,10 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AcademicCalendarService } from '../../api/academiccalendar'
+
+const { t } = useI18n()
 
 const props = defineProps({
     isOpen: {
@@ -73,7 +76,7 @@ const handleDelete = async () => {
         handleClose()
     } catch (error) {
         console.error('Delete academic calendar error:', error)
-        errorMessage.value = error.response?.data?.message || 'เกิดข้อผิดพลาดในการลบปฏิทินการศึกษา'
+        errorMessage.value = error.response?.data?.message || t('academicCalendarModal.errors.deleteFail')
     } finally {
         loading.value = false
     }

@@ -4,14 +4,14 @@
             <!-- <div
                 class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-base-200 pb-4 mb-4">
                 <div>
-                    <h2 class="card-title text-xl font-bold text-base-content">ตั้งค่าเวลาอนุโลมการเช็คชื่อ</h2>
+                    <h2 class="card-title text-xl font-bold text-base-content">{{ t('allowance.title') }}</h2>
                 </div>
                 <div v-if="allowanceData" :class="[
                     'badge p-3 font-semibold text-xs gap-1',
                     allowanceData.enabled ? 'badge-success text-success-content' : 'badge-ghost text-base-content/50'
                 ]">
                     <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
-                    {{ allowanceData.enabled ? 'ระบบเปิดใช้งาน' : 'ระบบปิดใช้งาน' }}
+                    {{ allowanceData.enabled ? t('allowance.statusActive') : t('allowance.statusInactive') }}
                 </div>
             </div> -->
 
@@ -37,24 +37,23 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span class="font-bold text-md capitalize">{{ rule.role === 'student' ? 'นักเรียน' :
-                                    'ครู' }}</span>
+                                <span class="font-bold text-md capitalize">{{ rule.role === 'student' ? t('roles.student') : t('roles.teacher') }}</span>
                             </div>
                         </div>
 
                         <div class="p-4">
                             <div class="flex flex-col items-center justify-center py-3">
-                                <span class="text-xs text-base-content/50 font-medium mb-1">เวลาอนุโลมปัจจุบัน</span>
+                                <span class="text-xs text-base-content/50 font-medium mb-1">{{ t('allowance.currentAllowanceTime') }}</span>
                                 <div class="text-3xl font-extrabold text-base-content tracking-tight">
                                     {{ formatTime(rule.allowance_time) }} <span
-                                        class="text-sm font-normal text-base-content/50">น.</span>
+                                        class="text-sm font-normal text-base-content/50">{{ t('allowance.timeUnit') }}</span>
                                 </div>
                             </div>
 
                             <!-- <div class="mt-2 pt-3 border-t border-base-200 text-xs text-base-content/70 flex justify-between">
-                                <span>สถานะรายบุคคล:</span>
+                                <span>{{ t('allowance.individualStatus') }}:</span>
                                 <span :class="rule.enabled ? 'text-success font-semibold' : 'text-base-content/40'">
-                                    {{ rule.enabled ? 'เปิดการอนุโลม' : 'ปิดการใช้งาน' }}
+                                    {{ rule.enabled ? t('allowance.enabled') : t('allowance.disabled') }}
                                 </span>
                             </div> -->
                         </div>
@@ -65,12 +64,12 @@
                     class="mt-6 pt-4 border-t border-base-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div class="text-xs text-base-content/70 flex flex-col gap-1 w-full sm:w-auto">
                         <div>
-                            <span>แก้ไขล่าสุดโดย: </span>
+                            <span>{{ t('allowance.lastUpdatedBy') }}: </span>
                             <span class="font-bold text-base-content">
                                 {{ allowanceData.updated_by?.name || '-' }}
                                 <span v-if="allowanceData.updated_by?.role"
                                     class="font-normal text-base-content/50 text-[10px] bg-base-200 px-1.5 py-0.5 rounded ml-1 capitalize">
-                                    {{ allowanceData.updated_by.role }}
+                                    {{ t(`roles.${allowanceData.updated_by.role}`, allowanceData.updated_by.role) }}
                                 </span>
                             </span>
                         </div>
@@ -81,7 +80,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>เมื่อ: {{ formatDateTime(allowanceData.updatedAt) }}</span>
+                            <span>{{ t('allowance.updatedAt', { time: formatDateTime(allowanceData.updatedAt) }) }}</span>
                         </div>
                     </div>
 
@@ -92,7 +91,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        แก้ไข
+                        {{ t('common.edit') }}
                     </button>
                 </div>
             </div>
@@ -102,9 +101,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <h3 class="text-md font-bold text-base-content/80">ไม่มีข้อมูลปฏิทินหรือการตั้งค่าเวลา</h3>
+                <h3 class="text-md font-bold text-base-content/80">{{ t('allowance.noDataTitle') }}</h3>
                 <p class="text-xs text-base-content/50 max-w-xs mt-1">
-                    ระบบยังไม่มีการกำหนดเวลาอนุโลมการเช็คชื่อเข้าเรียนหรือทำงานในขณะนี้
+                    {{ t('allowance.noDataDescription') }}
                 </p>
             </div>
         </div>
@@ -113,8 +112,10 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { AllowanceService } from '../../api/allowance';
 
+const { t, locale } = useI18n();
 const emit = defineEmits(['edit-all']);
 const loading = ref(false);
 const allowanceData = ref(null);
@@ -127,20 +128,21 @@ const formatTime = (timeString) => {
 const formatDateTime = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
+    const loc = locale.value === 'th' ? 'th-TH' : 'en-US';
     
-    const formattedDate = date.toLocaleDateString('th-TH', { 
+    const formattedDate = date.toLocaleDateString(loc, { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
     });
     
-    const formattedTime = date.toLocaleTimeString('th-TH', {
+    const formattedTime = date.toLocaleTimeString(loc, {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
     });
 
-    return `${formattedDate} เวลา ${formattedTime} น.`;
+    return locale.value === 'th' ? `${formattedDate} เวลา ${formattedTime} น.` : `${formattedDate} at ${formattedTime}`;
 };
 
 const handleEditAll = () => {

@@ -7,21 +7,25 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M13 16h-1v-4h-1m1-4h.01M12 18h.01M8 21h8a2 2 0 002-2V7a2 2 0 00-2-2h-3.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 009.586 3H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
-                ยืนยันการลบอุปกรณ์
+                {{ t('DeviceDelete.title') }}
             </h3>
 
             <div class="mt-4 space-y-2 text-sm">
-                <p class="text-base-content/70">คุณกำลังจะลบอุปกรณ์นี้ออกจากระบบ:</p>
+                <p class="text-base-content/70">{{ t('DeviceDelete.confirmText') }}</p>
                 <div class="p-3 rounded bg-base-200 text-xs space-y-1">
-                    <p><span class="font-semibold">Serial:</span> {{ device?.serial_number || '-' }}</p>
-                    <p><span class="font-semibold">IP:</span> {{ device?.ipaddress || '-' }}</p>
-                    <p><span class="font-semibold">สถานที่:</span> {{ device?.location || '-' }}</p>
+                    <p><span class="font-semibold">{{ t('DeviceDelete.serialLabel') }}:</span> {{ device?.serial_number
+                        || '-' }}</p>
+                    <p><span class="font-semibold">{{ t('DeviceDelete.ipLabel') }}:</span> {{ device?.ipaddress || '-'
+                        }}</p>
+                    <p><span class="font-semibold">{{ t('DeviceDelete.locationLabel') }}:</span> {{ device?.location ||
+                        '-' }}</p>
                 </div>
-                <p class="text-warning text-xs">การลบไม่สามารถย้อนกลับได้</p>
+                <p class="text-warning text-xs">{{ t('DeviceDelete.warningText') }}</p>
             </div>
 
             <div class="modal-action">
-                <button type="button" class="btn btn-ghost" @click="closeModal" :disabled="loading">ยกเลิก</button>
+                <button type="button" class="btn btn-ghost" @click="closeModal" :disabled="loading">{{
+                    t('common.cancel') }}</button>
                 <button type="button" class="btn btn-error" @click="confirmDelete" :disabled="loading">
                     <span v-if="!loading" class="flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -29,14 +33,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        ลบ
+                        {{ t('common.delete') }}
                     </span>
                     <span v-else class="loading loading-spinner loading-sm"></span>
                 </button>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
+            <button @click="closeModal">{{ t('common.close') }}</button>
         </form>
     </dialog>
 </template>
@@ -44,13 +48,14 @@
 <script setup>
 import { ref } from 'vue'
 import DeviceService from '../../api/device'
-import Swal from 'sweetalert2'
 import { nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const deleteModal = ref(null)
 const device = ref(null)
 const loading = ref(false)
 const emit = defineEmits(['deleted', 'deleteError'])
+const { t } = useI18n()
 
 const openModal = (d) => {
     device.value = d

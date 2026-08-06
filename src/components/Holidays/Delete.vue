@@ -1,20 +1,26 @@
 <template>
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-sm relative animate-fade-in">
-            <h2 class="text-lg font-bold mb-4">ยืนยันการลบวันหยุด</h2>
+            <h2 class="text-lg font-bold mb-4">{{ t('HolidaysDelete.title') }}</h2>
             <div class="mb-4">
-                <div>ชื่อวันหยุด: <span class="font-semibold">{{ holiday?.summary }}</span></div>
-                <div>วันที่: <span class="font-semibold">{{ formatDisplayDate(holiday?.date) }}</span></div>
+                <div>{{ t('HolidaysDelete.holidayName') }}: <span class="font-semibold">{{ holiday?.summary }}</span>
+                </div>
+                <div>{{ t('HolidaysDelete.date') }}: <span class="font-semibold">{{ formatDisplayDate(holiday?.date)
+                        }}</span></div>
             </div>
             <div class="flex justify-end gap-2">
-                <button class="btn btn-outline" @click="$emit('cancel')">ยกเลิก</button>
-                <button class="btn btn-error" @click="$emit('confirm')">ลบ</button>
+                <button class="btn btn-outline" @click="$emit('cancel')">{{ t('common.cancel') }}</button>
+                <button class="btn btn-error" @click="$emit('confirm')">{{ t('common.delete') }}</button>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const props = defineProps({
     holiday: Object
 })

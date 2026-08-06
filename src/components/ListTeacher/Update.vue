@@ -1,11 +1,11 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box max-w-2xl overflow-y-auto">
-            <h3 class="font-bold text-lg mb-4">แก้ไขข้อมูลบุคลากร</h3>
+            <h3 class="font-bold text-lg mb-4">{{ t('teacherUpdate.title') }}</h3>
             <form @submit.prevent="handleSubmit">
                 <div class="space-y-2">
-                    <label class="block text-sm font-semibold">รูปภาพ <span
-                            class="text-gray-500">(ไม่บังคับ)</span></label>
+                    <label class="block text-sm font-semibold">{{ t('teacherUpdate.image') }} <span
+                            class="text-gray-500">({{ t('teacherUpdate.optional') }})</span></label>
 
                     <div v-if="currentImage || previewImage" class="relative flex justify-center mb-2">
                         <div class="relative">
@@ -31,8 +31,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพบุคลากร</span>
-                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                                <span class="text-sm font-medium text-gray-700">{{ t('teacherUpdate.chooseImage')
+                                    }}</span>
+                                <span class="text-xs text-gray-500">{{ t('teacherUpdate.jpgOnly') }}</span>
                             </span>
                             <input id="pictureInputUpdateTeacher" ref="fileInputRef" type="file"
                                 @change="handleFileChange" accept="image/jpeg,image/jpg"
@@ -45,7 +46,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">รหัสบุคลากร</span>
+                            <span class="label-text">{{ t('teacherUpdate.employeeId') }}</span>
                         </label>
                         <input v-model="formData.userid" type="text" class="input input-bordered w-full" required
                             :class="{ 'input-error': useridError }" autocomplete="off" />
@@ -56,19 +57,19 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">คำนำหน้า</span>
+                            <span class="label-text">{{ t('teacherUpdate.prefix') }}</span>
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
-                            <option value="">เลือกคำนำหน้า</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นาง">นาง</option>
-                            <option value="นางสาว">นางสาว</option>
+                            <option value="">{{ t('teacherUpdate.selectPrefix') }}</option>
+                            <option value="นาย">Mr.</option>
+                            <option value="นาง">Mrs.</option>
+                            <option value="นางสาว">Miss</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ชื่อ</span>
+                            <span class="label-text">{{ t('teacherUpdate.firstName') }}</span>
                         </label>
                         <input v-model="formData.first_name" type="text" class="input input-bordered w-full" required
                             @input="validateFirstName" :class="{ 'input-error': firstNameError }" autocomplete="off" />
@@ -79,7 +80,7 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">นามสกุล</span>
+                            <span class="label-text">{{ t('teacherUpdate.lastName') }}</span>
                         </label>
                         <input v-model="formData.last_name" type="text" class="input input-bordered w-full" required
                             @input="validateLastName" :class="{ 'input-error': lastNameError }" autocomplete="off" />
@@ -90,20 +91,20 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ตำแหน่ง</span>
+                            <span class="label-text">{{ t('teacherUpdate.position') }}</span>
                         </label>
                         <select v-model="formData.position" class="select select-bordered w-full" required>
-                            <option value="">เลือกตำแหน่ง</option>
+                            <option value="">{{ t('teacherUpdate.selectPosition') }}</option>
                             <option v-for="pos in positions" :key="pos._id" :value="pos.name">{{ pos.name }}</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">แผนก</span>
+                            <span class="label-text">{{ t('teacherUpdate.department') }}</span>
                         </label>
                         <select v-model="formData.department" class="select select-bordered w-full" required>
-                            <option value="">เลือกแผนก</option>
+                            <option value="">{{ t('teacherUpdate.selectDepartment') }}</option>
                             <option v-for="dept in departments" :key="dept._id" :value="dept.name">{{ dept.name }}
                             </option>
                         </select>
@@ -111,28 +112,29 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">เลขบัตร RFID <span class="text-gray-500">(ไม่บังคับ)</span></span>
+                            <span class="label-text">{{ t('teacherUpdate.rfid') }} <span class="text-gray-500">({{
+                                    t('teacherUpdate.optional') }})</span></span>
                         </label>
                         <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
                             @input="validateRfid" autocomplete="off" />
                         <label v-if="rfidError" class="label"><span class="label-text-alt text-error">{{ rfidError
-                                }}</span></label>
+                        }}</span></label>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">สถานะ</span>
+                            <span class="label-text">{{ t('teacherUpdate.status') }}</span>
                         </label>
                         <select v-model="formData.status" class="select select-bordered w-full" required>
-                            <option value="">เลือกสถานะ</option>
-                            <option value="ปกติ">ปกติ</option>
-                            <option value="พักงาน">พักงาน</option>
+                            <option value="">{{ t('teacherUpdate.selectStatus') }}</option>
+                            <option value="ปกติ">{{ t('teacherUpdate.normal') }}</option>
+                            <option value="พักงาน">{{ t('teacherUpdate.suspended') }}</option>
                         </select>
                     </div>
 
                     <!-- <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">RFID (ไม่บังคับ)</span>
+                            <span class="label-text">{{ t('teacherUpdate.rfidOptional') }}</span>
                         </label>
                         <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
                             autocomplete="off" />
@@ -140,22 +142,23 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">รูปภาพ (ถ้าต้องการเปลี่ยน)</span>
+                            <span class="label-text">{{ t('teacherUpdate.replaceImage') }}</span>
                         </label>
                         <input ref="fileInputRef" type="file" @change="handleFileChange" accept="image/jpeg,image/jpg"
                             class="file-input file-input-bordered w-full" />
                         <label class="label">
-                            <span class="label-text-alt text-gray-500">JPG only (สูงสุด 70KB)</span>
+                            <span class="label-text-alt text-gray-500">{{ t('teacherUpdate.jpgOnly') }}</span>
                         </label>
                         <div v-if="fileError" class="text-sm text-error mt-1">{{ fileError }}</div>
                     </div> -->
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('teacherUpdate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading || !isFormValid">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ t('teacherUpdate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -166,6 +169,7 @@
 <script setup>
 import { TeacherService } from '../../api/teacher'
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
 const getPictureUrl = (pic) => {
@@ -210,6 +214,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['success'])
+const { t } = useI18n()
 
 const openModal = async (teacher) => {
     teacherId.value = teacher.id
@@ -247,11 +252,11 @@ const openModal = async (teacher) => {
                     reader.readAsDataURL(resizedBlob)
                     formData.value.picture = new File([resizedBlob], 'teacher.jpg', { type: 'image/jpeg' })
                 } else {
-                    fileError.value = `ขนาดรูปบุคลากรเกิน 70KB (${(blob.size / 1024).toFixed(2)}KB)`
+                    fileError.value = t('teacherUpdate.fileTooLarge', { size: (blob.size / 1024).toFixed(2) })
                 }
             }
         } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการตรวจสอบหรือปรับขนาดรูปภาพ'
+            fileError.value = t('teacherUpdate.fileCheckError')
         }
     }
 
@@ -300,7 +305,7 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
+                        if (!b) return reject(t('teacherUpdate.compressFail'));
 
                         if (b.size <= maxBytes) {
                             resolve(b);
@@ -321,16 +326,16 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                             return;
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
+                        reject(t('teacherUpdate.compressLimitFail', { size: maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
 
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('teacherUpdate.invalidImageFile'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('teacherUpdate.readImageFail'));
         reader.readAsDataURL(file);
     });
 }
@@ -341,7 +346,7 @@ const handleFileChange = async (event) => {
 
     if (file) {
         if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น';
+            fileError.value = t('teacherUpdate.selectJpgOnly');
             event.target.value = '';
             return;
         }
@@ -354,7 +359,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || t('teacherUpdate.resizeError');
             event.target.value = '';
         }
     }
@@ -364,9 +369,9 @@ const nameRegex = /^[A-Za-z\u0E00-\u0E7F]+$/
 
 const validateFirstName = () => {
     if (!formData.value.first_name) {
-        firstNameError.value = 'กรุณากรอกชื่อ'
+        firstNameError.value = t('teacherUpdate.requiredFirstName')
     } else if (!nameRegex.test(formData.value.first_name)) {
-        firstNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        firstNameError.value = t('teacherUpdate.nameOnlyLetters')
     } else {
         firstNameError.value = ''
     }
@@ -374,9 +379,9 @@ const validateFirstName = () => {
 
 const validateLastName = () => {
     if (!formData.value.last_name) {
-        lastNameError.value = 'กรุณากรอกนามสกุล'
+        lastNameError.value = t('teacherUpdate.requiredLastName')
     } else if (!nameRegex.test(formData.value.last_name)) {
-        lastNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        lastNameError.value = t('teacherUpdate.nameOnlyLetters')
     } else {
         lastNameError.value = ''
     }
@@ -388,7 +393,7 @@ const validateRfid = () => {
         return true
     }
     if (!/^\d+$/.test(formData.value.rfid)) {
-        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        rfidError.value = t('teacherUpdate.numericRfid')
         return false
     }
     rfidError.value = ''
@@ -424,8 +429,8 @@ const handleSubmit = async () => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'ข้อมูลไม่ถูกต้อง',
-            text: 'กรุณากรอกชื่อและนามสกุลเป็นตัวอักษรเท่านั้น',
+            title: t('teacherUpdate.invalidDataTitle'),
+            text: t('teacherUpdate.invalidDataText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')
@@ -441,7 +446,7 @@ const handleSubmit = async () => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'success',
-                title: 'แก้ไขข้อมูลอาจารย์สำเร็จ',
+                title: t('teacherUpdate.successTitle'),
                 showConfirmButton: false,
                 timer: 1500,
                 didOpen: () => {
@@ -454,7 +459,7 @@ const handleSubmit = async () => {
     } catch (error) {
         const duplicate = error?.response?.status === 409 || (error?.response?.data?.error && error.response.data.error.includes('duplicate teacher userid'));
         if (duplicate) {
-            useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น';
+            useridError.value = t('teacherUpdate.duplicateId');
             return;
         }
         console.error('Update teacher error:', error)
@@ -462,8 +467,8 @@ const handleSubmit = async () => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error?.response?.data?.error || error?.message || 'ไม่สามารถแก้ไขข้อมูลอาจารย์ได้',
+            title: t('teacherUpdate.errorTitle'),
+            text: error?.response?.data?.error || error?.message || t('teacherUpdate.errorMessage'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')

@@ -1,12 +1,13 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box max-w-2xl">
-            <h3 class="font-bold text-lg mb-4">เพิ่มนักเรียน</h3>
+            <h3 class="font-bold text-lg mb-4">{{ $t('StudentCreate.title') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold">
-                        รูปภาพ <span class="text-gray-500">(ไม่บังคับ)</span>
+                        {{ $t('StudentCreate.imageLabel') }} <span class="text-gray-500">{{ $t('StudentCreate.optional')
+                            }}</span>
                     </label>
 
                     <div v-if="previewImage" class="relative flex justify-center mb-4">
@@ -33,8 +34,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพนักเรียน</span>
-                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                                <span class="text-sm font-medium text-gray-700">{{ $t('StudentCreate.chooseImage')
+                                    }}</span>
+                                <span class="text-xs text-gray-500">{{ $t('StudentCreate.imageFormatLimit') }}</span>
                             </span>
                             <input id="pictureInput" type="file" @change="handleFileChange"
                                 accept="image/jpeg,image/jpg"
@@ -47,7 +49,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">รหัสนักเรียน</span>
+                            <span class="label-text">{{ $t('StudentCreate.studentId') }}</span>
                         </label>
                         <input v-model="formData.userid" type="text" class="input input-bordered w-full" required
                             @input="validateUserId" :class="{ 'input-error': useridError }" autocomplete="off" />
@@ -58,20 +60,20 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">คำนำหน้า</span>
+                            <span class="label-text">{{ $t('StudentCreate.prefix') }}</span>
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
-                            <option value="">เลือกคำนำหน้า</option>
-                            <option value="เด็กชาย">เด็กชาย</option>
-                            <option value="เด็กหญิง">เด็กหญิง</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นางสาว">นางสาว</option>
+                            <option value="">{{ $t('StudentCreate.selectPrefix') }}</option>
+                            <option value="เด็กชาย">{{ $t('StudentCreate.boy') }}</option>
+                            <option value="เด็กหญิง">{{ $t('StudentCreate.girl') }}</option>
+                            <option value="นาย">{{ $t('StudentCreate.mr') }}</option>
+                            <option value="นางสาว">{{ $t('StudentCreate.miss') }}</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ชื่อ</span>
+                            <span class="label-text">{{ $t('StudentCreate.firstName') }}</span>
                         </label>
                         <input v-model="formData.first_name" type="text" class="input input-bordered w-full" required
                             @input="validateFirstName" :class="{ 'input-error': firstNameError }" autocomplete="off" />
@@ -82,7 +84,7 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">นามสกุล</span>
+                            <span class="label-text">{{ $t('StudentCreate.lastName') }}</span>
                         </label>
                         <input v-model="formData.last_name" type="text" class="input input-bordered w-full" required
                             @input="validateLastName" :class="{ 'input-error': lastNameError }" autocomplete="off" />
@@ -93,7 +95,8 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">เลขบัตร RFID <span class="text-gray-500">(ไม่บังคับ)</span></span>
+                            <span class="label-text">{{ $t('StudentCreate.rfidCard') }} <span class="text-gray-500">{{
+                                    $t('StudentCreate.optional') }}</span></span>
                         </label>
                         <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
                             @input="validateRfid" :class="{ 'input-error': rfidError }" autocomplete="off" />
@@ -104,8 +107,8 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">เบอร์โทรผู้ปกครอง <span
-                                    class="text-gray-500">(ไม่บังคับ)</span></span>
+                            <span class="label-text">{{ $t('StudentCreate.guardianPhone') }} <span
+                                    class="text-gray-500">{{ $t('StudentCreate.optional') }}</span></span>
                         </label>
                         <input v-model="formData.guardian_phone" type="text" class="input input-bordered w-full"
                             @input="validateGuardianPhone" :class="{ 'input-error': guardianPhoneError }"
@@ -117,21 +120,22 @@
 
                     <div class="form-control w-full md:col-span-2">
                         <label class="label">
-                            <span class="label-text">ชั้นปี / ห้อง</span>
+                            <span class="label-text">{{ $t('StudentCreate.gradeAndClassroom') }}</span>
                         </label>
                         <template v-if="auth.user?.role === 'teacher'">
                             <div class="p-2 rounded bg-gray-100 border text-base">
-                                ชั้น: {{ mapGradeDisplay(formData.grade) }} ห้อง: {{ formData.classroom }}
+                                {{ $t('StudentCreate.grade') }}: {{ mapGradeDisplay(formData.grade) }} {{
+                                    $t('StudentCreate.classroom') }}: {{ formData.classroom }}
                             </div>
                         </template>
                         <template v-else>
                             <div class="form-control w-full mb-2">
                                 <label class="label">
-                                    <span class="label-text">ชั้นปี</span>
+                                    <span class="label-text">{{ $t('StudentCreate.grade') }}</span>
                                 </label>
                                 <select v-model="formData.grade" @change="handleGradeChange"
                                     class="select select-bordered w-full" required>
-                                    <option value="">เลือกชั้นปี</option>
+                                    <option value="">{{ $t('StudentCreate.selectGrade') }}</option>
                                     <option v-for="grade in availableGrades" :key="grade" :value="grade">{{
                                         mapGradeDisplay(grade) }}
                                     </option>
@@ -140,31 +144,24 @@
 
                             <div class="form-control w-full">
                                 <label class="label">
-                                    <span class="label-text">ห้อง</span>
+                                    <span class="label-text">{{ $t('StudentCreate.classroom') }}</span>
                                 </label>
                                 <select v-model="formData.classroom" class="select select-bordered w-full" required>
-                                    <option value="">เลือกห้อง</option>
+                                    <option value="">{{ $t('StudentCreate.selectClassroom') }}</option>
                                     <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}
                                     </option>
                                 </select>
                             </div>
                         </template>
                     </div>
-
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">RFID (ไม่บังคับ)</span>
-                        </label>
-                        <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
-                            autocomplete="off" />
-                    </div>
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ $t('StudentCreate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading || !isFormValid">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ $t('StudentCreate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -174,9 +171,11 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 
 const modalRef = ref(null)
@@ -196,8 +195,7 @@ const formData = ref({
     guardian_phone: '',
     grade: '',
     classroom: '',
-    picture: null,
-    rfid: ''
+    picture: ''
 })
 
 const useridError = ref('')
@@ -246,9 +244,9 @@ const nameRegex = /^[A-Za-z\u0E00-\u0E7F]+$/
 
 const validateFirstName = () => {
     if (!formData.value.first_name) {
-        firstNameError.value = 'กรุณากรอกชื่อ'
+        firstNameError.value = t('StudentCreate.errRequiredFirstName')
     } else if (!nameRegex.test(formData.value.first_name)) {
-        firstNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        firstNameError.value = t('StudentCreate.errNameFormat')
     } else {
         firstNameError.value = ''
     }
@@ -256,9 +254,9 @@ const validateFirstName = () => {
 
 const validateLastName = () => {
     if (!formData.value.last_name) {
-        lastNameError.value = 'กรุณากรอกนามสกุล'
+        lastNameError.value = t('StudentCreate.errRequiredLastName')
     } else if (!nameRegex.test(formData.value.last_name)) {
-        lastNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        lastNameError.value = t('StudentCreate.errNameFormat')
     } else {
         lastNameError.value = ''
     }
@@ -271,7 +269,7 @@ const validateRfid = () => {
     }
 
     if (!/^\d+$/.test(formData.value.rfid)) {
-        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        rfidError.value = t('StudentCreate.errRfidNumber')
     } else {
         rfidError.value = ''
     }
@@ -284,7 +282,7 @@ const validateGuardianPhone = () => {
     }
 
     if (!/^\d+$/.test(formData.value.guardian_phone)) {
-        guardianPhoneError.value = 'เบอร์โทรผู้ปกครองต้องเป็นตัวเลขเท่านั้น'
+        guardianPhoneError.value = t('StudentCreate.errPhoneOption')
     } else {
         guardianPhoneError.value = ''
     }
@@ -371,7 +369,6 @@ const handleGradeChange = () => {
     }
 }
 
-
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -391,7 +388,7 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
+                        if (!b) return reject(t('StudentCreate.errCompressFail'));
 
                         if (b.size <= maxBytes) {
                             resolve(b);
@@ -412,16 +409,16 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                             return;
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
+                        reject(t('StudentCreate.errCompressExceed', { size: maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
 
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('StudentCreate.errInvalidImage'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('StudentCreate.errReadImageFail'));
         reader.readAsDataURL(file);
     });
 }
@@ -432,7 +429,7 @@ const handleFileChange = async (event) => {
 
     if (file) {
         if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น';
+            fileError.value = t('StudentCreate.errOnlyJpg');
             event.target.value = '';
             return;
         }
@@ -445,7 +442,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || t('StudentCreate.errResizeFail');
             event.target.value = '';
         }
     }
@@ -471,8 +468,8 @@ const handleSubmit = async () => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'ข้อมูลไม่ถูกต้อง',
-            text: 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง',
+            title: t('StudentCreate.errInvalidDataTitle'),
+            text: t('StudentCreate.errInvalidDataText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')
@@ -486,15 +483,15 @@ const handleSubmit = async () => {
         onError: async (err) => {
             const errStr = String(err).replace(/\s+/g, '').toLowerCase();
             if (errStr.includes('duplicatestudentuserid')) {
-                useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
+                useridError.value = t('StudentCreate.errDuplicateId')
             } else {
 
-                const errorMessage = err?.response?.data?.error || err?.message || 'ไม่สามารถเพิ่มนักเรียนได้';
+                const errorMessage = err?.response?.data?.error || err?.message || t('StudentCreate.errCreateFail');
                 closeModal();
                 const { default: Swal } = await import('sweetalert2');
                 Swal.fire({
                     icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
+                    title: t('StudentCreate.errTitle'),
                     text: errorMessage,
                     confirmButtonColor: '#2563eb',
                     didOpen: () => {
@@ -513,5 +510,3 @@ defineExpose({
     openModal
 })
 </script>
-
-<style scoped></style>

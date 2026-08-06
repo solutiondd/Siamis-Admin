@@ -8,13 +8,12 @@
             <table class="table table-zebra w-full text-sm">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th class="hidden xl:table-cell">ตำแหน่ง</th>
-                        <th class="hidden lg:table-cell">กิจกรรม</th>
-                        <th class="hidden md:table-cell">วันที่กิจกรรม</th>
-                        <!-- <th>สถานะ</th> -->
-                        <th class="text-center"></th>
+                        <th>{{ t('ReportActivityTable.colCode') }}</th>
+                        <th>{{ t('ReportActivityTable.colName') }}</th>
+                        <th class="hidden xl:table-cell">{{ t('ReportActivityTable.colRole') }}</th>
+                        <th class="hidden lg:table-cell">{{ t('ReportActivityTable.colActivity') }}</th>
+                        <th class="hidden md:table-cell">{{ t('ReportActivityTable.colDate') }}</th>
+                        <th class="text-center">{{ t('ReportActivityTable.colAction') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,15 +25,9 @@
                         <td class="hidden lg:table-cell">{{ activity.activity_name || '-' }}</td>
                         <td class="hidden md:table-cell">{{ formatDate(activity.activity_date_start ||
                             activity.activity_date || activity.date) }}</td>
-                        <!-- <td>
-                            <div :class="['badge', getStatusBadgeClass(activity.status), 'w-3 h-3 p-0 md:w-auto md:h-auto md:px-3']"
-                                :title="formatStatus(activity.status)">
-                                <span class="hidden md:inline">{{ formatStatus(activity.status) }}</span>
-                            </div>
-                        </td> -->
                         <td class="text-center">
                             <button @click="openDetail(activity)" class="bg-transparent border-none shadow-none p-0"
-                                title="ดูข้อมูลเพิ่มเติม">
+                                :title="t('ReportActivityTable.viewMore')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="#3b82f6">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -46,20 +39,23 @@
                         </td>
                     </tr>
                     <tr v-if="!activities.length">
-                        <td colspan="7" class="text-center text-gray-500 py-6">ไม่พบข้อมูลกิจกรรม</td>
+                        <td colspan="6" class="text-center text-gray-500 py-6">{{ t('ReportActivityTable.noData') }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <ActivityDetail ref="activityDetailRef" />
+        <ReportActivityDetail ref="activityDetailRef" />
     </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ActivityService } from '../../api/activity';
-import ActivityDetail from './ActivityDetail.vue';
+import ReportActivityDetail from './ActivityDetail.vue';
+
+const { t, locale } = useI18n();
 
 const props = defineProps({
     filters: {
@@ -87,34 +83,16 @@ const teacherGrade = localStorage.getItem('grade') || '';
 const teacherClassroom = localStorage.getItem('classroom') || '';
 
 const formatRole = (role) => {
-    if (role === 'student') return 'นักเรียน';
-    if (role === 'teacher') return 'ครู';
+    if (role === 'student') return t('ReportActivityTable.roleStudent');
+    if (role === 'teacher') return t('ReportActivityTable.roleTeacher');
     return role || '-';
-};
-
-const formatStatus = (status) => {
-    if (!status) return '-';
-    const value = String(status).toLowerCase();
-    if (value === 'participated' || value === 'joined' || status === 'เข้าร่วม') return 'เข้าร่วม';
-    if (value === 'late' || status === 'สาย') return 'สาย';
-    if (value === 'absent' || status === 'ขาด') return 'ขาด';
-    if (value === 'leave' || status === 'ลา') return 'ลา';
-    return status;
-};
-
-const getStatusBadgeClass = (status) => {
-    const value = String(status || '').toLowerCase();
-    if (value === 'participated' || value === 'joined' || status === 'เข้าร่วม') return 'badge-success text-success-content';
-    if (value === 'late' || status === 'สาย') return 'badge-warning text-warning-content';
-    if (value === 'absent' || status === 'ขาด') return 'badge-error text-error-content';
-    if (value === 'leave' || status === 'ลา') return 'badge-info text-info-content';
-    return 'badge-outline';
 };
 
 const formatDate = (date) => {
     if (!date) return '-';
     const d = new Date(date);
-    return new Intl.DateTimeFormat('th-TH', {
+    const dateLocale = locale.value === 'th' ? 'th-TH' : 'en-US';
+    return new Intl.DateTimeFormat(dateLocale, {
         day: '2-digit',
         month: 'short',
         year: 'numeric',

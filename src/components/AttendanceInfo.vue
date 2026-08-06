@@ -5,38 +5,38 @@
                 <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
             </form>
             <div class="border-b-2 border-blue-200 pb-4 mb-6">
-                <h3 class="text-xl font-bold text-blue-900">รายละเอียดการเข้า-ออก</h3>
+                <h3 class="text-xl font-bold text-blue-900">{{ $t('AttendanceInfo.title') }}</h3>
             </div>
             <div v-if="user">
                 <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-600 mb-1">รหัส</p>
+                        <p class="text-xs text-blue-600 mb-1">{{ $t('AttendanceInfo.id') }}</p>
                         <p class="font-semibold text-blue-900">{{ user.userid || user.code || user.id }}</p>
                     </div>
                     <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                        <p class="text-xs text-yellow-600 mb-1">ชื่อ-สกุล</p>
+                        <p class="text-xs text-yellow-600 mb-1">{{ $t('AttendanceInfo.name') }}</p>
                         <p class="font-semibold text-yellow-900">{{ user.name }}</p>
                     </div>
                     <div v-if="type === 'teacher'" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-600 mb-1">ตำแหน่ง</p>
+                        <p class="text-xs text-blue-600 mb-1">{{ $t('AttendanceInfo.position') }}</p>
                         <p class="font-semibold text-blue-900">{{ user.position }}</p>
                     </div>
                     <div v-if="type === 'teacher'" class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                        <p class="text-xs text-yellow-600 mb-1">แผนก</p>
+                        <p class="text-xs text-yellow-600 mb-1">{{ $t('AttendanceInfo.department') }}</p>
                         <p class="font-semibold text-yellow-900">{{ user.department }}</p>
                     </div>
                     <div v-if="type === 'student'" class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-600 mb-1">ระดับชั้น</p>
+                        <p class="text-xs text-blue-600 mb-1">{{ $t('AttendanceInfo.grade') }}</p>
                         <p class="font-semibold text-blue-900">{{ mapGradeDisplay(user.grade) }}</p>
                     </div>
                     <div v-if="type === 'student'" class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                        <p class="text-xs text-yellow-600 mb-1">ห้อง</p>
+                        <p class="text-xs text-yellow-600 mb-1">{{ $t('AttendanceInfo.classroom') }}</p>
                         <p class="font-semibold text-yellow-900">{{ user.classroom || user.room }}</p>
                     </div>
                 </div>
                 <div v-if="attendance">
                     <div class="mb-4">
-                        <h4 class="font-semibold text-gray-700">บันทึกเวลา - {{ formatDate(attendance.date) }}</h4>
+                        <h4 class="font-semibold text-gray-700">{{ $t('AttendanceInfo.timeRecord', { date: formatDate(attendance.date) }) }}</h4>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div v-for="(ts, idx) in attendance.timeStamps" :key="idx"
@@ -56,19 +56,19 @@
                                     formatTime(ts.timestamp) }}</p>
                                 <p class="text-xs text-gray-600 text-center">{{ ts.location }}</p>
                                 <p v-if="hasSimilarity(ts.similarity)" class="text-xs text-gray-500 text-center mt-1">
-                                    ความเหมือน: {{ ts.similarity }}%
+                                    {{ $t('AttendanceInfo.similarity', { value: ts.similarity }) }}
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div v-else class="text-center py-8 text-gray-500">
-                    ไม่มีข้อมูลการเข้า-ออก
+                    {{ $t('AttendanceInfo.noData') }}
                 </div>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ $t('AttendanceInfo.close') }}</button>
         </form>
     </dialog>
     <dialog ref="imageModal" class="modal">
@@ -81,7 +81,7 @@
                 class="w-full h-auto max-h-[90vh] object-contain" />
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ $t('AttendanceInfo.close') }}</button>
         </form>
     </dialog>
 </template>
@@ -89,6 +89,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { mapGradeDisplay } from '../utils/gradeSystem'
+
 const props = defineProps({
     user: { type: Object, required: true },
     attendance: { type: Object, default: null },

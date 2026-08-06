@@ -1,12 +1,12 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box max-w-2xl overflow-visible overflow-y-auto">
-            <h3 class="font-bold text-lg mb-4">เพิ่มบุคลากร</h3>
+            <h3 class="font-bold text-lg mb-4">{{ t('TeacherCreate.title') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold">
-                        รูปภาพ <span class="text-gray-500">(ไม่บังคับ)</span>
+                        {{ t('TeacherCreate.imageLabel') }} <span class="text-gray-500">{{ t('TeacherCreate.optional') }}</span>
                     </label>
 
                     <div v-if="previewImage" class="relative flex justify-center mb-4">
@@ -33,8 +33,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพอาจารย์</span>
-                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                                <span class="text-sm font-medium text-gray-700">{{ t('TeacherCreate.selectImage') }}</span>
+                                <span class="text-xs text-gray-500">{{ t('TeacherCreate.imageRule') }}</span>
                             </span>
                             <input id="pictureInput" type="file" @change="handleFileChange"
                                 accept="image/jpeg,image/jpg"
@@ -47,7 +47,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">รหัสบุคลากร</span>
+                            <span class="label-text">{{ t('TeacherCreate.userId') }}</span>
                         </label>
                         <input v-model="formData.userid" type="text"
                             :class="['input input-bordered w-full', useridError ? 'border-error focus:border-error' : '']"
@@ -56,42 +56,42 @@
                     </div>
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">คำนำหน้า</span>
+                            <span class="label-text">{{ t('TeacherCreate.prefix') }}</span>
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
-                            <option value="">เลือกคำนำหน้า</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นาง">นาง</option>
-                            <option value="นางสาว">นางสาว</option>
+                            <option value="">{{ t('TeacherCreate.selectPrefix') }}</option>
+                            <option value="นาย">{{ t('TeacherCreate.mr') }}</option>
+                            <option value="นาง">{{ t('TeacherCreate.mrs') }}</option>
+                            <option value="นางสาว">{{ t('TeacherCreate.miss') }}</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ชื่อ</span>
+                            <span class="label-text">{{ t('TeacherCreate.firstName') }}</span>
                         </label>
                         <input v-model="formData.first_name" type="text" class="input input-bordered w-full" required />
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">นามสกุล</span>
+                            <span class="label-text">{{ t('TeacherCreate.lastName') }}</span>
                         </label>
                         <input v-model="formData.last_name" type="text" class="input input-bordered w-full" required />
                     </div>
 
                     <div class="form-control relative z-[100] w-full">
                         <label class="label">
-                            <span class="label-text">ตำแหน่ง</span>
+                            <span class="label-text">{{ t('TeacherCreate.position') }}</span>
                         </label>
                         <div class="relative" ref="positionBoxRef">
                             <input ref="positionInputRef" v-model="positionQuery" type="text"
-                                class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกตำแหน่ง..."
+                                class="input input-bordered w-full" :placeholder="t('TeacherCreate.searchPositionPlaceholder')"
                                 @focus="positionOpen = true" @input="positionOpen = true" required />
                             <ul v-if="positionOpen"
                                 class="bg-base-100 rounded-box shadow-lg border absolute z-[1000] top-full left-0 mt-1 w-full max-h-60 overflow-y-auto">
                                 <li v-if="!filteredPositions.length" class="px-3 py-2 text-sm opacity-70">
-                                    ไม่พบตำแหน่งที่ตรงกับคำค้นหา
+                                    {{ t('TeacherCreate.positionNotFound') }}
                                 </li>
                                 <li v-for="pos in filteredPositions" :key="pos._id" class="block">
                                     <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200 block"
@@ -105,16 +105,16 @@
 
                     <div class="form-control relative z-[99] w-full">
                         <label class="label">
-                            <span class="label-text">แผนก</span>
+                            <span class="label-text">{{ t('TeacherCreate.department') }}</span>
                         </label>
                         <div class="relative" ref="departmentBoxRef">
                             <input ref="departmentInputRef" v-model="departmentQuery" type="text"
-                                class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกแผนก..."
+                                class="input input-bordered w-full" :placeholder="t('TeacherCreate.searchDepartmentPlaceholder')"
                                 @focus="departmentOpen = true" @input="departmentOpen = true" required />
                             <ul v-if="departmentOpen"
                                 class="bg-base-100 rounded-box shadow-lg border absolute z-[999] top-full left-0 mt-1 w-full max-h-60 overflow-y-auto">
                                 <li v-if="!filteredDepartments.length" class="px-3 py-2 text-sm opacity-70">
-                                    ไม่พบแผนกที่ตรงกับคำค้นหา
+                                    {{ t('TeacherCreate.departmentNotFound') }}
                                 </li>
                                 <li v-for="dept in filteredDepartments" :key="dept._id" class="block">
                                     <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200 block"
@@ -128,7 +128,7 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">เลขบัตร RFID <span class="text-gray-500">(ไม่บังคับ)</span></span>
+                            <span class="label-text">{{ t('TeacherCreate.rfid') }} <span class="text-gray-500">{{ t('TeacherCreate.optional') }}</span></span>
                         </label>
                         <input v-model="formData.rfid" type="text"
                             :class="['input input-bordered w-full', rfidError ? 'border-error focus:border-error' : '']"
@@ -138,29 +138,21 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">สถานะ</span>
+                            <span class="label-text">{{ t('TeacherCreate.status') }}</span>
                         </label>
                         <select v-model="formData.status" class="select select-bordered w-full" required>
-                            <option value="">เลือกสถานะ</option>
-                            <option value="ปกติ">ปกติ</option>
-                            <option value="พักงาน">พักงาน</option>
+                            <option value="">{{ t('TeacherCreate.selectStatus') }}</option>
+                            <option value="ปกติ">{{ t('TeacherCreate.statusNormal') }}</option>
+                            <option value="พักงาน">{{ t('TeacherCreate.statusSuspended') }}</option>
                         </select>
-                    </div>
-
-                    <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">RFID (ไม่บังคับ)</span>
-                        </label>
-                        <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
-                            autocomplete="off" />
                     </div>
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('TeacherCreate.cancel') }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ t('TeacherCreate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -170,6 +162,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const modalRef = ref(null)
 const loading = ref(false)
@@ -198,8 +193,7 @@ const formData = ref({
     position: '',
     department: '',
     status: '',
-    picture: null,
-    rfid: ''
+    picture: null
 })
 
 const props = defineProps({
@@ -245,18 +239,6 @@ const selectDepartment = (dept) => {
     departmentOpen.value = false
 }
 
-const clearPosition = () => {
-    formData.value.position = ''
-    positionQuery.value = ''
-    positionOpen.value = false
-}
-
-const clearDepartment = () => {
-    formData.value.department = ''
-    departmentQuery.value = ''
-    departmentOpen.value = false
-}
-
 const validateRfid = () => {
     if (!formData.value.rfid) {
         rfidError.value = ''
@@ -264,7 +246,7 @@ const validateRfid = () => {
     }
 
     if (!/^\d+$/.test(formData.value.rfid)) {
-        rfidError.value = 'เลขบัตรต้องเป็นตัวเลขเท่านั้น'
+        rfidError.value = t('TeacherCreate.errOnlyNumber')
         return false
     }
 
@@ -309,8 +291,7 @@ const openModal = () => {
         position: '',
         department: '',
         status: '',
-        picture: null,
-        rfid: ''
+        picture: null
     }
     previewImage.value = ''
     fileName.value = ''
@@ -335,8 +316,7 @@ const closeModal = () => {
         position: '',
         department: '',
         status: '',
-        picture: null,
-        rfid: ''
+        picture: null
     }
     previewImage.value = ''
     fileName.value = ''
@@ -348,7 +328,6 @@ const closeModal = () => {
     positionOpen.value = false
     departmentOpen.value = false
 }
-
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
@@ -452,14 +431,14 @@ const handleSubmit = async () => {
         onError: async (err) => {
             const errStr = String(err).replace(/\s+/g, '').toLowerCase();
             if (errStr.includes('duplicateteacheruserid')) {
-                useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
+                useridError.value = t('TeacherCreate.errDuplicateUserId')
             } else {
-                const errorMessage = err?.response?.data?.error || err?.message || 'ไม่สามารถเพิ่มบุคลากรได้';
+                const errorMessage = err?.response?.data?.error || err?.message || t('TeacherCreate.errAddFailed');
                 closeModal();
                 const { default: Swal } = await import('sweetalert2');
                 Swal.fire({
                     icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
+                    title: t('TeacherCreate.errTitle'),
                     text: errorMessage,
                     confirmButtonColor: '#2563eb',
                     didOpen: () => {
