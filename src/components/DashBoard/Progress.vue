@@ -21,12 +21,16 @@
                         <tr>
                             <th class="py-3 px-4 text-left">{{ $t('DashBoardProgress.gradeLevel') }}</th>
                             <th class="text-center py-3 col-total">{{ $t('DashBoardProgress.total') }}</th>
-                            <th class="text-center py-3 text-green-600 font-bold col-arrival">{{ $t('DashBoardProgress.totalArrived') }}</th>
-                            <th class="text-center py-3 text-primary col-timedata">{{ $t('DashBoardProgress.ontime') }}</th>
+                            <th class="text-center py-3 text-green-600 font-bold col-arrival">{{
+                                $t('DashBoardProgress.totalArrived') }}</th>
+                            <th class="text-center py-3 text-primary col-timedata">{{ $t('DashBoardProgress.ontime') }}
+                            </th>
                             <th class="text-center py-3 text-black col-timedata">{{ $t('DashBoardProgress.late') }}</th>
                             <th class="text-center py-3 text-warning col-leave">{{ $t('DashBoardProgress.leave') }}</th>
-                            <th class="text-center py-3 text-blue-600 col-activity">{{ $t('DashBoardProgress.activity') }}</th>
-                            <th class="text-center py-3 text-red-600 col-noscan">{{ $t('DashBoardProgress.noScan') }}</th>
+                            <th class="text-center py-3 text-blue-600 col-activity">{{ $t('DashBoardProgress.activity')
+                            }}</th>
+                            <th class="text-center py-3 text-red-600 col-noscan">{{ $t('DashBoardProgress.noScan') }}
+                            </th>
                             <th class="text-center py-3 w-full sm:w-1/3">{{ $t('DashBoardProgress.status') }}</th>
                         </tr>
                     </thead>
@@ -69,26 +73,27 @@
                         </template>
 
                         <template v-else v-for="(gradeGroup, gIdx) in processedData" :key="gIdx">
-                            <tr 
-                                @click="toggleGrade(gradeGroup.grade)"
-                                class="font-bold bg-gray-300/70 text-gray-900 border-b border-gray-300 cursor-pointer hover:bg-gray-300/90 transition-colors select-none"
-                            >
+                            <tr @click="toggleGrade(gradeGroup.grade)"
+                                class="font-bold bg-gray-300/70 text-gray-900 border-b border-gray-300 cursor-pointer hover:bg-gray-300/90 transition-colors select-none">
                                 <td class="text-black py-3 px-4">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-xs transition-transform duration-200" :class="{ 'rotate-90': isGradeExpanded(gradeGroup.grade) }">
+                                        <span class="text-xs transition-transform duration-200"
+                                            :class="{ 'rotate-90': isGradeExpanded(gradeGroup.grade) }">
                                             ▶
                                         </span>
                                         <span class="text-full">{{ formatGradeTitle(gradeGroup.grade) }}</span>
-                                        <span class="text-short">{{ gradeGroup.grade }}</span>
+                                        <span class="text-short">{{ formatGradeShort(gradeGroup.grade) }}</span>
                                     </div>
                                 </td>
                                 <td class="text-center py-3 col-total">{{ gradeGroup.total }}</td>
-                                <td class="text-center py-3 text-green-600 font-bold col-arrival">{{ gradeGroup.arrive }}</td>
+                                <td class="text-center py-3 text-green-600 font-bold col-arrival">{{ gradeGroup.arrive
+                                }}</td>
                                 <td class="text-center py-3 text-primary col-timedata">{{ gradeGroup.normal }}</td>
                                 <td class="text-center py-3 text-black col-timedata">{{ gradeGroup.late }}</td>
                                 <td class="text-center py-3 text-warning col-leave">{{ gradeGroup.leave }}</td>
                                 <td class="text-center py-3 text-blue-600 col-activity">{{ gradeGroup.activity }}</td>
-                                <td class="text-center py-3 text-red-600 font-bold col-noscan">{{ gradeGroup.notScan }}</td>
+                                <td class="text-center py-3 text-red-600 font-bold col-noscan">{{ gradeGroup.notScan }}
+                                </td>
                                 <td class="py-3">
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-mono w-10 text-right text-green-600 font-bold">
@@ -117,16 +122,24 @@
                                     'hover:bg-gray-100 border-b border-gray-100 transition-colors text-gray-700'
                                 ]">
                                     <td class="pl-10 py-2.5 text-gray-900">
-                                        <span class="text-full">{{ formatGradeTitle(gradeGroup.grade) }} ห้อง {{ room.classroom }}</span>
-                                        <span class="text-short">{{ gradeGroup.grade }}/{{ room.classroom }}</span>
+                                        <span class="text-full">
+                                            {{ formatGradeTitle(gradeGroup.grade) }} {{ $t('DashBoardProgress.room') ||
+                                            'ห้อง' }} {{ room.classroom }}
+                                        </span>
+                                        <span class="text-short">
+                                            {{ formatGradeShort(gradeGroup.grade) }}/{{ room.classroom }}
+                                        </span>
                                     </td>
                                     <td class="text-center py-2.5 text-gray-600 col-total">{{ room.total }}</td>
-                                    <td class="text-center py-2.5 text-green-600 font-semibold col-arrival">{{ room.arrive }}</td>
+                                    <td class="text-center py-2.5 text-green-600 font-semibold col-arrival">{{
+                                        room.arrive }}</td>
                                     <td class="text-center py-2.5 text-primary/90 col-timedata">{{ room.normal }}</td>
                                     <td class="text-center py-2.5 text-black/90 col-timedata">{{ room.late }}</td>
                                     <td class="text-center py-2.5 text-warning/90 col-leave">{{ room.leave }}</td>
-                                    <td class="text-center py-2.5 text-blue-600/90 col-activity">{{ room.activity }}</td>
-                                    <td class="text-center py-2.5 text-red-600/90 font-semibold col-noscan">{{ room.notScan }}</td>
+                                    <td class="text-center py-2.5 text-blue-600/90 col-activity">{{ room.activity }}
+                                    </td>
+                                    <td class="text-center py-2.5 text-red-600/90 font-semibold col-noscan">{{
+                                        room.notScan }}</td>
                                     <td class="py-2.5">
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs font-mono w-10 text-right text-green-600">
@@ -134,10 +147,12 @@
                                             </span>
 
                                             <div class="tooltip tooltip-top before:text-xs before:max-w-none flex-1"
-                                                :data-tip="`มาแล้ว ${room.arrive} คน / ยังไม่มา ${room.notScan} คน`">
+                                                :data-tip="$t('DashBoardProgress.tooltip', { arrive: room.arrive, notArrive: room.notScan })">
                                                 <div class="flat-bar-container h-2.5 cursor-pointer">
-                                                    <div class="flat-fill-green" :style="{ width: room.percent + '%' }"></div>
-                                                    <div class="flat-fill-red" :style="{ width: (100 - room.percent) + '%' }"></div>
+                                                    <div class="flat-fill-green" :style="{ width: room.percent + '%' }">
+                                                    </div>
+                                                    <div class="flat-fill-red"
+                                                        :style="{ width: (100 - room.percent) + '%' }"></div>
                                                 </div>
                                             </div>
 
@@ -165,6 +180,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getGradeFullLabel, getGradeCompactLabel } from '../../utils/gradeSystem'
 
 const { t } = useI18n()
 const props = defineProps({
@@ -183,7 +199,6 @@ const props = defineProps({
 })
 
 const selectedDate = ref(props.date)
-
 const expandedGrades = ref(new Set())
 
 const toggleGrade = (grade) => {
@@ -211,11 +226,13 @@ const handleDateChange = () => {
 }
 
 const formatGradeTitle = (grade) => {
-    const safeGrade = typeof grade === 'string' ? grade : ''
-    if (safeGrade.includes('ม.')) {
-        return safeGrade.replace('ม.', 'มัธยมศึกษาปีที่ ')
-    }
-    return safeGrade || '-'
+    if (!grade) return '-'
+    return getGradeFullLabel(grade) || grade
+}
+
+const formatGradeShort = (grade) => {
+    if (!grade) return '-'
+    return getGradeCompactLabel(grade) || grade
 }
 
 const processedData = computed(() => {
@@ -243,12 +260,12 @@ const processedData = computed(() => {
             leave += roomLeave
             activity += roomActivity
 
-            return { 
-                ...safeRoom, 
+            return {
+                ...safeRoom,
                 leave: roomLeave,
                 activity: roomActivity,
                 notScan: roomNotScan,
-                percent 
+                percent
             }
         })
 
@@ -281,10 +298,13 @@ const processedData = computed(() => {
 }
 
 @media (max-width: 1164px) {
-    .col-leave, .col-activity {
+
+    .col-leave,
+    .col-activity {
         display: none !important;
     }
 }
+
 @media (max-width: 1087px) {
     .col-timedata {
         display: none !important;
@@ -302,7 +322,9 @@ const processedData = computed(() => {
 }
 
 @media (max-width: 604px) {
-    .col-arrival, .col-noscan {
+
+    .col-arrival,
+    .col-noscan {
         display: none !important;
     }
 }

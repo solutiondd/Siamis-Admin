@@ -61,9 +61,7 @@
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
                             <option value="">{{ t('teacherUpdate.selectPrefix') }}</option>
-                            <option value="นาย">Mr.</option>
-                            <option value="นาง">Mrs.</option>
-                            <option value="นางสาว">Miss</option>
+                            <option v-for="prefix in prefixOptions" :key="prefix" :value="prefix">{{ prefix }}</option>
                         </select>
                     </div>
 
@@ -159,6 +157,7 @@
 import { TeacherService } from '../../api/teacher'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getPrefixOptions } from '../../utils/prefixSystem'
 
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
 const getPictureUrl = (pic) => {
@@ -206,6 +205,7 @@ const props = defineProps({
 
 const emit = defineEmits(['success'])
 const { t } = useI18n()
+const prefixOptions = computed(() => getPrefixOptions())
 
 const openModal = async (teacher) => {
     teacherId.value = teacher.id

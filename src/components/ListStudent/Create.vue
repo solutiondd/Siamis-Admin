@@ -64,10 +64,7 @@
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
                             <option value="">{{ $t('StudentCreate.selectPrefix') }}</option>
-                            <option value="เด็กชาย">{{ $t('StudentCreate.boy') }}</option>
-                            <option value="เด็กหญิง">{{ $t('StudentCreate.girl') }}</option>
-                            <option value="นาย">{{ $t('StudentCreate.mr') }}</option>
-                            <option value="นางสาว">{{ $t('StudentCreate.miss') }}</option>
+                            <option v-for="prefix in prefixOptions" :key="prefix" :value="prefix">{{ prefix }}</option>
                         </select>
                     </div>
 
@@ -184,9 +181,11 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
+import { getPrefixOptions } from '../../utils/prefixSystem'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const prefixOptions = computed(() => getPrefixOptions())
 
 const modalRef = ref(null)
 const loading = ref(false)

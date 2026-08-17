@@ -8,9 +8,14 @@ export default {
     enablePromoteLevel: true, // true = แสดงปุ่มเลื่อนระดับห้องเรียน
   },
 
+  // ฟีเจอร์สำหรับคำนำหน้าชื่อ
+  prefixSystem: {
+    enableEnglishPrefix: false, // true = ใช้คำนำหน้าภาษาอังกฤษ (Mr., Miss, Mstr.), false = ใช้ภาษาไทย
+  },
+
   // ฟีเจอร์สำหรับตารางเข้า-ออก
   attendance: {
-    enableLineupColumn: true, // true = แสดงคอลัมน์เข้าแถว, false = ซ่อน
+    enableLineupColumn: false, // true = แสดงคอลัมน์เข้าแถว, false = ซ่อน
   },
 
   // ฟีเจอร์สำหรับหน้าเช็คชื่อ
@@ -33,7 +38,7 @@ export default {
 
   // ฟีเจอร์สำหรับหน้าบุคลากร
   teacher: {
-    enableApiNumberColumn: false, // true = แสดงคอลัมน์เลข API (note), false = ซ่อน
+    enableApiNumberColumn: true, // true = แสดงคอลัมน์เลข API (note), false = ซ่อน
   },
 
   // ฟีเจอร์สำหรับหน้า Home

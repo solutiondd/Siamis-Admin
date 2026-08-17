@@ -60,9 +60,7 @@
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
                             <option value="">{{ t('TeacherCreate.selectPrefix') }}</option>
-                            <option value="นาย">{{ t('TeacherCreate.mr') }}</option>
-                            <option value="นาง">{{ t('TeacherCreate.mrs') }}</option>
-                            <option value="นางสาว">{{ t('TeacherCreate.miss') }}</option>
+                            <option v-for="prefix in prefixOptions" :key="prefix" :value="prefix">{{ prefix }}</option>
                         </select>
                     </div>
 
@@ -172,8 +170,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getPrefixOptions } from '../../utils/prefixSystem'
 
 const { t } = useI18n()
+const prefixOptions = computed(() => getPrefixOptions())
 
 const modalRef = ref(null)
 const loading = ref(false)

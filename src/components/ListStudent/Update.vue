@@ -57,10 +57,7 @@
                         <label class="label"><span class="label-text">{{ $t('StudentUpdate.prefix') }}</span></label>
                         <select v-model="formData.pre_name" class="select select-bordered" required>
                             <option value="">{{ $t('StudentUpdate.selectPrefix') }}</option>
-                            <option value="เด็กชาย">{{ $t('StudentUpdate.boy') }}</option>
-                            <option value="เด็กหญิง">{{ $t('StudentUpdate.girl') }}</option>
-                            <option value="นาย">{{ $t('StudentUpdate.mr') }}</option>
-                            <option value="นางสาว">{{ $t('StudentUpdate.miss') }}</option>
+                            <option v-for="prefix in prefixOptions" :key="prefix" :value="prefix">{{ prefix }}</option>
                         </select>
                     </div>
 
@@ -148,9 +145,11 @@ import { useI18n } from 'vue-i18n'
 import { StudentService } from '../../api/student'
 import { useAuthStore } from '../../stores/auth'
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
+import { getPrefixOptions } from '../../utils/prefixSystem'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const prefixOptions = computed(() => getPrefixOptions())
 const imgProfileUrl = import.meta.env.VITE_IMG_PROFILE_URL;
 const getPictureUrl = (pic) => {
     if (!pic) return '';
