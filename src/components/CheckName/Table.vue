@@ -2,7 +2,7 @@
     <div class="w-full space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-700">รายการ:</label>
+                <label class="text-sm text-gray-700">{{ $t('checkNameTable.items') }}</label>
                 <select v-model.number="pageSize" class="select select-sm select-bordered w-18"
                     @change="handlePageSizeChange">
                     <option :value="10">10</option>
@@ -10,14 +10,11 @@
                     <option :value="30">30</option>
                     <option :value="50">50</option>
                 </select>
-                <span class="text-sm text-gray-700">ต่อหน้า</span>
+                <span class="text-sm text-gray-700">{{ $t('checkNameTable.perPage') }}</span>
             </div>
             <div class="flex items-center gap-2">
-                <!-- <span v-if="draftCount > 0" class="badge badge-warning badge-sm">
-                    รอการบันทึก {{ draftCount }} รายการ
-                </span> -->
                 <button type="button" class="btn btn-sm btn-ghost text-error" :disabled="draftCount === 0 || autoSaving"
-                    @click="clearAllDraftChanges" title="ล้างทั้งหมด">
+                    @click="clearAllDraftChanges" :title="$t('checkNameTable.clearAll')">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -26,7 +23,7 @@
                 </button>
 
                 <button type="button" class="btn btn-primary btn-sm" :disabled="draftCount === 0 || autoSaving"
-                    @click="saveAllDraftChanges" title="บันทึกทั้งหมด">
+                    @click="saveAllDraftChanges" :title="$t('checkNameTable.saveAll')">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -43,10 +40,10 @@
             <table class="table table-zebra w-full text-xs sm:text-[10px] xl:text-sm">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th class="w-40 max-[444px]:w-28 text-center">สถานะ</th>
-                        <th class="w-48 max-[444px]:hidden">หมายเหตุ</th>
+                        <th>{{ $t('checkNameTable.code') }}</th>
+                        <th>{{ $t('checkNameTable.name') }}</th>
+                        <th class="w-40 max-[444px]:w-28 text-center">{{ $t('checkNameTable.status') }}</th>
+                        <th class="w-48 max-[444px]:hidden">{{ $t('checkNameTable.remark') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,7 +77,19 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            มาเรียน
+                                            {{ $t('checkNameTable.present') }}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="button" :disabled="autoSaving"
+                                            class="max-[444px]:text-xs max-[444px]:px-2"
+                                            @click.stop.prevent="markLate(student._id)">
+                                            <svg class="w-4 h-4 max-[444px]:w-3.5 max-[444px]:h-3.5 text-black"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            {{ $t('checkNameTable.late') }}
                                         </button>
                                     </li>
                                     <li>
@@ -90,9 +99,10 @@
                                             <svg class="w-4 h-4 max-[444px]:w-3.5 max-[444px]:h-3.5 text-warning"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
                                             </svg>
-                                            ลา
+                                            {{ $t('checkNameTable.leave') }}
                                         </button>
                                     </li>
                                     <li>
@@ -104,7 +114,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M9 5l7 7-7 7"></path>
                                             </svg>
-                                            กิจกรรม
+                                            {{ $t('checkNameTable.activity') }}
                                         </button>
                                     </li>
                                     <li>
@@ -116,7 +126,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            ยกเลิกรายการที่เลือก
+                                            {{ $t('checkNameTable.cancelSelected') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -127,7 +137,7 @@
                                     <button type="button" tabindex="0"
                                         class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                         <span class="badge badge-warning gap-2 max-[444px]:badge-xs">
-                                            รออนุมัติ
+                                            {{ $t('checkNameTable.pendingApproval') }}
                                         </span>
                                     </button>
                                     <ul tabindex="0"
@@ -141,7 +151,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
-                                                อนุญาต
+                                                {{ $t('checkNameTable.approve') }}
                                             </button>
                                         </li>
                                         <li>
@@ -153,7 +163,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
-                                                ไม่อนุญาต
+                                                {{ $t('checkNameTable.reject') }}
                                             </button>
                                         </li>
                                         <li>
@@ -165,7 +175,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
-                                                ยกเลิก
+                                                {{ $t('checkNameTable.cancel') }}
                                             </button>
                                         </li>
                                         <li v-if="canEditLeave">
@@ -179,7 +189,7 @@
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.82 2.82L11 16l-4 1 1-4 9.59-9.59z">
                                                     </path>
                                                 </svg>
-                                                แก้ไข
+                                                {{ $t('checkNameTable.edit') }}
                                             </button>
                                         </li>
                                     </ul>
@@ -188,7 +198,7 @@
                                     <button type="button" tabindex="0"
                                         class="btn btn-xs btn-ghost border-0 shadow-none bg-transparent hover:bg-base-200 px-1.5 min-h-6 h-6">
                                         <span class="badge badge-info max-[444px]:badge-xs">
-                                            กิจกรรม
+                                            {{ $t('checkNameTable.activity') }}
                                         </span>
                                     </button>
                                     <ul tabindex="0"
@@ -204,7 +214,7 @@
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.82 2.82L11 16l-4 1 1-4 9.59-9.59z">
                                                     </path>
                                                 </svg>
-                                                แก้ไขกิจกรรม
+                                                {{ $t('checkNameTable.editActivity') }}
                                             </button>
                                         </li>
                                         <li>
@@ -218,7 +228,7 @@
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16">
                                                     </path>
                                                 </svg>
-                                                ลบกิจกรรม
+                                                {{ $t('checkNameTable.deleteActivity') }}
                                             </button>
                                         </li>
                                     </ul>
@@ -226,14 +236,18 @@
                             </div>
                             <span v-else-if="localAttendanceData[student._id]?.status === 'present'"
                                 class="badge badge-success gap-2 max-[444px]:badge-xs">
-                                มา
+                                {{ $t('checkNameTable.presentShort') }}
+                            </span>
+                            <span v-else-if="localAttendanceData[student._id]?.status === 'late'"
+                                class="badge bg-black text-white border-black gap-2 max-[444px]:badge-xs">
+                                {{ $t('checkNameTable.late') }}
                             </span>
                             <div v-else-if="localAttendanceData[student._id]?.status === 'leave'"
                                 class="dropdown dropdown-center">
                                 <button type="button" tabindex="0"
                                     class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                     <span class="badge badge-warning max-[444px]:badge-xs">
-                                        ลา
+                                        {{ $t('checkNameTable.leave') }}
                                     </span>
                                 </button>
                                 <ul tabindex="0"
@@ -248,7 +262,7 @@
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.82 2.82L11 16l-4 1 1-4 9.59-9.59z">
                                                 </path>
                                             </svg>
-                                            แก้ไข
+                                            {{ $t('checkNameTable.edit') }}
                                         </button>
                                     </li>
                                     <li>
@@ -261,7 +275,7 @@
                                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16">
                                                 </path>
                                             </svg>
-                                            ลบ
+                                            {{ $t('checkNameTable.delete') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -271,7 +285,7 @@
                                 <button type="button" tabindex="0"
                                     class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                     <span class="badge badge-info max-[444px]:badge-xs">
-                                        กิจกรรม
+                                        {{ $t('checkNameTable.activity') }}
                                     </span>
                                 </button>
                                 <ul tabindex="0"
@@ -286,7 +300,7 @@
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.41-9.41a2 2 0 112.82 2.82L11 16l-4 1 1-4 9.59-9.59z">
                                                 </path>
                                             </svg>
-                                            แก้ไข
+                                            {{ $t('checkNameTable.edit') }}
                                         </button>
                                     </li>
                                     <li>
@@ -299,7 +313,7 @@
                                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16">
                                                 </path>
                                             </svg>
-                                            ลบ
+                                            {{ $t('checkNameTable.delete') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -309,10 +323,10 @@
                                     class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                     <span v-if="displayAttendanceStatus(student._id) === 'absent'"
                                         class="inline-flex items-center justify-center rounded-full bg-error px-3 py-1 text-xs font-medium leading-none text-error-content whitespace-nowrap max-[444px]:px-2 max-[444px]:py-0.5 max-[444px]:text-[10px]">
-                                        ไม่ได้สแกน
+                                        {{ $t('checkNameTable.notScanned') }}
                                     </span>
                                     <span v-else class="badge badge-ghost max-[444px]:badge-xs">
-                                        ว่าง
+                                        {{ $t('checkNameTable.empty') }}
                                     </span>
                                 </button>
                                 <ul tabindex="0"
@@ -325,7 +339,18 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            มาเรียน
+                                            {{ $t('checkNameTable.present') }}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="max-[444px]:text-xs max-[444px]:px-2"
+                                            @click.stop.prevent="markLate(student._id)">
+                                            <svg class="w-4 h-4 max-[444px]:w-3.5 max-[444px]:h-3.5 text-black"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            {{ $t('checkNameTable.late') }}
                                         </button>
                                     </li>
                                     <li>
@@ -334,9 +359,10 @@
                                             <svg class="w-4 h-4 max-[444px]:w-3.5 max-[444px]:h-3.5 text-warning"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
                                             </svg>
-                                            ลา
+                                            {{ $t('checkNameTable.leave') }}
                                         </button>
                                     </li>
                                     <li>
@@ -347,7 +373,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M9 5l7 7-7 7"></path>
                                             </svg>
-                                            กิจกรรม
+                                            {{ $t('checkNameTable.activity') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -355,7 +381,7 @@
                         </td>
                         <td class="text-xs sm:text-[10px] xl:text-sm max-[444px]:hidden">
                             <div v-if="localAttendanceData[student._id]?.status === 'leave'" class="text-warning">
-                                <span class="font-medium">{{ localAttendanceData[student._id]?.leaveType }}</span>
+                                <span class="font-medium">{{ formatLeaveTypeName(localAttendanceData[student._id]?.leaveType) }}</span>
                                 <div v-if="localAttendanceData[student._id]?.remark"
                                     class="text-xs sm:text-[10px] xl:text-sm text-base-content mt-1">
                                     {{ localAttendanceData[student._id]?.remark }}
@@ -363,10 +389,10 @@
                             </div>
                             <div v-else-if="localAttendanceData[student._id]?.status === 'activity'" class="text-info">
                                 <span class="font-medium">{{ localAttendanceData[student._id]?.activityName ||
-                                    'มีกิจกรรม' }}</span>
+                                    $t('checkNameTable.hasActivity') }}</span>
                                 <div v-if="localAttendanceData[student._id]?.location"
                                     class="text-xs sm:text-[10px] xl:text-sm text-base-content mt-1">
-                                    สถานที่: {{ localAttendanceData[student._id]?.location }}
+                                    {{ $t('checkNameTable.locationLabel') }} {{ localAttendanceData[student._id]?.location }}
                                 </div>
                                 <div v-if="localAttendanceData[student._id]?.remark"
                                     class="text-xs sm:text-[10px] xl:text-sm text-base-content mt-1">
@@ -400,23 +426,23 @@
             </div>
 
             <div v-if="totalItems > 0" class="text-center text-sm text-gray-600">
-                ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
+                {{ $t('checkNameTable.totalItems', { total: totalItems, current: currentPage, totalPages: totalPages }) }}
             </div>
         </div>
 
         <!-- Modals การลา -->
         <dialog v-if="leaveModal.show" class="modal modal-open">
             <div class="modal-box w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6 overflow-x-hidden">
-                <h3 class="font-bold text-lg mb-4">บันทึกการลา</h3>
+                <h3 class="font-bold text-lg mb-4">{{ $t('checkNameTable.recordLeave') }}</h3>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">ประเภทการลา</span>
+                        <span class="label-text">{{ $t('checkNameTable.leaveType') }}</span>
                     </label>
                     <select v-model="leaveModal.form.leaveType" class="select select-bordered">
-                        <option value="" disabled>เลือกประเภทการลา</option>
+                        <option value="" disabled>{{ $t('checkNameTable.selectLeaveType') }}</option>
                         <option v-for="type in allowedLeaveTypes" :key="type._id" :value="type._id">
-                            {{ type.name }}
+                            {{ getLeaveTypeLabel(type) }}
                         </option>
                     </select>
                 </div>
@@ -424,65 +450,65 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">วันเริ่มลา</span>
+                            <span class="label-text">{{ $t('checkNameTable.leaveStartDate') }}</span>
                         </label>
                         <input type="date" v-model="leaveModal.form.leaveStartDate" class="input input-bordered" />
                     </div>
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">วันสิ้นสุดลา</span>
+                            <span class="label-text">{{ $t('checkNameTable.leaveEndDate') }}</span>
                         </label>
                         <input type="date" v-model="leaveModal.form.leaveEndDate" class="input input-bordered" />
                     </div>
                 </div>
 
                 <p class="text-sm text-gray-500 mb-4">
-                    บันทึกการลาช่วงวันที่
-                    {{ formatThaiDate(leaveModal.form.leaveStartDate || selectedDate) }}
-                    -
-                    {{ formatThaiDate(leaveModal.form.leaveEndDate || leaveModal.form.leaveStartDate || selectedDate) }}
+                    {{ $t('checkNameTable.leavePeriodText', {
+                        start: formatThaiDate(leaveModal.form.leaveStartDate || selectedDate),
+                        end: formatThaiDate(leaveModal.form.leaveEndDate || leaveModal.form.leaveStartDate || selectedDate)
+                    }) }}
                 </p>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text font-medium">ช่วงเวลาลา</span>
+                        <span class="label-text font-medium">{{ $t('checkNameTable.leaveTimeOption') }}</span>
                     </label>
                     <div class="flex flex-wrap gap-4 bg-base-200 p-3 rounded-lg">
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="all_day" v-model="leaveModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ทั้งวัน</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.allDay') }}</span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="morning" v-model="leaveModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ช่วงเช้า</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.morning') }}</span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="afternoon" v-model="leaveModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ช่วงบ่าย</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.afternoon') }}</span>
                         </label>
                     </div>
                     <div class="text-xs text-gray-500 mt-2 px-1">
-                        <span v-if="leaveModal.form.timeOption === 'all_day'">• ทั้งวัน (ไม่ระบุเวลาเจาะจง)</span>
-                        <span v-else-if="leaveModal.form.timeOption === 'morning'">• ช่วงเวลา: 07:00 - 13:00 น.</span>
-                        <span v-else-if="leaveModal.form.timeOption === 'afternoon'">• ช่วงเวลา: 12:00 - 17:00 น.</span>
+                        <span v-if="leaveModal.form.timeOption === 'all_day'">{{ $t('checkNameTable.allDayDesc') }}</span>
+                        <span v-else-if="leaveModal.form.timeOption === 'morning'">{{ $t('checkNameTable.morningDesc') }}</span>
+                        <span v-else-if="leaveModal.form.timeOption === 'afternoon'">{{ $t('checkNameTable.afternoonDesc') }}</span>
                     </div>
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">รายละเอียด</span>
+                        <span class="label-text">{{ $t('checkNameTable.details') }}</span>
                     </label>
                     <textarea v-model="leaveModal.form.reason" class="textarea textarea-bordered"
-                        placeholder="กรอกรายละเอียดการลา" rows="3"></textarea>
+                        :placeholder="$t('checkNameTable.placeholderLeaveReason')" rows="3"></textarea>
                 </div>
 
                 <div class="modal-action">
-                    <button class="btn" @click="closeLeaveModal">ยกเลิก</button>
+                    <button class="btn" @click="closeLeaveModal">{{ $t('checkNameTable.cancel') }}</button>
                     <button class="btn btn-primary" :disabled="autoSaving" @click="createLeaveRequest">
-                        {{ leaveModal.mode === 'edit' ? 'บันทึกการแก้ไข' : 'ยืนยัน' }}
+                        {{ leaveModal.mode === 'edit' ? $t('checkNameTable.saveEdit') : $t('checkNameTable.confirm') }}
                     </button>
                 </div>
             </div>
@@ -495,28 +521,28 @@
         <dialog v-if="activityModal.show" class="modal modal-open">
             <div class="modal-box w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6 overflow-x-hidden">
                 <h3 class="font-bold text-lg mb-4">
-                    {{ activityModal.mode === 'edit' ? 'แก้ไขกิจกรรม' : 'บันทึกกิจกรรม' }}
+                    {{ activityModal.mode === 'edit' ? $t('checkNameTable.editActivity') : $t('checkNameTable.recordActivity') }}
                 </h3>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">ชื่อกิจกรรม</span>
+                        <span class="label-text">{{ $t('checkNameTable.activityName') }}</span>
                     </label>
                     <input type="text" v-model="activityModal.form.activity_name" class="input input-bordered"
-                        placeholder="กรอกชื่อกิจกรรม" />
+                        :placeholder="$t('checkNameTable.placeholderActivityName')" />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">วันเริ่มกิจกรรม</span>
+                            <span class="label-text">{{ $t('checkNameTable.activityStartDate') }}</span>
                         </label>
                         <input type="date" v-model="activityModal.form.activity_date_start"
                             class="input input-bordered" />
                     </div>
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">วันสิ้นสุดกิจกรรม</span>
+                            <span class="label-text">{{ $t('checkNameTable.activityEndDate') }}</span>
                         </label>
                         <input type="date" v-model="activityModal.form.activity_date_end"
                             class="input input-bordered" />
@@ -525,54 +551,52 @@
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text font-medium">ช่วงเวลากิจกรรม</span>
+                        <span class="label-text font-medium">{{ $t('checkNameTable.activityTimeOption') }}</span>
                     </label>
                     <div class="flex flex-wrap gap-4 bg-base-200 p-3 rounded-lg">
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="all_day" v-model="activityModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ทั้งวัน</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.allDay') }}</span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="morning" v-model="activityModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ช่วงเช้า</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.morning') }}</span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-2">
                             <input type="radio" value="afternoon" v-model="activityModal.form.timeOption"
                                 class="radio radio-primary radio-sm" />
-                            <span class="label-text font-medium">ช่วงบ่าย</span>
+                            <span class="label-text font-medium">{{ $t('checkNameTable.afternoon') }}</span>
                         </label>
                     </div>
                     <div class="text-xs text-gray-500 mt-2 px-1">
-                        <span v-if="activityModal.form.timeOption === 'all_day'">• ทั้งวัน (ไม่ระบุเวลาเจาะจง)</span>
-                        <span v-else-if="activityModal.form.timeOption === 'morning'">• ช่วงเวลา: 07:00 - 13:00
-                            น.</span>
-                        <span v-else-if="activityModal.form.timeOption === 'afternoon'">• ช่วงเวลา: 12:00 - 17:00
-                            น.</span>
+                        <span v-if="activityModal.form.timeOption === 'all_day'">{{ $t('checkNameTable.allDayDesc') }}</span>
+                        <span v-else-if="activityModal.form.timeOption === 'morning'">{{ $t('checkNameTable.morningDesc') }}</span>
+                        <span v-else-if="activityModal.form.timeOption === 'afternoon'">{{ $t('checkNameTable.afternoonDesc') }}</span>
                     </div>
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">สถานที่ <span class="text-gray-400 text-xs">(ไม่บังคับ)</span></span>
+                        <span class="label-text">{{ $t('checkNameTable.location') }} <span class="text-gray-400 text-xs">{{ $t('checkNameTable.optional') }}</span></span>
                     </label>
                     <input type="text" v-model="activityModal.form.location" class="input input-bordered"
-                        placeholder="กรอกสถานที่" />
+                        :placeholder="$t('checkNameTable.placeholderLocation')" />
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">หมายเหตุ <span class="text-gray-400 text-xs">(ไม่บังคับ)</span></span>
+                        <span class="label-text">{{ $t('checkNameTable.remark') }} <span class="text-gray-400 text-xs">{{ $t('checkNameTable.optional') }}</span></span>
                     </label>
                     <textarea v-model="activityModal.form.remark" class="textarea textarea-bordered"
-                        placeholder="กรอกรายละเอียดเพิ่มเติม" rows="3"></textarea>
+                        :placeholder="$t('checkNameTable.placeholderRemark')" rows="3"></textarea>
                 </div>
 
                 <div class="modal-action">
-                    <button class="btn" @click="closeActivityModal">ยกเลิก</button>
+                    <button class="btn" @click="closeActivityModal">{{ $t('checkNameTable.cancel') }}</button>
                     <button class="btn btn-primary" :disabled="autoSaving" @click="createActivityRequest">
-                        {{ activityModal.mode === 'edit' ? 'บันทึกการแก้ไข' : 'ยืนยัน' }}
+                        {{ activityModal.mode === 'edit' ? $t('checkNameTable.saveEdit') : $t('checkNameTable.confirm') }}
                     </button>
                 </div>
             </div>
@@ -586,11 +610,15 @@
 
 <script setup>
 import { nextTick, onMounted, ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { AllowanceService } from '../../api/allowance';
 import { LeaveService } from '../../api/leave';
 import { ActivityService } from '../../api/activity';
 import featureFlags from '../../config/featureFlags';
 import Swal from 'sweetalert2';
 
+const { t } = useI18n();
+const allowanceService = new AllowanceService();
 const leaveService = new LeaveService();
 const activityService = new ActivityService();
 
@@ -664,6 +692,7 @@ const autoSaving = ref(false);
 const localAttendanceData = ref({});
 const localPendingLeaveApprovals = ref({});
 const leaveTypes = ref([]);
+const allowanceSetting = ref(null);
 const draftChanges = ref({});
 
 const DRAFT_STORAGE_PREFIX = 'checkname-draft-queue-v1';
@@ -750,6 +779,17 @@ const applyDraftChangesToLocalState = () => {
             return;
         }
 
+        if (change.action === 'late') {
+            nextAttendance[studentId] = {
+                status: 'late',
+                leaveType: null,
+                remark: '',
+                isDraft: true,
+            };
+            delete nextPending[studentId];
+            return;
+        }
+
         if (change.action === 'leave') {
             nextAttendance[studentId] = {
                 status: 'leave',
@@ -769,7 +809,7 @@ const applyDraftChangesToLocalState = () => {
             nextAttendance[studentId] = {
                 status: 'activity',
                 activityId: change.activityId || null,
-                activityName: change.activityName || 'มีกิจกรรม',
+                activityName: change.activityName || t('checkNameTable.hasActivity'),
                 activityDateStart: change.activityDateStart || '',
                 activityDateEnd: change.activityDateEnd || '',
                 startTime: change.startTime || '',
@@ -818,15 +858,17 @@ const isDraftChange = (studentId) => Boolean(draftChanges.value?.[studentId]);
 const getDraftChange = (studentId) => draftChanges.value?.[studentId] || null;
 const getDraftLabel = (studentId) => {
     const action = getDraftChange(studentId)?.action;
-    if (action === 'present') return 'มา';
-    if (action === 'leave') return 'ลา';
-    if (action === 'activity') return 'กิจกรรม';
-    return 'รอบันทึก';
+    if (action === 'present') return t('checkNameTable.presentShort');
+    if (action === 'late') return t('checkNameTable.late');
+    if (action === 'leave') return t('checkNameTable.leave');
+    if (action === 'activity') return t('checkNameTable.activity');
+    return t('checkNameTable.pendingSave');
 };
 
 const getDraftBadgeClass = (studentId) => {
     const action = getDraftChange(studentId)?.action;
     if (action === 'present') return 'badge-success';
+    if (action === 'late') return 'bg-black text-white border-black';
     if (action === 'leave') return 'badge-warning';
     if (action === 'activity') return 'badge-info';
     return 'badge-ghost';
@@ -910,13 +952,69 @@ const displayAttendanceStatus = (studentId) => {
     return '';
 };
 
+const DEFAULT_LATE_CUTOFF_TIME = '08:01:00';
+
+const padTimeNumber = (value) => String(value).padStart(2, '0');
+
+const formatSecondsToTime = (totalSeconds) => {
+    const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
+    const hours = Math.floor(safeSeconds / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+    const seconds = safeSeconds % 60;
+    return `${padTimeNumber(hours)}:${padTimeNumber(minutes)}:${padTimeNumber(seconds)}`;
+};
+
+const parseTimeToSeconds = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    const match = value.trim().match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) return null;
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3] || '0');
+
+    if ([hours, minutes, seconds].some((item) => Number.isNaN(item))) return null;
+    return (hours * 3600) + (minutes * 60) + seconds;
+};
+
+const getLateCutoffTime = () => {
+    const selectedRoleRule = Array.isArray(allowanceSetting.value?.rules)
+        ? allowanceSetting.value.rules.find((rule) => rule?.role === (props.selectedRole || 'student'))
+        : null;
+    const lateCutoffTime = allowanceSetting.value?.late?.cutoff_time
+        || allowanceSetting.value?.data?.late?.cutoff_time
+        || allowanceSetting.value?.rules?.late?.cutoff_time
+        || selectedRoleRule?.late?.cutoff_time
+        || selectedRoleRule?.allowance_time
+        || DEFAULT_LATE_CUTOFF_TIME;
+
+    const cutoffSeconds = parseTimeToSeconds(lateCutoffTime);
+    if (cutoffSeconds === null) {
+        return DEFAULT_LATE_CUTOFF_TIME;
+    }
+
+    return formatSecondsToTime(cutoffSeconds);
+};
+
+const getPresentSubmitCapTime = () => {
+    const lateCutoffSeconds = parseTimeToSeconds(getLateCutoffTime()) ?? parseTimeToSeconds(DEFAULT_LATE_CUTOFF_TIME);
+    return formatSecondsToTime(Math.max(0, lateCutoffSeconds - 60));
+};
+
+const getLateSubmitTime = () => {
+    const lateCutoffSeconds = parseTimeToSeconds(getLateCutoffTime()) ?? parseTimeToSeconds(DEFAULT_LATE_CUTOFF_TIME);
+    return formatSecondsToTime(Math.min((24 * 3600) - 1, lateCutoffSeconds + 60));
+};
+
 const toAttendanceSubmitTime = () => {
     const now = new Date();
-    const eightAM = new Date(now);
-    eightAM.setHours(8, 0, 0, 0);
+    const cutoffSeconds = parseTimeToSeconds(getPresentSubmitCapTime()) ?? parseTimeToSeconds('08:00:00');
+    const cutoffDateTime = new Date(now);
+    cutoffDateTime.setHours(0, 0, 0, 0);
+    cutoffDateTime.setSeconds(cutoffSeconds);
 
-    if (now > eightAM) {
-        return '08:00:00';
+    if (now > cutoffDateTime) {
+        return getPresentSubmitCapTime();
     }
 
     const hh = String(now.getHours()).padStart(2, '0');
@@ -925,8 +1023,54 @@ const toAttendanceSubmitTime = () => {
     return `${hh}:${mm}:${ss}`;
 };
 
+const toLateAttendanceSubmitTime = () => {
+    const now = new Date();
+
+    const cutoffStr = getLateCutoffTime();
+    const cutoffSeconds = parseTimeToSeconds(cutoffStr) ?? parseTimeToSeconds(DEFAULT_LATE_CUTOFF_TIME);
+
+    const nowSeconds = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+
+    if (nowSeconds < cutoffSeconds) {
+        const lateSeconds = Math.min((24 * 3600) - 1, cutoffSeconds + 60);
+        return formatSecondsToTime(lateSeconds);
+    } else {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+    }
+};
+
 const getLeaveTypeNameById = (leaveTypeId) => {
-    return leaveTypes.value.find(type => type._id === leaveTypeId)?.name || '';
+    const found = leaveTypes.value.find(type => type._id === leaveTypeId);
+    return found?.name || '';
+};
+
+const getLeaveTypeLabel = (type) => {
+    if (!type?.name) return '';
+    const name = type.name.trim();
+    if (name === 'ลาป่วย') {
+        return t('checkNameTable.TypeLeave.sick');
+    }
+    if (name === 'ลากิจ') {
+        return t('checkNameTable.TypeLeave.personal');
+    }
+    return type.name;
+};
+
+const formatLeaveTypeName = (leaveTypeName) => {
+    if (!leaveTypeName) return '';
+    const name = String(leaveTypeName).trim();
+
+    if (name === 'ลาป่วย') {
+        return t('checkNameTable.TypeLeave.sick');
+    }
+    if (name === 'ลากิจ') {
+        return t('checkNameTable.TypeLeave.personal');
+    }
+
+    return leaveTypeName;
 };
 
 const allowedLeaveTypeNames = ['ลาป่วย', 'ลากิจ'];
@@ -973,7 +1117,7 @@ const getRequestErrorMessage = (error) => {
     return error?.response?.data?.error
         || error?.response?.data?.message
         || error?.message
-        || 'ไม่สามารถบันทึกข้อมูลได้';
+        || t('checkNameTable.unknownReason');
 };
 
 const pickLeaveRequestId = (source) => {
@@ -1005,15 +1149,37 @@ const loadLeaveTypes = async () => {
     }
 };
 
+const loadAllowanceSetting = async () => {
+    try {
+        const response = await allowanceService.getAllowance();
+        allowanceSetting.value = response?.data || null;
+    } catch (error) {
+        console.error('Load allowance setting error:', error);
+        allowanceSetting.value = null;
+    }
+};
+
 const markPresent = async (studentId) => {
     if (autoSaving.value) return;
     if (!props.selectedDate) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ก่อน', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectDateFirst'), 'warning');
         return;
     }
 
     upsertDraftChange(studentId, {
         action: 'present',
+    });
+};
+
+const markLate = async (studentId) => {
+    if (autoSaving.value) return;
+    if (!props.selectedDate) {
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectDateFirst'), 'warning');
+        return;
+    }
+
+    upsertDraftChange(studentId, {
+        action: 'late',
     });
 };
 
@@ -1163,7 +1329,7 @@ const openActivityModal = async (studentId, mode = 'create') => {
             : mode === 'edit'
                 ? (normalizeDateInput(current.activityDateEnd) || normalizeDateInput(current.activityDateStart) || defaultDate)
                 : defaultDate,
-        timeOption: getTimeOptionFromValues(rawStartTime, rawEndTime), // Default 'all_day'
+        timeOption: getTimeOptionFromValues(rawStartTime, rawEndTime),
         location: useDraft ? (draftCurrent.location || '') : mode === 'edit' ? (current.location || '') : '',
         remark: useDraft ? (draftCurrent.remark || '') : mode === 'edit' ? (current.remark || '') : '',
     };
@@ -1292,7 +1458,7 @@ const createActivityRequest = async () => {
     const isEditMode = activityModal.value.mode === 'edit' || activityModal.value.mode === 'draft-edit';
 
     if (!activityModal.value.form.activity_name) {
-        Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่อกิจกรรม', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.enterActivityName'), 'warning');
         return;
     }
 
@@ -1301,17 +1467,17 @@ const createActivityRequest = async () => {
     const activityDateEnd = activityModal.value.form.activity_date_end || activityDateStart;
 
     if (!studentId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรหัสนักเรียน', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.studentIdNotFound'), 'warning');
         return;
     }
 
     if (!activityDateStart || !activityDateEnd) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันเริ่มและวันสิ้นสุดกิจกรรม', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectActivityDates'), 'warning');
         return;
     }
 
     if (activityDateEnd < activityDateStart) {
-        Swal.fire('แจ้งเตือน', 'วันสิ้นสุดกิจกรรมต้องไม่น้อยกว่าวันเริ่มกิจกรรม', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.endDateInvalid'), 'warning');
         return;
     }
 
@@ -1339,7 +1505,7 @@ const createActivityRequest = async () => {
     });
 
     closeActivityModal();
-    Swal.fire('สำเร็จ', 'เพิ่มรายการกิจกรรมเข้าคิวบันทึกแล้ว', 'success');
+    Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.queuedActivity'), 'success');
 };
 
 const editActivity = async (studentId) => {
@@ -1357,17 +1523,17 @@ const deletePendingActivity = async (studentId) => {
 
     const activity = getPendingActivity(studentId);
     if (!activity?.activityId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรหัสกิจกรรมสำหรับลบ', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.deleteActivityFailed'), 'warning');
         return;
     }
 
     const confirm = await Swal.fire({
-        title: 'ยืนยันการลบกิจกรรม?',
-        text: activity.activityName || 'กิจกรรมนี้จะถูกลบถาวร',
+        title: t('checkNameTable.confirmDeleteActivityTitle'),
+        text: activity.activityName || t('checkNameTable.confirmDeleteActivityText'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('checkNameTable.delete'),
+        cancelButtonText: t('checkNameTable.cancel'),
         confirmButtonColor: '#dc2626',
     });
 
@@ -1379,9 +1545,9 @@ const deletePendingActivity = async (studentId) => {
         setPendingPreviousActivity(studentId, null);
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'ลบกิจกรรมเรียบร้อยแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.deleteSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ลบกิจกรรมไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.deleteActivityFailed'), 'error');
         console.error('Delete pending activity error:', error);
     } finally {
         autoSaving.value = false;
@@ -1393,17 +1559,17 @@ const deleteActivity = async (studentId) => {
 
     const activity = localAttendanceData.value[studentId] || {};
     if (!activity.activityId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรหัสกิจกรรมสำหรับลบ', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.deleteActivityFailed'), 'warning');
         return;
     }
 
     const confirm = await Swal.fire({
-        title: 'ยืนยันการลบกิจกรรม?',
-        text: activity.activityName || 'กิจกรรมนี้จะถูกลบถาวร',
+        title: t('checkNameTable.confirmDeleteActivityTitle'),
+        text: activity.activityName || t('checkNameTable.confirmDeleteActivityText'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('checkNameTable.delete'),
+        cancelButtonText: t('checkNameTable.cancel'),
         confirmButtonColor: '#dc2626',
     });
 
@@ -1414,9 +1580,9 @@ const deleteActivity = async (studentId) => {
         await activityService.deleteActivity(activity.activityId);
         delete localAttendanceData.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
-        Swal.fire('สำเร็จ', 'ลบกิจกรรมเรียบร้อยแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.deleteSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ลบกิจกรรมไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.deleteActivityFailed'), 'error');
         console.error('Delete activity error:', error);
     } finally {
         autoSaving.value = false;
@@ -1426,11 +1592,11 @@ const deleteActivity = async (studentId) => {
 const editLeave = async (studentId) => {
     if (autoSaving.value) return;
     if (!canEditLeave.value) {
-        Swal.fire('แจ้งเตือน', 'ปิดการแก้ไขรายการลาไว้ชั่วคราว', 'info');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.leaveEditDisabled'), 'info');
         return;
     }
     if (!getLeaveRequestId(studentId)) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรหัสรายการลา จึงยังแก้ไขไม่ได้', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.leaveIdNotFound'), 'warning');
         return;
     }
     await openLeaveModal(studentId, 'edit');
@@ -1441,17 +1607,17 @@ const deleteLeave = async (studentId) => {
 
     const requestId = getLeaveRequestId(studentId);
     if (!requestId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรหัสรายการลาสำหรับลบ', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.deleteLeaveFailed'), 'warning');
         return;
     }
 
     const confirm = await Swal.fire({
-        title: 'ยืนยันการลบรายการลา?',
-        text: 'รายการลานี้จะถูกลบถาวร',
+        title: t('checkNameTable.confirmDeleteLeaveTitle'),
+        text: t('checkNameTable.confirmDeleteLeaveText'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('checkNameTable.delete'),
+        cancelButtonText: t('checkNameTable.cancel'),
         confirmButtonColor: '#dc2626',
     });
 
@@ -1466,9 +1632,9 @@ const deleteLeave = async (studentId) => {
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
         emit('request:reload');
-        Swal.fire('สำเร็จ', 'ลบรายการลาเรียบร้อยแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.deleteLeaveSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ลบรายการลาไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.deleteLeaveFailed'), 'error');
         console.error('Delete leave error:', error);
     } finally {
         autoSaving.value = false;
@@ -1483,7 +1649,7 @@ const isSelectedDateInLeaveRange = (startDate, endDate) => {
 const createLeaveRequest = async () => {
     if (autoSaving.value) return;
     if (!leaveModal.value.form.leaveType) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกประเภทการลา', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectLeaveTypeAlert'), 'warning');
         return;
     }
 
@@ -1494,17 +1660,17 @@ const createLeaveRequest = async () => {
     const leaveEndDate = leaveModal.value.form.leaveEndDate || leaveStartDate;
 
     if (!reason) {
-        Swal.fire('แจ้งเตือน', 'กรุณากรอกรายละเอียดการลา', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.enterLeaveReason'), 'warning');
         return;
     }
 
     if (!leaveStartDate || !leaveEndDate) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันเริ่มลาและวันสิ้นสุดลา', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectLeaveDates'), 'warning');
         return;
     }
 
     if (leaveEndDate < leaveStartDate) {
-        Swal.fire('แจ้งเตือน', 'วันสิ้นสุดลาต้องไม่น้อยกว่าวันเริ่มลา', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.leaveEndDateInvalid'), 'warning');
         return;
     }
 
@@ -1514,12 +1680,12 @@ const createLeaveRequest = async () => {
     const { startTime, endTime } = getTimeValuesByOption(leaveModal.value.form.timeOption);
 
     if (!allowedLeaveTypes.value.some((type) => type._id === leaveTypeId)) {
-        Swal.fire('แจ้งเตือน', 'ประเภทการลาต้องเป็น ลาป่วย หรือ ลากิจ เท่านั้น', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.invalidLeaveTypeAlert'), 'warning');
         return;
     }
 
     if (!leaveTypeId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบประเภทลาในระบบ กรุณาตรวจสอบประเภทลา', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.leaveTypeNotFound'), 'warning');
         return;
     }
 
@@ -1548,7 +1714,7 @@ const createLeaveRequest = async () => {
     });
 
     closeLeaveModal();
-    Swal.fire('สำเร็จ', 'เพิ่มรายการลาเข้าคิวบันทึกแล้ว', 'success');
+    Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.queuedLeave'), 'success');
 };
 
 const saveSingleDraftChange = async (studentId, draftChange) => {
@@ -1559,6 +1725,16 @@ const saveSingleDraftChange = async (studentId, draftChange) => {
             user_id: studentId,
             date: props.selectedDate,
             time: toAttendanceSubmitTime(),
+            remark: '',
+        });
+        return;
+    }
+
+    if (draftChange.action === 'late') {
+        await leaveService.manualAttendance({
+            user_id: studentId,
+            date: props.selectedDate,
+            time: toLateAttendanceSubmitTime(),
             remark: '',
         });
         return;
@@ -1585,7 +1761,7 @@ const saveSingleDraftChange = async (studentId, draftChange) => {
             });
             leaveRequestId = response?.data?._id || response?._id || null;
             if (leaveRequestId) {
-                await leaveService.approveLeaveRequest(leaveRequestId, 'อนุมัติการลา');
+                await leaveService.approveLeaveRequest(leaveRequestId, t('checkNameTable.approveSuccess'));
             }
         }
         return;
@@ -1617,7 +1793,7 @@ const saveSingleDraftChange = async (studentId, draftChange) => {
 const saveAllDraftChanges = async () => {
     if (autoSaving.value || draftCount.value === 0) return;
     if (!props.selectedDate) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ก่อน', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.selectDateFirst'), 'warning');
         return;
     }
 
@@ -1651,18 +1827,18 @@ const saveAllDraftChanges = async () => {
     }
 
     if (failCount === 0) {
-        Swal.fire('สำเร็จ', `บันทึกรายการสำเร็จ ${successCount} รายการ`, 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.saveSuccessMessage', { count: successCount }), 'success');
     } else {
         const detailLines = failureMessages.slice(0, 3).map((message) => `<div style="text-align:left">- ${message}</div>`).join('');
         const moreCount = failureMessages.length - Math.min(failureMessages.length, 3);
         Swal.fire({
-            title: 'บันทึกไม่ครบ',
+            title: t('checkNameTable.saveIncompleteTitle'),
             icon: 'warning',
             html: `
-                <div>สำเร็จ ${successCount} รายการ, ไม่สำเร็จ ${failCount} รายการ</div>
-                <div style="margin-top:8px">สาเหตุ:</div>
-                <div style="margin-top:4px">${detailLines || '<div style="text-align:left">- ไม่ทราบสาเหตุ</div>'}</div>
-                ${moreCount > 0 ? `<div style="margin-top:8px">และอีก ${moreCount} รายการ</div>` : ''}
+                <div>${t('checkNameTable.saveIncompleteText', { success: successCount, fail: failCount })}</div>
+                <div style="margin-top:8px">${t('checkNameTable.reasonLabel')}</div>
+                <div style="margin-top:4px">${detailLines || `<div style="text-align:left">- ${t('checkNameTable.unknownReason')}</div>`}</div>
+                ${moreCount > 0 ? `<div style="margin-top:8px">${t('checkNameTable.andMoreItems', { count: moreCount })}</div>` : ''}
             `,
         });
     }
@@ -1673,13 +1849,13 @@ const approveLeave = async (studentId) => {
 
     const pending = localPendingLeaveApprovals.value[studentId];
     if (!pending?.requestId) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรายการลาที่ต้องอนุมัติ', 'warning');
+        Swal.fire(t('checkNameTable.alertTitle'), t('checkNameTable.leaveIdNotFound'), 'warning');
         return;
     }
 
     autoSaving.value = true;
     try {
-        await leaveService.approveLeaveRequest(pending.requestId, 'อนุมัติการลา');
+        await leaveService.approveLeaveRequest(pending.requestId, t('checkNameTable.approveSuccess'));
 
         const previousActivity = pickActivitySnapshot(pending?.previousActivity);
         if (previousActivity?.activityId) {
@@ -1695,9 +1871,9 @@ const approveLeave = async (studentId) => {
         delete localPendingLeaveApprovals.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'อนุมัติการลาแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.approveSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'บันทึกการอนุมัติลาไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.unknownReason'), 'error');
         console.error('Approve leave error:', error);
     } finally {
         autoSaving.value = false;
@@ -1713,20 +1889,20 @@ const rejectLeave = async (studentId) => {
         delete localPendingLeaveApprovals.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'ไม่อนุมัติการลา', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.rejectSuccess'), 'success');
         return;
     }
 
     autoSaving.value = true;
     try {
-        await leaveService.rejectLeaveRequest(pending.requestId, 'ไม่อนุมัติการลา');
+        await leaveService.rejectLeaveRequest(pending.requestId, t('checkNameTable.rejectSuccess'));
         restoreActivityAfterLeaveDecision(studentId);
         delete localPendingLeaveApprovals.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'ไม่อนุมัติการลา', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.rejectSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'บันทึกการไม่อนุมัติลาไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.unknownReason'), 'error');
         console.error('Reject leave error:', error);
     } finally {
         autoSaving.value = false;
@@ -1742,7 +1918,7 @@ const cancelLeave = async (studentId) => {
         delete localPendingLeaveApprovals.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'ยกเลิกรายการลาแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.cancelLeaveSuccess'), 'success');
         return;
     }
 
@@ -1753,9 +1929,9 @@ const cancelLeave = async (studentId) => {
         delete localPendingLeaveApprovals.value[studentId];
         emit('update:attendanceData', localAttendanceData.value);
         emit('update:pendingLeaveApprovals', localPendingLeaveApprovals.value);
-        Swal.fire('สำเร็จ', 'ยกเลิกรายการลาแล้ว', 'success');
+        Swal.fire(t('checkNameTable.successTitle'), t('checkNameTable.cancelLeaveSuccess'), 'success');
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ยกเลิกรายการลาไม่สำเร็จ', 'error');
+        Swal.fire(t('checkNameTable.errorTitle'), error?.response?.data?.error || error?.message || t('checkNameTable.deleteLeaveFailed'), 'error');
         console.error('Cancel leave error:', error);
     } finally {
         autoSaving.value = false;
@@ -1764,5 +1940,6 @@ const cancelLeave = async (studentId) => {
 
 onMounted(() => {
     loadLeaveTypes();
+    loadAllowanceSetting();
 });
 </script>

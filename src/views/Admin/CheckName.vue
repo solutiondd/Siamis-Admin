@@ -5,8 +5,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <h2 class="text-2xl font-bold text-gray-800">{{ $t('checkName.title') }}</h2>
                     <div class="flex items-center gap-2">
-                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">{{ $t('checkName.date')
-                            }}</label>
+                        <label class="text-sm font-medium text-gray-700 whitespace-nowrap">{{ $t('checkName.date') }}</label>
                         <input v-model="selectedDate" type="date" class="input input-bordered input-sm"
                             @change="loadUsers" />
                     </div>
@@ -14,13 +13,12 @@
 
                 <div class="grid grid-cols-2 gap-3 gap-y-3 items-end lg:grid-cols-4 lg:gap-4">
                     <div class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.searchLabel')
-                            }}</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.searchLabel') }}</label>
                         <input v-model="searchQuery" type="text" class="input input-bordered w-full"
                             :placeholder="$t('checkName.searchPlaceholder')" @input="handleSearch" />
                     </div>
                     <!-- <div v-if="residentRole !== 'teacher'" class="w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ประเภท</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.type') }}</label>
                         <select v-model="selectedRole" class="select select-bordered w-full" @change="handleRoleChange">
                             <option value="student">{{ $t('checkName.student') }}</option>
                             <option value="teacher">{{ $t('checkName.teacher') }}</option>
@@ -28,8 +26,7 @@
                     </div> -->
                     <template v-if="selectedRole === 'student'">
                         <div v-if="residentRole !== 'teacher'" class="w-full">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.classLabel')
-                                }}</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.classLabel') }}</label>
                             <select v-model="selectedGrade" class="select select-bordered w-full"
                                 @change="handleGradeChange">
                                 <option value="">{{ $t('checkName.selectClass') }}</option>
@@ -39,8 +36,7 @@
                             </select>
                         </div>
                         <div v-if="residentRole !== 'teacher'" class="w-full">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.roomLabel')
-                                }}</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.roomLabel') }}</label>
                             <select v-model="selectedClassroom" class="select select-bordered w-full"
                                 @change="loadUsers">
                                 <option value="">{{ $t('checkName.selectRoom') }}</option>
@@ -53,16 +49,14 @@
                         <div v-if="residentRole === 'teacher'"
                             class="w-full col-span-1 lg:col-start-4 flex justify-end">
                             <div class="p-2 text-white bg-primary rounded-md text-center min-w-[120px]">
-                                <span class="block text-sm font-medium text-secondary">{{ $t('checkName.gradeRoom')
-                                    }}</span>
+                                <span class="block text-sm font-medium text-secondary">{{ $t('checkName.gradeRoom') }}</span>
                                 <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                             </div>
                         </div>
                     </template>
                     <template v-else>
                         <div v-if="residentRole !== 'teacher'" class="w-full col-span-2 lg:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{
-                                $t('checkName.departmentLabel') }}</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('checkName.departmentLabel') }}</label>
                             <select v-model="selectedDepartment" class="select select-bordered w-full"
                                 @change="loadUsers">
                                 <option value="">{{ $t('checkName.selectDepartment') }}</option>
@@ -86,7 +80,6 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { StudentService } from '../../api/student';
 import { TeacherService } from '../../api/teacher';
 import { ClassRoomService } from '../../api/class-room';
@@ -95,12 +88,11 @@ import { PositionService } from '../../api/position';
 import reportApi from '../../api/report';
 import { LeaveService } from '../../api/leave';
 import { ActivityService } from '../../api/activity';
+import { AllowanceService } from '../../api/allowance';
 import CheckNameTable from '../../components/CheckName/Table.vue';
 import featureFlags from '../../config/featureFlags';
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem';
 import Swal from 'sweetalert2';
-
-const { t } = useI18n();
 
 const studentService = new StudentService();
 const teacherService = new TeacherService();
@@ -109,6 +101,7 @@ const departmentService = new DepartmentService();
 const positionService = new PositionService();
 const leaveService = new LeaveService();
 const activityService = new ActivityService();
+const allowanceService = new AllowanceService();
 const residentRole = localStorage.getItem('residentRole') || '';
 const teacherGrade = localStorage.getItem('grade') || '';
 const teacherClassroom = localStorage.getItem('classroom') || '';
@@ -128,6 +121,7 @@ const searchQuery = ref('');
 let searchTimer = null;
 const attendanceData = ref({});
 const pendingLeaveApprovals = ref({});
+const allowanceSetting = ref(null);
 
 const approvedLeaveStatuses = new Set(['approved']);
 const pendingLeaveStatuses = new Set(['pending']);
@@ -135,6 +129,8 @@ const leaveStatusPriority = {
     approved: 2,
     pending: 1,
 };
+
+const DEFAULT_LATE_CUTOFF_TIME = '08:01:00';
 
 const gradeList = computed(() => {
     return toVisibleSortedGrades(classrooms.value.map(c => c.grade));
@@ -166,7 +162,7 @@ const loadClassrooms = async () => {
             }
         }
     } catch (error) {
-        Swal.fire($t('classroomPage.loadErrorTitle'), error?.response?.data?.error || error?.message || $t('classroomPage.loadErrorText'), 'error');
+        Swal.fire(t('checkName.error'), error?.response?.data?.error || error?.message || t('checkName.loadClassroomsFailed'), 'error');
         console.error('Load classrooms error:', error);
     }
 };
@@ -240,25 +236,104 @@ const handleRoleChange = () => {
     }
 };
 
-const hasAttendanceOnDate = (student, date) => {
+const parseTimeToSeconds = (value) => {
+    if (!value || typeof value !== 'string') return null;
+    const match = value.trim().match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!match) return null;
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3] || '0');
+    if ([hours, minutes, seconds].some((item) => Number.isNaN(item))) return null;
+
+    return (hours * 3600) + (minutes * 60) + seconds;
+};
+
+const parseTimestampToSeconds = (value) => {
+    if (!value) return null;
+    const raw = String(value).trim();
+    if (!raw) return null;
+
+    const normalized = raw.includes('T')
+        ? raw
+        : raw.includes(' ')
+            ? raw.replace(' ', 'T')
+            : raw;
+
+    const parsedDate = new Date(normalized);
+    if (!isNaN(parsedDate)) {
+        return (parsedDate.getHours() * 3600) + (parsedDate.getMinutes() * 60) + parsedDate.getSeconds();
+    }
+
+    const timeMatch = raw.match(/(\d{2}:\d{2}(?::\d{2})?)/);
+    if (!timeMatch) return null;
+    return parseTimeToSeconds(timeMatch[1]);
+};
+
+const getLateCutoffTime = (roleType = 'student') => {
+    const selectedRoleRule = Array.isArray(allowanceSetting.value?.rules)
+        ? allowanceSetting.value.rules.find((rule) => rule?.role === roleType)
+        : null;
+
+    const lateCutoffTime = allowanceSetting.value?.late?.cutoff_time
+        || allowanceSetting.value?.data?.late?.cutoff_time
+        || selectedRoleRule?.late?.cutoff_time
+        || selectedRoleRule?.allowance_time
+        || DEFAULT_LATE_CUTOFF_TIME;
+
+    return parseTimeToSeconds(lateCutoffTime) !== null ? lateCutoffTime : DEFAULT_LATE_CUTOFF_TIME;
+};
+
+const isAllowedAttendanceTimestamp = (timeStamp) => {
+    if (featureFlags.checkName.presentMode === 'any_timestamp') {
+        return true;
+    }
+
+    const usecase = String(timeStamp?.usecase || '').toLowerCase();
+    return usecase === 'person_confirmation' || usecase === 'attendance';
+};
+
+const getFirstAttendanceSeconds = (student, date) => {
     const attendances = student?.attendances || [];
-    return attendances.some((attendance) => {
+    let firstSeconds = null;
+
+    attendances.forEach((attendance) => {
         if (attendance?.date !== date) {
-            return false;
+            return;
         }
 
-        if (!Array.isArray(attendance?.timeStamps) || attendance.timeStamps.length === 0) {
-            return false;
-        }
+        const timeStamps = Array.isArray(attendance?.timeStamps) ? attendance.timeStamps : [];
+        timeStamps.forEach((timeStamp) => {
+            if (!isAllowedAttendanceTimestamp(timeStamp)) {
+                return;
+            }
 
-        if (featureFlags.checkName.presentMode === 'any_timestamp') {
-            return attendance.timeStamps.length > 0;
-        }
+            const currentSeconds = parseTimestampToSeconds(timeStamp?.timestamp);
+            if (currentSeconds === null) {
+                return;
+            }
 
-        return attendance.timeStamps.some(
-            (timeStamp) => timeStamp?.usecase === 'person_confirmation'
-        );
+            if (firstSeconds === null || currentSeconds < firstSeconds) {
+                firstSeconds = currentSeconds;
+            }
+        });
     });
+
+    return firstSeconds;
+};
+
+const hasAttendanceOnDate = (student, date) => {
+    return getFirstAttendanceSeconds(student, date) !== null;
+};
+
+const loadAllowanceSetting = async () => {
+    try {
+        const response = await allowanceService.getAllowance();
+        allowanceSetting.value = response?.data || null;
+    } catch (error) {
+        console.error('Load allowance setting error:', error);
+        allowanceSetting.value = null;
+    }
 };
 
 const getLeaveStudentKeys = (leaveRequest) => {
@@ -362,12 +437,14 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
     const attendanceRows = attendanceResponse?.data || [];
     const leaveRows = leaveResponse?.data || [];
     const activityRows = activityResponse?.data || [];
-    const presentKeys = new Set();
+    const attendanceStatusByKey = new Map();
     const leaveByStudentKey = new Map();
     const activityByStudentKey = new Map();
+    const lateCutoffSeconds = parseTimeToSeconds(getLateCutoffTime(roleType)) ?? parseTimeToSeconds(DEFAULT_LATE_CUTOFF_TIME);
 
     attendanceRows.forEach((student) => {
-        if (!hasAttendanceOnDate(student, selectedDate.value)) {
+        const firstAttendanceSeconds = getFirstAttendanceSeconds(student, selectedDate.value);
+        if (firstAttendanceSeconds === null) {
             return;
         }
 
@@ -379,8 +456,9 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
             return;
         }
 
+        const status = firstAttendanceSeconds > lateCutoffSeconds ? 'late' : 'present';
         attendanceKeys.forEach((key) => {
-            presentKeys.add(key);
+            attendanceStatusByKey.set(key, status);
         });
     });
 
@@ -426,7 +504,7 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
         const previousActivity = activity
             ? {
                 activityId: activity?._id || null,
-                activityName: activity?.activity_name || 'มีกิจกรรม',
+                activityName: activity?.activity_name || '',
                 activityDateStart: normalizeDateString(activity?.activity_date_start),
                 activityDateEnd: normalizeDateString(activity?.activity_date_end),
                 startTime: activity?.start_time || '',
@@ -480,7 +558,7 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
             nextAttendanceData[student._id] = {
                 status: 'activity',
                 activityId: activity?._id || null,
-                activityName: activity?.activity_name || 'มีกิจกรรม',
+                activityName: activity?.activity_name || '',
                 activityDateStart: normalizeDateString(activity?.activity_date_start),
                 activityDateEnd: normalizeDateString(activity?.activity_date_end),
                 startTime: activity?.start_time || '',
@@ -491,10 +569,10 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
             return;
         }
 
-        const isPresent = keys.some((key) => presentKeys.has(key));
-        if (isPresent) {
+        const attendanceStatus = keys.map((key) => attendanceStatusByKey.get(key)).find(Boolean);
+        if (attendanceStatus) {
             nextAttendanceData[student._id] = {
-                status: 'present',
+                status: attendanceStatus,
                 leaveType: null,
                 remark: '',
             };
@@ -522,12 +600,12 @@ const loadUsers = async () => {
         loading.value = true;
         try {
             const response = await studentService.getStudents(selectedGrade.value, selectedClassroom.value);
-            Swal.fire(t('classroomPage.loadErrorTitle'), error?.response?.data?.error || error?.message || t('classroomPage.loadErrorText'), 'error');
+            const studentList = response.data || [];
             allStudents.value = studentList;
             students.value = studentList;
             await mapDailyStatus(studentList, 'student');
         } catch (error) {
-            Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดรายชื่อนักเรียนได้', 'error');
+            Swal.fire(t('checkName.error'), error?.response?.data?.error || error?.message || t('checkName.loadStudentsFailed'), 'error');
             console.error('Load students error:', error);
         } finally {
             loading.value = false;
@@ -541,7 +619,7 @@ const loadUsers = async () => {
             students.value = teacherList;
             await mapDailyStatus(teacherList, 'teacher');
         } catch (error) {
-            Swal.fire('เกิดข้อผิดพลาด', error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดรายชื่อครูได้', 'error');
+            Swal.fire(t('checkName.error'), error?.response?.data?.error || error?.message || t('checkName.loadTeachersFailed'), 'error');
             console.error('Load teachers error:', error);
         } finally {
             loading.value = false;
@@ -551,6 +629,7 @@ const loadUsers = async () => {
 
 onMounted(() => {
     selectedDate.value = new Date().toISOString().split('T')[0];
+    loadAllowanceSetting();
     loadClassrooms();
     loadDepartmentsAndPositions();
 

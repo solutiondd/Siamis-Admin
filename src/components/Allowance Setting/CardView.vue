@@ -37,7 +37,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span class="font-bold text-md capitalize">{{ rule.role === 'student' ? t('roles.student') : t('roles.teacher') }}</span>
+                                <span class="font-bold text-md capitalize">{{ rule.role === 'student' ? t('allowance.roles.student') : t('allowance.roles.teacher') }}</span>
                             </div>
                         </div>
 
@@ -97,8 +97,10 @@
             </div>
             <div v-else class="flex flex-col items-center justify-center py-12 text-center">
                 <div class="p-3 bg-warning/10 text-warning rounded-full mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
                 <h3 class="text-md font-bold text-base-content/80">{{ t('allowance.noDataTitle') }}</h3>
@@ -120,6 +122,13 @@ const emit = defineEmits(['edit-all']);
 const loading = ref(false);
 const allowanceData = ref(null);
 
+const createDefaultAllowanceData = () => ({
+    rules: [
+        { role: 'student', allowance_time: '08:01:00' },
+        { role: 'teacher', allowance_time: '08:01:00' },
+    ],
+});
+
 const formatTime = (timeString) => {
     if (!timeString) return '--:--';
     return timeString.split(':').slice(0, 2).join(':');
@@ -128,15 +137,14 @@ const formatTime = (timeString) => {
 const formatDateTime = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    const loc = locale.value === 'th' ? 'th-TH' : 'en-US';
-    
-    const formattedDate = date.toLocaleDateString(loc, { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const dateLocale = locale.value === 'th' ? 'th-TH' : 'en-US';
+    const formattedDate = date.toLocaleDateString(dateLocale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
-    
-    const formattedTime = date.toLocaleTimeString(loc, {
+
+    const formattedTime = date.toLocaleTimeString('th-TH', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
@@ -156,10 +164,11 @@ const fetchData = async () => {
     try {
         const service = new AllowanceService();
         const res = await service.getAllowance();
-        allowanceData.value = res?.data ?? null;
+        const data = res?.data;
+        allowanceData.value = data?.rules?.length ? data : createDefaultAllowanceData();
     } catch (error) {
         console.error("Error fetching allowances:", error);
-        allowanceData.value = null;
+        allowanceData.value = createDefaultAllowanceData();
     } finally {
         loading.value = false;
     }

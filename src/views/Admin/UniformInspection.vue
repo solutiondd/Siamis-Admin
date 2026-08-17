@@ -78,6 +78,7 @@ import UniformInspectionTable from '../../components/Uniform Inspection/Table.vu
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem';
 
 const { t } = useI18n();
+
 const studentService = new StudentService();
 const classRoomService = new ClassRoomService();
 const conductService = new ConductService();
@@ -171,7 +172,7 @@ const loadClassrooms = async () => {
             }
         }
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดรายชื่อห้องเรียนได้', 'error');
+        Swal.fire(t('UniformInspection.errorTitle'), t('UniformInspection.loadClassroomsError'), 'error');
         console.error('Load classrooms error:', error);
     }
 };
@@ -197,7 +198,7 @@ const loadUsers = async () => {
         inspectionData.value = {};
         applyFilters();
     } catch (error) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดรายชื่อนักเรียนได้', 'error');
+        Swal.fire(t('UniformInspection.errorTitle'), t('UniformInspection.loadStudentsError'), 'error');
         console.error('Load students error:', error);
     } finally {
         loading.value = false;
@@ -542,12 +543,12 @@ const deleteOldConductForFailedStudents = async (
 
 const saveWholeClassroomInspection = async () => {
     if (!selectedDate.value || !selectedGrade.value || !selectedClassroom.value) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ ชั้นเรียน และห้องเรียนก่อนบันทึก', 'warning');
+        Swal.fire(t('UniformInspection.warningTitle'), t('UniformInspection.selectDateGradeClassroomWarning'), 'warning');
         return;
     }
 
     if (!students.value.length) {
-        Swal.fire('แจ้งเตือน', 'ไม่พบรายชื่อนักเรียนสำหรับการบันทึก', 'warning');
+        Swal.fire(t('UniformInspection.warningTitle'), t('UniformInspection.noStudentsFoundWarning'), 'warning');
         return;
     }
 
@@ -571,7 +572,7 @@ const saveWholeClassroomInspection = async () => {
         });
 
     if (!studentsPayload.length) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกสถานะนักเรียนอย่างน้อย 1 คนก่อนบันทึก', 'warning');
+        Swal.fire(t('UniformInspection.warningTitle'), t('UniformInspection.selectStudentStatusWarning'), 'warning');
         return;
     }
 
@@ -598,12 +599,12 @@ const saveWholeClassroomInspection = async () => {
 
         if (conductSummary.total > 0 && conductSummary.failed > 0) {
             Swal.fire(
-                'บันทึกสำเร็จบางส่วน',
-                `บันทึกการตรวจสำเร็จแล้ว แต่หักคะแนนได้ ${conductSummary.total - conductSummary.failed}/${conductSummary.total} คน`,
+                t('UniformInspection.partialSaveTitle'),
+                t('UniformInspection.partialSaveMessage', { success: conductSummary.total - conductSummary.failed, total: conductSummary.total }),
                 'warning'
             );
         } else {
-            Swal.fire('สำเร็จ', 'บันทึกเช็คระเบียบและหักคะแนนเรียบร้อยแล้ว', 'success');
+            Swal.fire(t('UniformInspection.successTitle'), t('UniformInspection.saveSuccessMessage'), 'success');
         }
 
         inspectionData.value = {};
@@ -627,22 +628,22 @@ const saveWholeClassroomInspection = async () => {
                 });
 
                 const deletedNamesText = deleteSummary.deletedCount > 0
-                    ? `ลบการหักคะแนนเดิม ${deleteSummary.deletedCount} รายการ${deleteSummary.deletedNames.length ? `: ${deleteSummary.deletedNames.join(', ')}` : ''}`
+                    ? `${t('UniformInspection.deleteOldDeductionText', { count: deleteSummary.deletedCount })}${deleteSummary.deletedNames.length ? `: ${deleteSummary.deletedNames.join(', ')}` : ''}`
                     : '';
-                const resultText = `หักคะแนนใหม่ได้ ${conductSummary.total - conductSummary.failed}/${conductSummary.total} คน`;
+                const resultText = t('UniformInspection.newDeductionText', { success: conductSummary.total - conductSummary.failed, total: conductSummary.total });
                 const messageText = [deletedNamesText, resultText].filter(Boolean).join('\n');
 
                 if ((conductSummary.total > 0 && conductSummary.failed > 0) || deleteSummary.failed > 0) {
                     Swal.fire(
-                        'อัปเดตสำเร็จบางส่วน',
+                        t('UniformInspection.partialUpdateTitle'),
                         messageText,
                         'warning'
                     );
                 } else {
                     const successText = deletedNamesText
-                        ? `${deletedNamesText}\nอัปเดตข้อมูลและหักคะแนนใหม่เรียบร้อยแล้ว`
-                        : 'อัปเดตข้อมูลและหักคะแนนใหม่เรียบร้อยแล้ว';
-                    Swal.fire('สำเร็จ', successText, 'success');
+                        ? `${deletedNamesText}\n${t('UniformInspection.updateSuccessMessage')}`
+                        : t('UniformInspection.updateSuccessMessage');
+                    Swal.fire(t('UniformInspection.successTitle'), successText, 'success');
                 }
 
                 inspectionData.value = {};
@@ -650,7 +651,7 @@ const saveWholeClassroomInspection = async () => {
             } catch (updateError) {
                 await deleteConductsByIds(conductSummary.createdConductIds);
                 console.error('Update duplicate uniform inspection error:', updateError);
-                Swal.fire('เกิดข้อผิดพลาด', 'อัปเดตข้อมูลซ้ำไม่สำเร็จ', 'error');
+                Swal.fire(t('UniformInspection.errorTitle'), t('UniformInspection.updateDuplicateError'), 'error');
                 return;
             }
         }
@@ -658,7 +659,7 @@ const saveWholeClassroomInspection = async () => {
         await deleteConductsByIds(conductSummary.createdConductIds);
 
         console.error('Save whole classroom inspection error:', error);
-        Swal.fire('เกิดข้อผิดพลาด', 'บันทึกเช็คระเบียบทั้งห้องไม่สำเร็จ', 'error');
+        Swal.fire(t('UniformInspection.errorTitle'), t('UniformInspection.saveInspectionError'), 'error');
     } finally {
         isSaving.value = false;
     }

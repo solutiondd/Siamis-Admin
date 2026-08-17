@@ -548,7 +548,7 @@ const isPersonnelActive = computed(() => {
 })
 
 const isStructureActive = computed(() => {
-    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom' || route.path === '/home/holidays' || route.path === '/home/academiccalendar'
+    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom' || route.path === '/home/holidays' || route.path === '/home/academiccalendar' || route.path === '/home/allowance-setting'
 })
 
 const isEquipmentActive = computed(() => {
@@ -556,7 +556,7 @@ const isEquipmentActive = computed(() => {
 })
 
 const isReportActive = computed(() => {
-    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/leave' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/at-risk' || route.path === '/home/report/stats'
+    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/leave' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/at-risk' || route.path === '/home/report/uniform-inspection' || route.path === '/home/report/stats'
 })
 
 const submenuClass = (path) => {
@@ -604,7 +604,7 @@ const handleMouseLeave = () => {
 
 const isBehaviorMenuOpen = ref(false)
 const isBehaviorMenuActive = computed(() => {
-    return route.path === '/home/behavior' || route.path === '/home/conduct' || route.path === '/home/leave' || route.path === '/home/checkname'
+    return route.path === '/home/behavior' || route.path === '/home/conduct' || route.path === '/home/leave' || route.path === '/home/checkname' || route.path === '/home/uniform-inspection'
 })
 const toggleBehaviorMenu = () => {
     isBehaviorMenuOpen.value = !isBehaviorMenuOpen.value

@@ -3,10 +3,10 @@
         <div class="flex items-center justify-end gap-3">
             <button v-if="hasSelectedStatus" class="btn btn-primary btn-sm mr-auto" :disabled="autoSaving || loading"
                 @click="emit('save')">
-                {{ autoSaving ? t('common.loading') : t('uniformInspection.save') }}
+                {{ autoSaving ? $t('ReportUniformInspectionTable.saving') : $t('ReportUniformInspectionTable.save') }}
             </button>
             <div class="flex items-center gap-2">
-                <label class="text-sm text-gray-700">{{ t('uniformInspection.itemsPerPage') }}</label>
+                <label class="text-sm text-gray-700">{{ $t('ReportUniformInspectionTable.items') }}</label>
                 <select v-model.number="pageSize" class="select select-sm select-bordered w-18"
                     @change="handlePageSizeChange">
                     <option :value="10">10</option>
@@ -14,7 +14,7 @@
                     <option :value="30">30</option>
                     <option :value="50">50</option>
                 </select>
-                <span class="text-sm text-gray-700">{{ t('uniformInspection.perPage') }}</span>
+                <span class="text-sm text-gray-700">{{ $t('ReportUniformInspectionTable.perPage') }}</span>
             </div>
         </div>
 
@@ -26,10 +26,10 @@
             <table class="table table-zebra w-full text-xs sm:text-[10px] xl:text-sm">
                 <thead>
                     <tr class="bg-gray-100">
-                        <th>{{ t('uniformInspection.code') }}</th>
-                        <th>{{ t('uniformInspection.name') }}</th>
-                        <th class="w-40 max-[444px]:w-28 text-center">{{ t('uniformInspection.status') }}</th>
-                        <th class="w-48 max-[444px]:hidden">{{ t('uniformInspection.detail') }}</th>
+                        <th>{{ $t('ReportUniformInspectionTable.studentId') }}</th>
+                        <th>{{ $t('ReportUniformInspectionTable.name') }}</th>
+                        <th class="w-40 max-[444px]:w-28 text-center">{{ $t('ReportUniformInspectionTable.status') }}</th>
+                        <th class="w-48 max-[444px]:hidden">{{ $t('ReportUniformInspectionTable.details') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,18 +48,18 @@
                                     class="btn btn-sm max-[444px]:btn-xs btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200 max-[444px]:min-h-7 max-[444px]:h-7 max-[444px]:px-1">
                                     <span v-if="localInspectionData[student._id]?.ispass === true"
                                         class="badge badge-success max-[444px]:badge-xs">
-                                        {{ t('uniformInspection.pass') }}
+                                        {{ $t('ReportUniformInspectionTable.pass') }}
                                     </span>
                                     <span v-else-if="localInspectionData[student._id]?.remark === 'ไม่มาตรวจ'"
                                         class="badge badge-warning max-[444px]:badge-xs">
-                                        ไม่มาตรวจ
+                                        {{ $t('ReportUniformInspectionTable.noShow') }}
                                     </span>
                                     <span v-else-if="localInspectionData[student._id]?.ispass === false"
                                         class="badge badge-error max-[444px]:badge-xs">
-                                        {{ t('uniformInspection.fail') }}
+                                        {{ $t('ReportUniformInspectionTable.notPass') }}
                                     </span>
                                     <span v-else class="badge badge-ghost max-[444px]:badge-xs">
-                                        {{ t('uniformInspection.empty') }}
+                                        {{ $t('ReportUniformInspectionTable.empty') }}
                                     </span>
                                 </button>
 
@@ -74,7 +74,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            {{ t('uniformInspection.passRule') }}
+                                            {{ $t('ReportUniformInspectionTable.markPass') }}
                                         </button>
                                     </li>
                                     <li>
@@ -86,7 +86,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            {{ t('uniformInspection.failRule') }}
+                                            {{ $t('ReportUniformInspectionTable.markFail') }}
                                         </button>
                                     </li>
                                     <li>
@@ -98,7 +98,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
-                                            ไม่มาตรวจ
+                                            {{ $t('ReportUniformInspectionTable.markAbsent') }}
                                         </button>
                                     </li>
                                     <li>
@@ -110,7 +110,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            {{ t('uniformInspection.clearStatus') }}
+                                            {{ $t('ReportUniformInspectionTable.clearStatus') }}
                                         </button>
                                     </li>
                                 </ul>
@@ -119,18 +119,19 @@
                         <td class="text-xs sm:text-[10px] xl:text-sm max-[444px]:hidden">
                             <div v-if="localInspectionData[student._id]?.remark === 'ไม่มาตรวจ'"
                                 class="text-warning font-medium">
+                                {{ $t('ReportUniformInspectionTable.markAbsent') }}
                             </div>
-                            <div v-if="localInspectionData[student._id]?.ispass === false" class="text-error">
+                            <div v-else-if="localInspectionData[student._id]?.ispass === false" class="text-error">
                                 <div v-if="(localInspectionData[student._id]?.issues || []).length" class="font-medium">
-                                    {{ (localInspectionData[student._id]?.issues || []).join(', ') }}
+                                    {{ formatDisplayIssues(localInspectionData[student._id]?.issues) }}
                                 </div>
                                 <div v-if="localInspectionData[student._id]?.remark"
                                     class="text-xs sm:text-[10px] xl:text-sm text-base-content mt-1">
-                                    {{ localInspectionData[student._id]?.remark }}
+                                    {{ formatDisplayRemark(localInspectionData[student._id]?.remark) }}
                                 </div>
                             </div>
                             <div v-else-if="localInspectionData[student._id]?.ispass === true" class="text-success">
-                                {{ t('uniformInspection.complete') }}
+                                {{ $t('ReportUniformInspectionTable.completed') }}
                             </div>
                         </td>
                     </tr>
@@ -156,56 +157,55 @@
             </div>
 
             <div v-if="students.length > 0" class="text-center text-sm text-gray-600">
-                {{ t('uniformInspection.totalItems', { count: students.length, page: currentPage, total: totalPages })
-                }}
+                {{ $t('ReportUniformInspectionTable.summaryTotal', { total: students.length, page: currentPage, totalPages: totalPages }) }}
             </div>
         </div>
 
         <dialog v-if="failModal.show" class="modal modal-open">
             <div class="modal-box w-[calc(100vw-1.5rem)] max-w-lg p-4 sm:p-6 overflow-x-hidden">
-                <h3 class="font-bold text-lg mb-4">{{ t('uniformInspection.failRecordTitle') }}</h3>
+                <h3 class="font-bold text-lg mb-4">{{ $t('ReportUniformInspectionTable.recordFailTitle') }}</h3>
 
                 <div class="form-control w-full mb-3">
                     <label class="label">
-                        <span class="label-text">{{ t('uniformInspection.failReasonLabel') }}</span>
+                        <span class="label-text">{{ $t('ReportUniformInspectionTable.failReason') }}</span>
                     </label>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <label v-for="issue in issueOptions" :key="issue"
+                        <label v-for="issue in issueOptions" :key="issue.value"
                             class="label cursor-pointer justify-start gap-2">
-                            <input type="checkbox" class="checkbox checkbox-sm" :value="issue"
+                            <input type="checkbox" class="checkbox checkbox-sm" :value="issue.value"
                                 v-model="failModal.form.issues" />
-                            <span class="label-text">{{ issue }}</span>
+                            <span class="label-text">{{ $t(`ReportUniformInspectionTable.${issue.labelKey}`) }}</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-control w-full mb-3">
                     <label class="label">
-                        <span class="label-text">{{ t('uniformInspection.otherIssueLabel') }}</span>
+                        <span class="label-text">{{ $t('ReportUniformInspectionTable.otherIssues') }}</span>
                     </label>
                     <input type="text" v-model="failModal.form.customIssue" class="input input-bordered"
-                        :placeholder="t('uniformInspection.otherIssuePlaceholder')" />
+                        :placeholder="$t('ReportUniformInspectionTable.otherIssuesPlaceholder')" />
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label">
-                        <span class="label-text">{{ t('uniformInspection.remarkLabel') }}</span>
+                        <span class="label-text">{{ $t('ReportUniformInspectionTable.remark') }}</span>
                     </label>
                     <select v-model="failModal.form.remark" class="select select-bordered w-full">
-                        <option value="">{{ t('uniformInspection.noRemark') }}</option>
-                        <option v-for="option in remarkOptions" :key="option" :value="option">
-                            {{ option }}
-                        </option>
-                    </select>
+    <option value="">{{ $t('ReportUniformInspectionTable.noSelectDeduct') }}</option>
+    <option v-for="option in remarkOptions" :key="option.value" :value="option.value">
+        {{ $t(`ReportUniformInspectionTable.remarkOptionMap.${option.labelKey}`) }}
+    </option>
+</select>
                 </div>
 
                 <div class="mb-4 text-xs sm:text-sm">
                     <div
                         class="bg-gray-300 text-gray-800 font-medium px-3 py-2 flex justify-between items-center rounded-t">
-                        <span>ประวัติผิดระเบียบแต่งกาย</span>
+                        <span>{{ $t('ReportUniformInspectionTable.failHistory') }}</span>
                         <span v-if="loadingHistory" class="loading loading-spinner loading-xs"></span>
-                        <span v-else>{{ studentFailHistory.length }} ครั้ง</span>
+                        <span v-else>{{ studentFailHistory.length }} {{ $t('ReportUniformInspectionTable.times') }}</span>
                     </div>
 
                     <div v-if="!loadingHistory" class="border border-t-0 border-gray-200">
@@ -222,7 +222,7 @@
                         </template>
 
                         <div v-else class="px-3 py-3 text-center text-gray-400 bg-gray-50">
-                            ยังไม่มีประวัติการทำผิดระเบียบ
+                            {{ $t('ReportUniformInspectionTable.noHistory') }}
                         </div>
                     </div>
 
@@ -235,9 +235,8 @@
                 </div>
 
                 <div class="modal-action">
-                    <button class="btn" @click="closeFailModal">{{ t('uniformInspection.cancel') }}</button>
-                    <button class="btn btn-primary" :disabled="autoSaving" @click="saveFailStatus">{{
-                        t('uniformInspection.save') }}</button>
+                    <button class="btn" @click="closeFailModal">{{ $t('ReportUniformInspectionTable.cancel') }}</button>
+                    <button class="btn btn-primary" :disabled="autoSaving" @click="saveFailStatus">{{ $t('ReportUniformInspectionTable.save') }}</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop" @click="closeFailModal">
@@ -252,7 +251,8 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ConductService } from '../../api/conduct';
 import Swal from 'sweetalert2';
-const { t, locale } = useI18n();
+
+const { t, te } = useI18n();
 
 const props = defineProps({
     students: {
@@ -291,35 +291,50 @@ const pageSize = ref(10);
 const currentPage = ref(1);
 const localInspectionData = ref({});
 const autoSaving = computed(() => props.saving);
+
 const conductService = new ConductService();
 const studentFailHistory = ref([]);
 const loadingHistory = ref(false);
 const historyPage = ref(1);
 const historyPageSize = 3;
 
-const issueOptions = computed(() => {
-    locale.value;
-    return [
-        t('uniformInspection.issue.shoes'),
-        t('uniformInspection.issue.hair'),
-        t('uniformInspection.issue.shirt'),
-        t('uniformInspection.issue.pants'),
-        t('uniformInspection.issue.accessories'),
-    ];
-});
+const issueOptions = [
+    { value: 'รองเท้าไม่ถูกระเบียบ', labelKey: 'issueShoes' },
+    { value: 'ทรงผมไม่ถูกระเบียบ', labelKey: 'issueHair' },
+    { value: 'เสื้อไม่ถูกระเบียบ', labelKey: 'issueShirt' },
+    { value: 'กางเกง/กระโปรงไม่ถูกระเบียบ', labelKey: 'issuePants' },
+    { value: 'เครื่องประดับไม่ถูกระเบียบ', labelKey: 'issueAccessories' },
+];
 
-const remarkOptions = computed(() => {
-    locale.value;
-    return [
-        t('uniformInspection.remark.warn'),
-        t('uniformInspection.remark.parentNotice'),
-        t('uniformInspection.remark.meeting1'),
-        t('uniformInspection.remark.meeting2'),
-        t('uniformInspection.remark.probation'),
-    ];
-});
+const remarkOptions = [
+    { value: 'ตักเตือน ลงบันทึก -5 คะแนน', labelKey: 'warn' },
+    { value: 'แจ้ง หรือ เชิญผู้ปกครองรับทราบ -10 คะแนน', labelKey: 'parentNotice' },
+    { value: 'เชิญผู้ปกครองทำ จค.กก.1/1 ครั้งที่ 1 -15 คะแนน', labelKey: 'meeting1' },
+    { value: 'เชิญผู้ปกครองทำ จค.กก.1/1 ครั้งที่ 2 -15 คะแนน', labelKey: 'meeting2' },
+    { value: 'เชิญผู้ปกครองทำทัณฑ์บน -30 คะแนน', labelKey: 'probation' },
+];
 
-const getDefaultRemark = () => t('uniformInspection.remark.warn');
+const DEFAULT_REMARK = 'ตักเตือน ลงบันทึก -5 คะแนน';
+
+const formatDisplayIssues = (issues) => {
+    if (!Array.isArray(issues) || !issues.length) return '';
+    return issues.map((issue) => {
+        if (issue === 'ไม่มาตรวจ') {
+            return t('ReportUniformInspectionTable.noShow');
+        }
+        const key = `ReportUniformInspectionTable.issuesMap.${issue}`;
+        return te(key) ? t(key) : issue;
+    }).join(', ');
+};
+
+const formatDisplayRemark = (remark) => {
+    if (!remark) return '';
+    if (remark === 'ไม่มาตรวจ') {
+        return t('ReportUniformInspectionTable.noShow');
+    }
+    const key = `ReportUniformInspectionTable.remarkMap.${remark}`;
+    return te(key) ? t(key) : remark;
+};
 
 const failModal = ref({
     show: false,
@@ -327,7 +342,7 @@ const failModal = ref({
     form: {
         issues: [],
         customIssue: '',
-        remark: getDefaultRemark(),
+        remark: DEFAULT_REMARK,
     },
 });
 
@@ -415,8 +430,9 @@ const openFailModal = async (studentId) => {
     const existing = localInspectionData.value[studentId] || {};
     const existingIssues = Array.isArray(existing.issues) ? existing.issues : [];
 
-    const selectedPresetIssues = existingIssues.filter((issue) => issueOptions.includes(issue));
-    const customIssues = existingIssues.filter((issue) => !issueOptions.includes(issue));
+    const presetValues = issueOptions.map((opt) => opt.value);
+    const selectedPresetIssues = existingIssues.filter((issue) => presetValues.includes(issue));
+    const customIssues = existingIssues.filter((issue) => !presetValues.includes(issue));
 
     failModal.value.studentId = studentId;
     failModal.value.form = {
@@ -444,23 +460,23 @@ const openFailModal = async (studentId) => {
             failModal.value.form.remark = existing.remark;
         } else {
             if (studentFailHistory.value.length > 0) {
-                const latestHistory = studentFailHistory.value[studentFailHistory.value.length - 1];
-                const lastDescription = latestHistory?.description || '';
+    const latestHistory = studentFailHistory.value[studentFailHistory.value.length - 1];
+    const lastDescription = latestHistory?.description || '';
 
-                const matchedIndex = remarkOptions.findIndex((option) => {
-                    const mainText = option.split('-')[0].trim();
-                    return lastDescription.includes(mainText);
-                });
+    const matchedIndex = remarkOptions.findIndex((option) => {
+        const mainText = option.value.split('-')[0].trim();
+        return lastDescription.includes(mainText);
+    });
 
-                if (matchedIndex !== -1) {
-                    const nextIndex = Math.min(matchedIndex + 1, remarkOptions.length - 1);
-                    failModal.value.form.remark = remarkOptions[nextIndex];
-                } else {
-                    failModal.value.form.remark = DEFAULT_REMARK;
-                }
-            } else {
-                failModal.value.form.remark = DEFAULT_REMARK;
-            }
+    if (matchedIndex !== -1) {
+        const nextIndex = Math.min(matchedIndex + 1, remarkOptions.length - 1);
+        failModal.value.form.remark = remarkOptions[nextIndex].value;
+    } else {
+        failModal.value.form.remark = DEFAULT_REMARK;
+    }
+} else {
+    failModal.value.form.remark = DEFAULT_REMARK;
+}
         }
     } catch (error) {
         console.error('Error fetching student conduct:', error);
@@ -504,7 +520,7 @@ const saveFailStatus = () => {
 
     const issues = [...failModal.value.form.issues, ...customIssueList];
     if (!issues.length) {
-        Swal.fire(t('uniformInspection.warnings.title'), t('uniformInspection.warnings.selectAtLeastOne'), 'warning');
+        Swal.fire(t('ReportUniformInspectionTable.warningTitle'), t('ReportUniformInspectionTable.selectReasonWarning'), 'warning');
         return;
     }
 
