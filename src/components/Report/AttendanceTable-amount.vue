@@ -19,6 +19,7 @@
             <table class="table w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
+                        <th class="w-12 text-center">#</th>
                         <th class="text-center">{{ $t('ReportAttendanceTableAmount.code') }}</th>
                         <th class="text-center">{{ $t('ReportAttendanceTableAmount.profile') }}</th>
                         <th>{{ $t('ReportAttendanceTableAmount.fullName') }}</th>
@@ -33,11 +34,14 @@
                 </thead>
                 <tbody>
                     <tr v-if="data.length === 0">
-                        <td colspan="8" class="text-center py-8 text-base-content/60">
+                        <td colspan="9" class="text-center py-8 text-base-content/60">
                             {{ $t('ReportAttendanceTableAmount.noData') }}
                         </td>
                     </tr>
-                    <tr v-for="item in data" :key="item._id">
+                    <tr v-for="(item, index) in data" :key="item._id">
+                        <td class="text-center">
+                            {{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1 }}
+                        </td>
                         <td class="text-center">{{ item.userid }}</td>
                         <td class="text-center">
                             <div v-if="item.picture" class="avatar inline-flex">
@@ -586,7 +590,6 @@ async function exportAllToExcel() {
             }
         } while (params.page <= totalPages)
 
-        // โหลดวันหยุดใหม่ (sync กับ holidaysArr)
         let holidaysRaw = []
         try {
             const res = await holidaysApi.getHolidaysByRange(props.dateRange.start, props.dateRange.end)
@@ -692,7 +695,6 @@ const displayedPages = vueComputed(() => {
 })
 
 
-// ฟังก์ชันคำนวณวันทำงานจริง (ไม่รวมวันหยุดและเสาร์-อาทิตย์)
 function getWorkingDays(startStr, endStr, holidaysArr = []) {
     const start = new Date(startStr)
     const end = new Date(endStr)
@@ -707,7 +709,7 @@ function getWorkingDays(startStr, endStr, holidaysArr = []) {
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dayOfWeek = d.getDay()
         const dateStr = d.toISOString().slice(0, 10)
-        if (dayOfWeek === 0 || dayOfWeek === 6) continue // 0=อาทิตย์, 6=เสาร์
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue
         if (holidaySet.has(dateStr)) continue
         days.push(dateStr)
     }

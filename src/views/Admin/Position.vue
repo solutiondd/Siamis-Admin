@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6 max-[944px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex justify-between items-center">
             <h1 class="text-xl sm:text-2xl font-bold text-white">{{ t('positionPage.title') }}</h1>
             <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="btn btn-primary"

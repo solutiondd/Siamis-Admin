@@ -16,8 +16,8 @@
                 </form>
                 <h3 class="font-bold text-lg mb-4">
                     {{ $t('DashBoardData.attendanceList', {
-                        role: attendanceRole === 'teacher' ?
-                            $t('DashBoardData.teacher') : $t('DashBoardData.student'), date: displayDate
+                        role: attendanceRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
                     }) }}
                 </h3>
                 <div v-if="attendanceRole === 'student'">
@@ -32,7 +32,7 @@
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -43,24 +43,28 @@
                 </form>
                 <h3 class="font-bold text-lg mb-4">
                     {{ $t('DashBoardData.lateList', {
-                        role: lateRole === 'teacher' ? $t('DashBoardData.teacher') :
-                            $t('DashBoardData.student'), date: displayDate
+                        role: lateRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
                     }) }}
                 </h3>
 
                 <div v-if="lateRole === 'student'">
                     <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
-                        grade="student" :filters="{ start: selectedDate, end: selectedDate, role: 'student' }"
-                        :hide-export="true" @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                        :timeSortOrder="lateTimeSortOrder" grade="student"
+                        :filters="{ start: selectedDate, end: selectedDate, role: 'student' }" :hide-export="true"
+                        @page-change="handleLatePageChange" @toggle-time-sort="handleToggleLateTimeSort"
+                        summaryTextColor="text-black" />
                 </div>
                 <div v-else>
                     <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
+                        :timeSortOrder="lateTimeSortOrder"
                         :filters="{ start: selectedDate, end: selectedDate, role: 'teacher' }" :hide-export="true"
-                        @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                        @page-change="handleLatePageChange" @toggle-time-sort="handleToggleLateTimeSort"
+                        summaryTextColor="text-black" />
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -71,8 +75,8 @@
                 </form>
                 <h3 class="font-bold text-lg mb-4">
                     {{ $t('DashBoardData.missedList', {
-                        role: missedRole === 'teacher' ? $t('DashBoardData.teacher') :
-                            $t('DashBoardData.student'), date: displayDate
+                        role: missedRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
                     }) }}
                 </h3>
 
@@ -81,45 +85,52 @@
                     :role="missedRole" @page-change="handleMissedPageChange" summaryTextColor="text-black" />
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
-        <dialog ref="leaveModal" class="modal">
-            <div class="modal-box max-w-7xl">
+        <dialog ref="leaveModal" class="modal" @close="handleLeaveModalClose">
+            <div class="modal-box max-w-7xl p-2 min-[481px]:p-6">
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">
+                <h3 class="font-bold text-lg">
                     {{ $t('DashBoardData.leaveList', {
-                        role: leaveRole === 'teacher' ? $t('DashBoardData.teacher') :
-                            $t('DashBoardData.student'), date: displayDate
+                        role: leaveRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
                     }) }}
                 </h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                    {{ $t('DashBoardData.leaveNote') }}
+                </p>
 
-                <LeaveRequest :filters="leaveFilters" />
+                <LeaveRequest v-if="leaveTableVisible" :filters="leaveFilters" :hide-export="true" />
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
-        <dialog ref="activityModal" class="modal">
-            <div class="modal-box max-w-7xl">
+        <dialog ref="activityModal" class="modal" @close="handleActivityModalClose">
+            <div class="modal-box max-w-7xl p-2 min-[481px]:p-6">
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">
+                <h3 class="font-bold text-lg">
                     {{ $t('DashBoardData.activityList', {
-                        role: activityRole === 'teacher' ? $t('DashBoardData.teacher')
-                            : $t('DashBoardData.student'), date: displayDate
+                        role: $t('DashBoardData.student'),
+                        date: displayDate
                     }) }}
                 </h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                    {{ $t('DashBoardData.leaveNote') }}
+                </p>
 
-                <ActivityTable :filters="activityFilters" />
+                <ActivityTable v-if="activityTableVisible" :filters="activityFilters" :hide-export="true"
+                    :hide-page-size-selector="true" :default-page-limit="100" summaryTextColor="text-black" />
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -241,24 +252,6 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="stat relative border-l pl-4">
-                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
-                                <div class="stat-value text-warning">{{ teacherLeave }}</div>
-                                <div class="stat-desc absolute bottom-2 right-2">
-                                    <button @click="showTeacherLeaveTable" class="btn btn-xs btn-warning btn-plain">
-                                        {{ $t('DashBoardData.click') }}
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="stat relative border-l pl-4">
-                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
-                                <div class="stat-value text-info">{{ teacherActivity }}</div>
-                                <div class="stat-desc absolute bottom-2 right-2">
-                                    <button @click="showTeacherActivityTable" class="btn btn-xs btn-info btn-plain">
-                                        {{ $t('DashBoardData.click') }}
-                                    </button>
-                                </div>
-                            </div>
                             <div class="stat group relative border-l pl-4" ref="teacherAbsentStatRef">
                                 <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ teacherAbsent }}</div>
@@ -345,12 +338,9 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import lottie from 'lottie-web'
 import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
-import { LeaveService } from '../../api/leave'
-import { ActivityService } from '../../api/activity'
 import LateTable from '../Report/LateTable.vue'
 import MissedTable from '../Report/MissedTable.vue'
 import LeaveRequest from '../Report/LeaveRequest.vue'
@@ -361,7 +351,6 @@ import { useAuthStore } from '../../stores/auth'
 import { toVisibleSortedGrades } from '../../utils/gradeSystem'
 import { AllowanceService } from '../../api/allowance'
 
-const { t, locale } = useI18n()
 const auth = useAuthStore()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
@@ -392,6 +381,8 @@ const lateModal = ref(null)
 const missedModal = ref(null)
 const leaveModal = ref(null)
 const activityModal = ref(null)
+const activityTableVisible = ref(false)
+const leaveTableVisible = ref(false)
 const attendanceData = ref([])
 const attendancePage = ref(1)
 const attendanceTotalItems = ref(0)
@@ -406,8 +397,8 @@ const lateLimit = ref(5)
 const lateTotalItems = ref(0)
 const lateTotalPages = ref(0)
 const lateRole = ref('student')
+const lateTimeSortOrder = ref('desc')
 const leaveRole = ref('student')
-const activityRole = ref('student')
 const missedData = ref([])
 const missedAllData = ref([])
 const missedPage = ref(1)
@@ -416,14 +407,12 @@ const missedTotalItems = ref(0)
 const missedTotalPages = ref(0)
 const missedRole = ref('student')
 const classrooms = ref([])
+// const progressData = ref([])
 const studentLeave = ref(0)
 const teacherLeave = ref(0)
 const studentActivity = ref(0)
-const teacherActivity = ref(0)
 
 const classRoomService = new ClassRoomService()
-const leaveService = new LeaveService()
-const activityService = new ActivityService()
 
 const residentRole = ref(localStorage.getItem('residentRole') || '')
 const localGrade = ref(localStorage.getItem('grade') || '')
@@ -434,22 +423,13 @@ const displayDate = computed(() => {
     const [year, month, day] = (selectedDate.value || '').split('-').map(Number)
     if (!year || !month || !day) return ''
 
-    const date = new Date(year, month - 1, day)
-    const currentLocale = locale.value || 'th'
+    const thaiMonths = [
+        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    ]
+    const buddhistYear = year + 543
 
-    if (currentLocale === 'en') {
-        return date.toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        })
-    }
-
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    })
+    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
 })
 
 const latePagination = computed(() => ({
@@ -489,9 +469,7 @@ const studentAbsent = computed(() => Math.max(
 ))
 const teacherAbsent = computed(() => Math.max(
     (totals.value.total_teachers || 0) -
-    (teacher.value.total || 0) -
-    (teacherLeave.value || 0) -
-    (teacherActivity.value || 0),
+    (teacher.value.total || 0),
     0
 ))
 const leaveFilters = computed(() => ({
@@ -505,7 +483,7 @@ const leaveFilters = computed(() => ({
 const activityFilters = computed(() => ({
     start_date: (selectedDate.value || '').toString(),
     end_date: (selectedDate.value || '').toString(),
-    role: activityRole.value,
+    // role: 'student',
     search: '',
     status: '',
     activity_name: '',
@@ -518,68 +496,6 @@ const showCombinedStat = ref(false)
 const showStudentAbsentStat = ref(false)
 const showTeacherAbsentStat = ref(false)
 
-async function fetchLeaveSummaryByDate() {
-    try {
-        const filters = {
-            start_date: selectedDate.value,
-            end_date: selectedDate.value,
-            status: 'approved',
-        }
-
-        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
-            filters.grade = localGrade.value
-            filters.classroom = localClassroom.value
-        }
-
-        const response = await leaveService.getLeaveRequests(filters)
-        let data = response?.data || response || []
-
-        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
-            data = data.filter(
-                (item) =>
-                    item.user_id?.grade === localGrade.value &&
-                    String(item.user_id?.classroom ?? '') === String(localClassroom.value)
-            )
-        }
-
-        studentLeave.value = data.filter((item) => item.user_id?.role === 'student').length
-        teacherLeave.value = data.filter((item) => item.user_id?.role === 'teacher').length
-    } catch (e) {
-        console.error('Daily leave summary error', e)
-        studentLeave.value = 0
-        teacherLeave.value = 0
-    }
-}
-
-async function fetchActivitySummaryByDate() {
-    try {
-        const filters = {}
-
-        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
-            filters.grade = localGrade.value
-            filters.classroom = localClassroom.value
-        }
-
-        const response = await activityService.getActivities(selectedDate.value, selectedDate.value, filters)
-        let data = response?.data || response || []
-
-        if (residentRole.value === 'teacher' && localGrade.value && localClassroom.value) {
-            data = data.filter(
-                (item) =>
-                    item.user_id?.grade === localGrade.value &&
-                    String(item.user_id?.classroom ?? '') === String(localClassroom.value)
-            )
-        }
-
-        studentActivity.value = data.filter((item) => item.user_id?.role === 'student').length
-        teacherActivity.value = data.filter((item) => item.user_id?.role === 'teacher').length
-    } catch (e) {
-        console.error('Daily activity summary error', e)
-        studentActivity.value = 0
-        teacherActivity.value = 0
-    }
-}
-
 async function fetchDaily() {
     loading.value = true
     emit('dateChange', selectedDate.value)
@@ -591,13 +507,18 @@ async function fetchDaily() {
             totals.value.total_students = res.data.total_students || 0
             totals.value.total_teachers = res.data.total_teachers || 0
             const list = res.data.daily_stats || []
-            const stu = list.find(x => x.role === 'student') || { total: 0, late: 0 }
-            const tea = list.find(x => x.role === 'teacher') || { total: 0, late: 0 }
+            const stu = list.find(x => x.role === 'student') || { total: 0, late: 0, total_leave: 0, total_activity: 0 }
+            const tea = list.find(x => x.role === 'teacher') || { total: 0, late: 0, total_leave: 0, total_activity: 0 }
             student.value = { total: stu.total || 0, late: stu.late || 0 }
             teacher.value = { total: tea.total || 0, late: tea.late || 0 }
+            studentLeave.value = stu.total_leave ?? stu.leave ?? 0
+            teacherLeave.value = tea.total_leave ?? tea.leave ?? 0
+            studentActivity.value = stu.total_activity ?? stu.activity ?? 0
+        } else {
+            studentLeave.value = 0
+            teacherLeave.value = 0
+            studentActivity.value = 0
         }
-        await fetchLeaveSummaryByDate()
-        await fetchActivitySummaryByDate()
     } catch (e) {
         console.error('Daily summary error', e)
         totals.value = { total_students: 0, total_teachers: 0 }
@@ -606,7 +527,6 @@ async function fetchDaily() {
         studentLeave.value = 0
         teacherLeave.value = 0
         studentActivity.value = 0
-        teacherActivity.value = 0
     } finally {
         loading.value = false
     }
@@ -708,16 +628,40 @@ async function showTeacherAttendanceTable() {
     }
 }
 
+function sortLateData(data, sortOrder = 'desc') {
+    if (!Array.isArray(data)) return []
+    return [...data].sort((a, b) => {
+        const getTimeInSeconds = (item) => {
+            const firstStamp = item.late_dates?.[0]?.timeStamps?.[0]?.timeStamp
+            if (!firstStamp) return 0
+            const timeStr = firstStamp.split(' ')[1] || '00:00:00'
+            const [h, m, s] = timeStr.split(':').map(Number)
+            return (h * 3600) + (m * 60) + (s || 0)
+        }
+        const timeA = getTimeInSeconds(a)
+        const timeB = getTimeInSeconds(b)
+
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB
+    })
+}
+
+function handleToggleLateTimeSort() {
+    lateTimeSortOrder.value = lateTimeSortOrder.value === 'desc' ? 'asc' : 'desc'
+    lateData.value = sortLateData(lateAllData.value, lateTimeSortOrder.value)
+}
+
 async function showStudentLateTable() {
     try {
         loading.value = true
         lateRole.value = 'student'
+        latePage.value = 1
+
         let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'student',
-            page: latePage.value,
-            limit: lateLimit.value
+            page: 1,
+            limit: 10000
         }
         if (residentRole.value === 'teacher') {
             params.grade = localGrade.value
@@ -725,17 +669,20 @@ async function showStudentLateTable() {
         }
         const res = await reportApi.getLateReport(params)
         if (res.message === 'Success' && res.data) {
-            lateAllData.value = res.data || [];
-            lateTotalItems.value = res.total_items || lateAllData.value.length;
-            lateTotalPages.value = res.total_pages || 1;
-            latePage.value = res.page || 1;
-            lateData.value = lateAllData.value;
-            lateModal.value?.showModal();
+            const sorted = sortLateData(res.data || [], lateTimeSortOrder.value)
+            lateAllData.value = sorted
+
+            lateLimit.value = 5
+            lateTotalItems.value = sorted.length
+            lateTotalPages.value = Math.ceil(sorted.length / lateLimit.value) || 1
+
+            lateData.value = sorted.slice(0, lateLimit.value)
+            lateModal.value?.showModal()
         }
     } catch (e) {
-        console.error('Error fetching student late data:', e);
+        console.error('Error fetching student late data:', e)
     } finally {
-        loading.value = false;
+        loading.value = false
     }
 }
 
@@ -743,29 +690,34 @@ async function showTeacherLateTable() {
     try {
         loading.value = true
         lateRole.value = 'teacher'
+        latePage.value = 1
+
         let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'teacher',
-            page: latePage.value,
-            limit: lateLimit.value
+            page: 1,
+            limit: 10000
         }
         if (residentRole.value === 'teacher') {
             params.name = profileName.value
         }
         const res = await reportApi.getLateReport(params)
         if (res.message === 'Success' && res.data) {
-            lateAllData.value = res.data || [];
-            lateTotalItems.value = res.total_items || lateAllData.value.length;
-            lateTotalPages.value = res.total_pages || 1;
-            latePage.value = res.page || 1;
-            lateData.value = lateAllData.value;
-            lateModal.value?.showModal();
+            const sorted = sortLateData(res.data || [], lateTimeSortOrder.value)
+            lateAllData.value = sorted
+
+            lateLimit.value = 5
+            lateTotalItems.value = sorted.length
+            lateTotalPages.value = Math.ceil(sorted.length / lateLimit.value) || 1
+
+            lateData.value = sorted.slice(0, lateLimit.value)
+            lateModal.value?.showModal()
         }
     } catch (e) {
-        console.error('Error fetching teacher late data:', e);
+        console.error('Error fetching teacher late data:', e)
     } finally {
-        loading.value = false;
+        loading.value = false
     }
 }
 
@@ -831,91 +783,28 @@ async function showTeacherMissedTable() {
 
 function showStudentLeaveTable() {
     leaveRole.value = 'student'
-    leaveModal.value?.showModal()
-}
-
-function showTeacherLeaveTable() {
-    leaveRole.value = 'teacher'
+    leaveTableVisible.value = true
     leaveModal.value?.showModal()
 }
 
 function showStudentActivityTable() {
-    activityRole.value = 'student'
+    activityTableVisible.value = true
     activityModal.value?.showModal()
 }
 
-function showTeacherActivityTable() {
-    activityRole.value = 'teacher'
-    activityModal.value?.showModal()
+function handleActivityModalClose() {
+    activityTableVisible.value = false
+}
+
+function handleLeaveModalClose() {
+    leaveTableVisible.value = false
 }
 
 function handleLatePageChange(page) {
     if (page >= 1 && page <= lateTotalPages.value) {
-        latePage.value = page;
-        if (lateRole.value === 'student') {
-            showStudentLateTableWithPage(page);
-        } else {
-            showTeacherLateTableWithPage(page);
-        }
-    }
-
-    async function showStudentLateTableWithPage(page) {
-        try {
-            loading.value = true;
-            lateRole.value = 'student';
-            let params = {
-                start: selectedDate.value,
-                end: selectedDate.value,
-                role: 'student',
-                page: page,
-                limit: lateLimit.value
-            };
-            if (residentRole.value === 'teacher') {
-                params.grade = localGrade.value;
-                params.classroom = localClassroom.value;
-            }
-            const res = await reportApi.getLateReport(params);
-            if (res.message === 'Success' && res.data) {
-                lateAllData.value = res.data || [];
-                lateTotalItems.value = res.total_items || lateAllData.value.length;
-                lateTotalPages.value = res.total_pages || 1;
-                latePage.value = res.page || page;
-                lateData.value = lateAllData.value;
-            }
-        } catch (e) {
-            console.error('Error fetching student late data:', e);
-        } finally {
-            loading.value = false;
-        }
-    }
-
-    async function showTeacherLateTableWithPage(page) {
-        try {
-            loading.value = true;
-            lateRole.value = 'teacher';
-            let params = {
-                start: selectedDate.value,
-                end: selectedDate.value,
-                role: 'teacher',
-                page: page,
-                limit: lateLimit.value
-            };
-            if (residentRole.value === 'teacher') {
-                params.name = profileName.value;
-            }
-            const res = await reportApi.getLateReport(params);
-            if (res.message === 'Success' && res.data) {
-                lateAllData.value = res.data || [];
-                lateTotalItems.value = res.total_items || lateAllData.value.length;
-                lateTotalPages.value = res.total_pages || 1;
-                latePage.value = res.page || page;
-                lateData.value = lateAllData.value;
-            }
-        } catch (e) {
-            console.error('Error fetching teacher late data:', e);
-        } finally {
-            loading.value = false;
-        }
+        latePage.value = page
+        const start = (page - 1) * lateLimit.value
+        lateData.value = lateAllData.value.slice(start, start + lateLimit.value)
     }
 }
 
@@ -946,6 +835,20 @@ const fetchAllowanceSettings = async () => {
         console.error("Error fetching allowance settings in dashboard:", error);
     }
 };
+
+// async function fetchProgressData() {
+//     try {
+//         const res = await reportApi.getProgressReport({ date: selectedDate.value })
+//         if (res && res.message === 'Success') {
+//             progressData.value = res.data || []
+//         } else {
+//             progressData.value = []
+//         }
+//     } catch (e) {
+//         console.error('Error fetching progress report on dashboard:', e)
+//         progressData.value = []
+//     }
+// }
 
 onMounted(() => {
     showStudentStat.value = false
@@ -1024,38 +927,77 @@ onMounted(() => {
         containerEl3.addEventListener('mouseenter', playAnim3)
         containerEl3.addEventListener('mouseleave', stopAnim3)
     }
+
+    // if (studentLateIconRef.value) {
+    //     const animLate = lottie.loadAnimation({
+    //         container: studentLateIconRef.value,
+    //         renderer: 'svg',
+    //         loop: true,
+    //         autoplay: false,
+    //         path: new URL('../../assets/doodle-color-292-clock-time-hover-pinch.json', import.meta.url).href,
+    //     })
+    //     animLate.addEventListener('DOMLoaded', () => {
+    //         animLate.goToAndStop(0, true)
+    //     })
+    //     const containerLate = studentCardRef.value || studentLateStatRef.value || studentLateIconRef.value
+    //     const playLate = () => animLate.play()
+    //     const stopLate = () => animLate.stop()
+    //     containerLate.addEventListener('mouseenter', playLate)
+    //     containerLate.addEventListener('mouseleave', stopLate)
+    // }
 })
 </script>
 
 <style scoped>
-.slide-fade-enter-active,
+.slide-fade-enter-active {
+    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .slide-fade-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-fade-enter-from,
+.slide-fade-enter-from {
+    opacity: 0;
+    transform: translateX(-60px);
+}
+
 .slide-fade-leave-to {
     opacity: 0;
     transform: translateX(-60px);
 }
 
-.slide-down-enter-active,
+.slide-down-enter-active {
+    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .slide-down-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-down-enter-from,
+.slide-down-enter-from {
+    opacity: 0;
+    transform: translateY(-60px);
+}
+
 .slide-down-leave-to {
     opacity: 0;
     transform: translateY(-60px);
 }
 
-.slide-right-enter-active,
+.slide-right-enter-active {
+    transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .slide-right-leave-active {
     transition: all 1.1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.slide-right-enter-from,
+.slide-right-enter-from {
+    opacity: 0;
+    transform: translateX(60px);
+}
+
 .slide-right-leave-to {
     opacity: 0;
     transform: translateX(60px);

@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6 max-[944px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <DashBoardData @dateChange="handleDateChange" />
         <DashBoardGraph :date="selectedDate" />
         <transition v-if="featureFlags.home.enableProgress && auth.user?.role !== 'teacher'" name="fade-slide-up">

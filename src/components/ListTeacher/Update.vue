@@ -132,25 +132,14 @@
                         </select>
                     </div>
 
-                    <!-- <div class="form-control w-full">
-                        <label class="label">
-                            <span class="label-text">{{ t('teacherUpdate.rfidOptional') }}</span>
-                        </label>
-                        <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
-                            autocomplete="off" />
-                    </div>
-
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">{{ t('teacherUpdate.replaceImage') }}</span>
+                            <span class="label-text">{{ t('teacherUpdate.moreDetail') }} <span
+                                    class="text-gray-500">({{ t('teacherUpdate.optional') }})</span></span>
                         </label>
-                        <input ref="fileInputRef" type="file" @change="handleFileChange" accept="image/jpeg,image/jpg"
-                            class="file-input file-input-bordered w-full" />
-                        <label class="label">
-                            <span class="label-text-alt text-gray-500">{{ t('teacherUpdate.jpgOnly') }}</span>
-                        </label>
-                        <div v-if="fileError" class="text-sm text-error mt-1">{{ fileError }}</div>
-                    </div> -->
+                        <input v-model="formData.note" type="text" class="input input-bordered w-full"
+                            autocomplete="off" />
+                    </div>
                 </div>
 
                 <div class="modal-action">
@@ -189,6 +178,8 @@ const firstNameError = ref('')
 const lastNameError = ref('')
 const useridError = ref('')
 const rfidError = ref('')
+let faceapiLib = null
+let tinyFaceModelReady = false
 const formData = ref({
     userid: '',
     pre_name: '',
@@ -197,9 +188,9 @@ const formData = ref({
     position: '',
     department: '',
     rfid: '',
+    note: '',
     status: '',
-    picture: null,
-    rfid: ''
+    picture: null
 })
 
 const props = defineProps({
@@ -230,6 +221,7 @@ const openModal = async (teacher) => {
         last_name: teacher.name.split(' ').slice(2).join(' ') || '',
         position: teacher.position,
         department: teacher.department,
+        note: teacher.note !== undefined && teacher.note !== null ? String(teacher.note) : '',
         status: 'ปกติ',
         picture: null,
         rfid: teacher.rfid !== undefined && teacher.rfid !== null ? String(teacher.rfid) : ''
@@ -278,6 +270,7 @@ const closeModal = () => {
         last_name: '',
         position: '',
         department: '',
+        note: '',
         status: '',
         picture: null,
         rfid: ''
@@ -285,6 +278,28 @@ const closeModal = () => {
     useridError.value = ''
 }
 
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
+}
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
@@ -352,7 +367,18 @@ const handleFileChange = async (event) => {
         }
         try {
             const resizedBlob = await resizeImage(file, 70, 450);
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const resizedFile = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const hasFace = await detectFace(resizedFile)
+
+            if (!hasFace) {
+                fileError.value = t('teacherUpdate.noFaceDetected');
+                formData.value.picture = null
+                previewImage.value = ''
+                event.target.value = ''
+                return
+            }
+
+            formData.value.picture = resizedFile;
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewImage.value = e.target.result;

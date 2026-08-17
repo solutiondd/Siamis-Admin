@@ -119,9 +119,9 @@
                     </div>
 
                     <div class="form-control w-full md:col-span-2">
-                        <label class="label">
+                        <!-- <label class="label">
                             <span class="label-text">{{ $t('StudentCreate.gradeAndClassroom') }}</span>
-                        </label>
+                        </label> -->
                         <template v-if="auth.user?.role === 'teacher'">
                             <div class="p-2 rounded bg-gray-100 border text-base">
                                 {{ $t('StudentCreate.grade') }}: {{ mapGradeDisplay(formData.grade) }} {{
@@ -129,30 +129,40 @@
                             </div>
                         </template>
                         <template v-else>
-                            <div class="form-control w-full mb-2">
-                                <label class="label">
-                                    <span class="label-text">{{ $t('StudentCreate.grade') }}</span>
-                                </label>
-                                <select v-model="formData.grade" @change="handleGradeChange"
-                                    class="select select-bordered w-full" required>
-                                    <option value="">{{ $t('StudentCreate.selectGrade') }}</option>
-                                    <option v-for="grade in availableGrades" :key="grade" :value="grade">{{
-                                        mapGradeDisplay(grade) }}
-                                    </option>
-                                </select>
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">{{ $t('StudentCreate.grade') }}</span>
+                                    </label>
+                                    <select v-model="formData.grade" @change="handleGradeChange"
+                                        class="select select-bordered w-full" required>
+                                        <option value="">{{ $t('StudentCreate.selectGrade') }}</option>
+                                        <option v-for="grade in availableGrades" :key="grade" :value="grade">
+                                            {{ mapGradeDisplay(grade) }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                            <div class="form-control w-full">
-                                <label class="label">
-                                    <span class="label-text">{{ $t('StudentCreate.classroom') }}</span>
-                                </label>
-                                <select v-model="formData.classroom" class="select select-bordered w-full" required>
-                                    <option value="">{{ $t('StudentCreate.selectClassroom') }}</option>
-                                    <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}
-                                    </option>
-                                </select>
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">{{ $t('StudentCreate.classroom') }}</span>
+                                    </label>
+                                    <select v-model="formData.classroom" class="select select-bordered w-full" required>
+                                        <option value="">{{ $t('StudentCreate.selectClassroom') }}</option>
+                                        <option v-for="room in availableClassrooms" :key="room" :value="room">
+                                            {{ room }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </template>
+                    </div>
+
+                    <div class="form-control w-full md:col-span-2">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" v-model="formData.no_use_face" class="checkbox checkbox-primary" />
+                            <span class="label-text">{{ $t('StudentCreate.noUseFace') }}</span>
+                        </label>
                     </div>
                 </div>
 
@@ -195,10 +205,13 @@ const formData = ref({
     guardian_phone: '',
     grade: '',
     classroom: '',
-    picture: ''
+    picture: null,
+    no_use_face: false
 })
 
 const useridError = ref('')
+let faceapiLib = null
+let tinyFaceModelReady = false
 
 const props = defineProps({
     classrooms: {
@@ -315,7 +328,8 @@ const openModal = (fixed = null) => {
             guardian_phone: '',
             grade: fixed.grade,
             classroom: fixed.classroom,
-            picture: null
+            picture: null,
+            no_use_face: false
         }
     } else {
         formData.value = {
@@ -327,7 +341,8 @@ const openModal = (fixed = null) => {
             guardian_phone: '',
             grade: '',
             classroom: '',
-            picture: null
+            picture: null,
+            no_use_face: false
         }
     }
     previewImage.value = ''
@@ -351,7 +366,8 @@ const closeModal = () => {
         guardian_phone: '',
         grade: '',
         classroom: '',
-        picture: null
+        picture: null,
+        no_use_face: false
     }
     previewImage.value = ''
     fileError.value = ''
@@ -367,6 +383,29 @@ const handleGradeChange = () => {
     if (availableClassrooms.value.length > 0) {
         formData.value.classroom = availableClassrooms.value[0]
     }
+}
+
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
 }
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
@@ -435,7 +474,18 @@ const handleFileChange = async (event) => {
         }
         try {
             const resizedBlob = await resizeImage(file, 70, 450);
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const resizedFile = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const hasFace = await detectFace(resizedFile)
+
+            if (!hasFace) {
+                fileError.value = t('StudentCreate.errNoFaceDetected')
+                formData.value.picture = null
+                previewImage.value = ''
+                event.target.value = ''
+                return
+            }
+
+            formData.value.picture = resizedFile;
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewImage.value = e.target.result;

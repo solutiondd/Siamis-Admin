@@ -331,6 +331,8 @@ const createConductForFailedStudents = async (studentsPayload) => {
         .map((item) => {
             if (item?.ispass !== false) return null;
 
+            if (item?.remark === 'ไม่มาตรวจ') return null;
+
             const conductRule = parseConductRemark(item?.remark);
             if (!conductRule) return null;
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6 max-[944px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="text-xl sm:text-2xl font-bold text-white">{{ $t('Student.title') }}</h2>
             <div v-if="auth.user?.role !== 'viewer' && auth.user?.role !== 'discipline'"
@@ -247,7 +247,8 @@ const mapStudentRow = (student) => ({
     score: Number.isFinite(Number(student.score)) ? Number(student.score) : 100,
     phone: student.phone || '-',
     picture: normalizeImagePath(student.picture),
-    has_password: student.has_password
+    has_password: student.has_password,
+    no_use_face: student.no_use_face
 })
 
 const openDetailModal = (student) => {

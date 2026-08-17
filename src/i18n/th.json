@@ -66,7 +66,7 @@
     "attendance": "เข้า-ออก",
     "late": "มาสาย",
     "activity": "กิจกรรม",
-    "missed": "ขาดเรียน",
+    "missed": "ขาด",
     "stranger": "สแกนไม่สำเร็จ",
     "atRisk": "พฤติกรรมเสี่ยง",
     "stats": "สถิติ",
@@ -233,7 +233,7 @@
   "ModelingTable": {
     "index": "ลำดับ",
     "fullName": "ชื่อ-สกุล",
-    "userId": "รหัสนักเรียน/รหัสอาจารย์",
+    "userId": "รหัส",
     "position": "ตำแหน่ง",
     "classroomOrDepartment": "ห้องเรียน/แผนก",
     "connectionStatus": "สถานะการเชื่อมต่อ",
@@ -393,49 +393,6 @@
     "successTitle": "ลบข้อมูลและเลื่อนชั้นสำเร็จ",
     "errorTitle": "เกิดข้อผิดพลาด",
     "defaultErrorText": "ไม่สามารถลบข้อมูลหรือเลื่อนชั้นได้"
-  },
-  "teacherUpdate": {
-    "title": "แก้ไขข้อมูลบุคลากร",
-    "image": "รูปภาพ",
-    "optional": "ไม่บังคับ",
-    "chooseImage": "เลือกรูปภาพบุคลากร",
-    "jpgOnly": "JPG only (สูงสุด 70KB)",
-    "employeeId": "รหัสบุคลากร",
-    "prefix": "คำนำหน้า",
-    "selectPrefix": "เลือกคำนำหน้า",
-    "firstName": "ชื่อ",
-    "lastName": "นามสกุล",
-    "position": "ตำแหน่ง",
-    "selectPosition": "เลือกตำแหน่ง",
-    "department": "แผนก",
-    "selectDepartment": "เลือกแผนก",
-    "rfid": "เลขบัตร RFID",
-    "status": "สถานะ",
-    "selectStatus": "เลือกสถานะ",
-    "normal": "ปกติ",
-    "suspended": "พักงาน",
-    "rfidOptional": "RFID (ไม่บังคับ)",
-    "replaceImage": "รูปภาพ (ถ้าต้องการเปลี่ยน)",
-    "cancel": "ยกเลิก",
-    "save": "บันทึก",
-    "invalidDataTitle": "ข้อมูลไม่ถูกต้อง",
-    "invalidDataText": "กรุณากรอกชื่อและนามสกุลเป็นตัวอักษรเท่านั้น",
-    "successTitle": "แก้ไขข้อมูลอาจารย์สำเร็จ",
-    "errorTitle": "เกิดข้อผิดพลาด",
-    "errorMessage": "ไม่สามารถแก้ไขข้อมูลอาจารย์ได้",
-    "nameOnlyLetters": "ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น",
-    "requiredFirstName": "กรุณากรอกชื่อ",
-    "requiredLastName": "กรุณากรอกนามสกุล",
-    "numericRfid": "เลขบัตรต้องเป็นตัวเลขเท่านั้น",
-    "fileTooLarge": "ขนาดรูปบุคลากรเกิน {size}KB",
-    "fileCheckError": "เกิดข้อผิดพลาดในการตรวจสอบหรือปรับขนาดรูปภาพ",
-    "compressFail": "บีบอัดรูปไม่สำเร็จ",
-    "compressLimitFail": "ไม่สามารถบีบอัดรูปให้ไม่เกิน {size}KB ได้",
-    "invalidImageFile": "ไฟล์รูปไม่ถูกต้อง",
-    "readImageFail": "อ่านไฟล์รูปไม่สำเร็จ",
-    "selectJpgOnly": "กรุณาเลือกไฟล์ JPG เท่านั้น",
-    "resizeError": "เกิดข้อผิดพลาดในการรีไซส์รูปภาพ",
-    "duplicateId": "มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น"
   },
   "behaviorPage": {
     "behaviorList": "รายการพฤติกรรม",
@@ -805,7 +762,8 @@
     "leave": "ลา",
     "activity": "กิจกรรม",
     "missed": "ไม่ได้สแกน",
-    "click": "คลิก"
+    "click": "คลิก",
+    "leaveNote": "หมายเหตุ: จำนวนรายการหน้านี้อาจไม่เท่ากับตัวเลขหน้าหลัก เนื่องจากบางคนลาในระบบไว้แต่ยังมาเรียน/สแกนเข้าเรียนได้"
   },
   "DashBoardGraph": {
     "dailyStats": "สถิติรายวัน",
@@ -816,7 +774,13 @@
     "teacherOntime": "ครู (ตรงเวลา)",
     "teacherLate": "ครู (สาย)",
     "teacherNotScan": "ครู (ไม่ได้สแกน)",
-    "total": "รวม: {total}"
+    "total": "รวม: {total}",
+    "student": "นักเรียน",
+    "teacher": "ครู",
+    "ontime": "ตรงเวลา",
+    "late": "มาสาย",
+    "notScan": "ไม่ได้สแกน",
+    "noData": "ไม่มีข้อมูลสถิติ"
   },
   "DashBoardDetailAttendance": {
     "title": "รายละเอียดการเข้า-ออก",
@@ -838,6 +802,9 @@
     "totalArrived": "มาทั้งหมด",
     "ontime": "ตรงเวลา",
     "late": "สาย",
+    "leave": "ลา",
+    "activity": "กิจกรรม",
+    "noScan": "ไม่ได้สแกน",
     "status": "มา / ยังไม่มา",
     "room": "ห้อง",
     "tooltip": "มาแล้ว {arrive} คน / ยังไม่มา {notArrive} คน",
@@ -873,7 +840,15 @@
     "errOnlyNumber": "เลขบัตรต้องเป็นตัวเลขเท่านั้น",
     "errDuplicateUserId": "มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น",
     "errAddFailed": "ไม่สามารถเพิ่มบุคลากรได้",
-    "errTitle": "เกิดข้อผิดพลาด"
+    "errTitle": "เกิดข้อผิดพลาด",
+    "note": "รายละเอียดเพิ่มเติม",
+    "errCompressFailed": "บีบอัดรูปไม่สำเร็จ",
+    "errCompressMaxSize": "ไม่สามารถบีบอัดรูปให้ไม่เกิน {maxSizeKB}KB ได้",
+    "errInvalidImageFile": "ไฟล์รูปไม่ถูกต้อง",
+    "errReadImageFailed": "อ่านไฟล์รูปไม่สำเร็จ",
+    "errOnlyJpg": "กรุณาเลือกไฟล์ JPG เท่านั้น",
+    "errNoFaceDetected": "ไม่พบใบหน้าในรูป กรุณาเลือกรูปที่เห็นใบหน้าชัดเจน",
+    "errResizeImage": "เกิดข้อผิดพลาดในการรีไซส์รูปภาพ"
   },
   "TeacherDelete": {
     "title": "ยืนยันการลบ",
@@ -903,6 +878,7 @@
     "studyPeriod": "ช่วงเวลาเรียน",
     "holidayPrefix": "วันหยุด:",
     "leavePrefix": "ลา",
+    "moreDetail": "รายละเอียดเพิ่มเติม",
     "activityPrefix": "กิจกรรม:"
   },
   "TeacherImportExcel": {
@@ -932,7 +908,26 @@
     "errEmptyData": "ไม่พบข้อมูลในไฟล์ Excel ที่เลือก",
     "errReadExcel": "ไม่สามารถอ่านไฟล์ Excel ได้ ลองตรวจสอบรูปแบบไฟล์",
     "errLoadFile": "เกิดข้อผิดพลาดในการโหลดไฟล์",
-    "warnPreviewFirst": "กรุณาดูตัวอย่างข้อมูลและตรวจสอบความถูกต้องก่อนบันทึก"
+    "warnPreviewFirst": "กรุณาดูตัวอย่างข้อมูลและตรวจสอบความถูกต้องก่อนบันทึก",
+    "errCompressFailed": "บีบอัดรูปไม่สำเร็จ",
+    "errCompressLimit": "ไม่สามารถบีบอัดรูปให้ไม่เกิน {size}KB ได้",
+    "errInvalidImage": "ไฟล์รูปไม่ถูกต้อง",
+    "errReadImage": "อ่านไฟล์รูปไม่สำเร็จ",
+    "errInvalidPrefix": "คำนำหน้าไม่ถูกต้อง กรุณาตรวจสอบ เช่น นาย, นาง, นางสาว, Mr., Ms., Mrs.",
+    "errDuplicateUserId": "รหัสนี้มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel",
+    "errRequireLastName": "กรุณากรอกนามสกุล",
+    "errLastNamePattern": "นามสกุลต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น",
+    "errFirstNamePattern": "ชื่อต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น",
+    "errIncompleteData": "กรุณากรอกข้อมูลให้ครบถ้วน",
+    "importSummaryTitle": "สำเร็จ",
+    "importSuccessCount": "บันทึกสำเร็จ",
+    "importFailCount": "บันทึกไม่สำเร็จ",
+    "importFailedListHeader": "รายการที่บันทึกไม่สำเร็จ:",
+    "colCode": "รหัส",
+    "colName": "ชื่อ",
+    "colReason": "สาเหตุ",
+    "unknownReason": "ไม่ทราบสาเหตุ",
+    "errImportData": "เกิดข้อผิดพลาดในการนำเข้าข้อมูล"
   },
   "TeacherTable": {
     "noData": "ไม่มีข้อมูลบุคลากร",
@@ -945,10 +940,56 @@
     "colPosition": "ตำแหน่ง",
     "colStatus": "สถานะ",
     "colActions": "จัดการ",
+    "colApiNumber": "เลข API",
     "all": "ทั้งหมด",
     "actionDetail": "ดูรายละเอียด",
     "actionEdit": "แก้ไข",
     "actionDelete": "ลบ"
+  },
+  "teacherUpdate": {
+    "title": "แก้ไขข้อมูลบุคลากร",
+    "image": "รูปภาพ",
+    "optional": "ไม่บังคับ",
+    "chooseImage": "เลือกรูปภาพบุคลากร",
+    "jpgOnly": "JPG only (สูงสุด 70KB)",
+    "employeeId": "รหัสบุคลากร",
+    "prefix": "คำนำหน้า",
+    "selectPrefix": "เลือกคำนำหน้า",
+    "firstName": "ชื่อ",
+    "lastName": "นามสกุล",
+    "position": "ตำแหน่ง",
+    "selectPosition": "เลือกตำแหน่ง",
+    "department": "แผนก",
+    "selectDepartment": "เลือกแผนก",
+    "rfid": "เลขบัตร RFID",
+    "status": "สถานะ",
+    "selectStatus": "เลือกสถานะ",
+    "normal": "ปกติ",
+    "suspended": "พักงาน",
+    "rfidOptional": "RFID (ไม่บังคับ)",
+    "replaceImage": "รูปภาพ (ถ้าต้องการเปลี่ยน)",
+    "cancel": "ยกเลิก",
+    "save": "บันทึก",
+    "invalidDataTitle": "ข้อมูลไม่ถูกต้อง",
+    "invalidDataText": "กรุณากรอกชื่อและนามสกุลเป็นตัวอักษรเท่านั้น",
+    "successTitle": "แก้ไขข้อมูลอาจารย์สำเร็จ",
+    "errorTitle": "เกิดข้อผิดพลาด",
+    "errorMessage": "ไม่สามารถแก้ไขข้อมูลอาจารย์ได้",
+    "nameOnlyLetters": "ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น",
+    "requiredFirstName": "กรุณากรอกชื่อ",
+    "requiredLastName": "กรุณากรอกนามสกุล",
+    "numericRfid": "เลขบัตรต้องเป็นตัวเลขเท่านั้น",
+    "fileTooLarge": "ขนาดรูปบุคลากรเกิน {size}KB",
+    "fileCheckError": "เกิดข้อผิดพลาดในการตรวจสอบหรือปรับขนาดรูปภาพ",
+    "compressFail": "บีบอัดรูปไม่สำเร็จ",
+    "compressLimitFail": "ไม่สามารถบีบอัดรูปให้ไม่เกิน {size}KB ได้",
+    "invalidImageFile": "ไฟล์รูปไม่ถูกต้อง",
+    "readImageFail": "อ่านไฟล์รูปไม่สำเร็จ",
+    "selectJpgOnly": "กรุณาเลือกไฟล์ JPG เท่านั้น",
+    "resizeError": "เกิดข้อผิดพลาดในการรีไซส์รูปภาพ",
+    "duplicateId": "มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น",
+    "moreDetail": "รายละเอียดเพิ่มเติม",
+    "noFaceDetected": "ไม่พบใบหน้าในรูป กรุณาเลือกรูปที่เห็นใบหน้าชัดเจน"
   },
   "StudentCreate": {
     "title": "เพิ่มนักเรียน",
@@ -980,6 +1021,7 @@
     "errRfidNumber": "เลขบัตรต้องเป็นตัวเลขเท่านั้น",
     "errPhoneOption": "เบอร์โทรผู้ปกครองต้องเป็นตัวเลขเท่านั้น",
     "errOnlyJpg": "กรุณาเลือกไฟล์ JPG เท่านั้น",
+    "errNoFaceDetected": "ไม่พบใบหน้าในรูป กรุณาเลือกรูปที่เห็นใบหน้าชัดเจน",
     "errCompressFail": "บีบอัดรูปไม่สำเร็จ",
     "errInvalidImage": "ไฟล์รูปไม่ถูกต้อง",
     "errReadImageFail": "อ่านไฟล์รูปไม่สำเร็จ",
@@ -989,7 +1031,8 @@
     "errInvalidDataText": "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง",
     "errDuplicateId": "มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น",
     "errCreateFail": "ไม่สามารถเพิ่มนักเรียนได้",
-    "errTitle": "เกิดข้อผิดพลาด"
+    "errTitle": "เกิดข้อผิดพลาด",
+    "noUseFace": "ไม่ใช้สแกนใบหน้า"
   },
   "StudentDelete": {
     "title": "ยืนยันการลบ",
@@ -1102,7 +1145,8 @@
     "unknownReason": "ไม่ทราบสาเหตุ",
     "successTitle": "สำเร็จ",
     "errorTitle": "เกิดข้อผิดพลาด",
-    "importErrorDefault": "เกิดข้อผิดพลาดในการนำเข้าข้อมูล"
+    "importErrorDefault": "เกิดข้อผิดพลาดในการนำเข้าข้อมูล",
+    "compressFail": "บีบอัดรูปไม่สำเร็จ"
   },
   "StudentRePassword": {
     "title": "รีเซ็ตรหัสผ่าน",
@@ -1171,7 +1215,8 @@
     "errInvalidDataText": "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง",
     "errDuplicateId": "มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น",
     "errUpdateFail": "ไม่สามารถแก้ไขข้อมูลนักเรียนได้",
-    "errTitle": "เกิดข้อผิดพลาด"
+    "errTitle": "เกิดข้อผิดพลาด",
+    "noUseFace": "ไม่ใช้สแกนใบหน้า"
   },
   "academicCalendarPage": {
     "title": "ปฏิทินการศึกษา",
@@ -1180,7 +1225,6 @@
     "updateSuccess": "แก้ไขข้อมูลสำเร็จ",
     "deleteSuccess": "ลบข้อมูลสำเร็จ"
   },
-
   "ReportActivityDetail": {
     "title": "รายละเอียดกิจกรรม",
     "subtitle": "ข้อมูลกิจกรรมและสถานะการเข้าร่วม",
@@ -1205,7 +1249,11 @@
     "statusParticipated": "เข้าร่วม",
     "statusLate": "สาย",
     "statusAbsent": "ขาด",
-    "statusLeave": "ลา"
+    "statusLeave": "ลา",
+    "timeLog": "บันทึกเวลา",
+    "checkInPhotoAlt": "รูปถ่ายเวลาเข้า",
+    "similarity": "ความเหมือน",
+    "noAttendanceData": "ยังไม่มีข้อมูลการเข้าเรียน"
   },
   "ReportActivityTable": {
     "colCode": "รหัส",
@@ -1218,7 +1266,24 @@
     "noData": "ไม่พบข้อมูลกิจกรรม",
     "loadError": "เกิดข้อผิดพลาดในการโหลดข้อมูลกิจกรรม",
     "roleStudent": "นักเรียน",
-    "roleTeacher": "ครู"
+    "roleTeacher": "ครู",
+    "colClassroom": "ชั้น/ห้อง",
+    "colAttendance": "สถานะการเข้าร่วม",
+    "exportExcel": "ส่งออก Excel",
+    "exportError": "เกิดข้อผิดพลาดในการส่งออก Excel",
+    "lastScan": "สแกนล่าสุด",
+    "show": "แสดง",
+    "itemsPerPage": "รายการ/หน้า",
+    "totalItems": "ทั้งหมด {total} รายการ (หน้า {page} / {totalPages})",
+    "statusParticipated": "เข้าร่วม",
+    "statusLate": "สาย",
+    "statusAbsent": "ขาด",
+    "statusLeave": "ลา",
+    "present_half": "มาเรียนแล้ว",
+    "present": "ลงเวลามา",
+    "full_day": "กิจกรรมทั้งวัน",
+    "expired_absent": "ยังไม่สแกน",
+    "on_activity": "อยู่ระหว่างกิจกรรม"
   },
   "ReportAtRiskStudent": {
     "refresh": "รีเฟรช",
@@ -1234,7 +1299,9 @@
     "defaultStudent": "นักเรียน",
     "loading": "กำลังโหลดข้อมูล...",
     "noData": "ไม่พบข้อมูล",
-    "fetchError": "ไม่สามารถดึงข้อมูลนักเรียนกลุ่มเสี่ยงได้"
+    "fetchError": "ไม่สามารถดึงข้อมูลนักเรียนกลุ่มเสี่ยงได้",
+    "export": "ส่งออก Excel",
+    "exportError": "เกิดข้อผิดพลาดในการส่งออก Excel"
   },
   "ReportAttendanceDetail": {
     "title": "รายละเอียดการเข้า-ออก",
@@ -1265,7 +1332,7 @@
     "noData": "ไม่พบข้อมูล",
     "none": "ไม่มี",
     "viewDetails": "ดูรายละเอียด",
-    "lineupLegend": "เวลาแรกจาก person_confirmation",
+    "lineupLegend": "เวลาเข้าแถว",
     "timeLegend": "แสดงเวลาที่เข้า/ออก",
     "noDataLegend": "ไม่มีข้อมูลเวลา",
     "totalItems": "ทั้งหมด {total} รายการ (หน้า {page} / {totalPages})",
@@ -1348,6 +1415,20 @@
     "approvedAt": "อนุมัติวันเวลา",
     "requestedBy": "ผู้ขอลา",
     "close": "ปิด",
+    "timeLog": "บันทึกเวลา",
+    "checkInPhotoAlt": "รูปถ่ายเวลาเข้า",
+    "similarity": "ความเหมือน",
+    "noScanData": "ยังไม่มีข้อมูลการสแกนบันทึกเวลาของวันที่ลานี้",
+    "present_half": "มาเรียนแล้ว",
+    "present": "ลงเวลามา",
+    "full_day": "ลาทั้งวัน",
+    "expired_absent": "ยังไม่สแกน",
+    "on_leave": "อยู่ระหว่างการลา",
+    "leaveType": {
+      "sick": "ลาป่วย",
+      "personal": "ลากิจ",
+      "vacation": "ลาพักร้อน"
+    },
     "role": {
       "student": "นักเรียน",
       "teacher": "ครู"
@@ -1362,11 +1443,21 @@
   "ReportLeaveRequest": {
     "code": "รหัส",
     "name": "ชื่อ",
+    "grade": "ชั้น/ห้อง",
     "position": "ตำแหน่ง",
     "leaveDate": "วันที่ลา",
     "sta": "สถานะ",
+    "attendance": "การเข้าเรียน",
     "moreInfo": "ดูข้อมูลเพิ่มเติม",
     "noData": "ไม่พบข้อมูลใบลา",
+    "lastScan": "สแกนล่าสุด",
+    "exportExcel": "ส่งออก Excel",
+    "exportError": "เกิดข้อผิดพลาดในการส่งออก Excel",
+    "presentHalf": "มาเรียนแล้ว",
+    "present": "ลงเวลามา",
+    "fullDay": "ลาทั้งวัน",
+    "notScanned": "ยังไม่สแกน",
+    "onLeave": "อยู่ระหว่างการลา",
     "role": {
       "student": "นักเรียน",
       "teacher": "ครู"
@@ -1376,6 +1467,11 @@
       "pending": "รอดำเนินการ",
       "rejected": "ไม่อนุมัติ",
       "cancelled": "ยกเลิก"
+    },
+    "leaveType": {
+      "sick": "ลาป่วย",
+      "personal": "ลากิจ",
+      "vacation": "ลาพักร้อน"
     }
   },
   "ReportMissedTable": {
@@ -1445,12 +1541,14 @@
     "total": "จำนวนทั้งหมด",
     "pass": "ผ่าน",
     "notPass": "ไม่ผ่าน",
+    "noShow": "ไม่ได้ตรวจ",
     "studentList": "รายการนักเรียน",
     "studentCode": "รหัส",
     "studentName": "ชื่อ",
     "status": "สถานะ",
     "issues": "ปัญหา",
     "remark": "หมายเหตุ",
+    "statusFilter": "กรองสถานะ",
     "noStudentData": "ไม่พบข้อมูลนักเรียน",
     "noDetailData": "ไม่พบข้อมูลรายละเอียด",
     "close": "ปิด"
@@ -1463,10 +1561,13 @@
     "total": "จำนวนทั้งหมด",
     "pass": "ผ่าน",
     "notPass": "ไม่ผ่าน",
+    "noShow": "ไม่ได้ตรวจ",
     "action": "จัดการ",
     "viewDetail": "ดูรายละเอียดเพิ่มเติม",
     "delete": "ลบรายการ",
     "noData": "ไม่พบข้อมูลการตรวจระเบียบการแต่งตัว",
+    "exportExcel": "ส่งออก Excel",
+    "exportError": "เกิดข้อผิดพลาดในการส่งออก Excel",
     "prev": "ก่อนหน้า",
     "next": "ถัดไป",
     "summaryTotal": "ทั้งหมด {total} รายการ (หน้า {page} / {totalPages})"
@@ -1559,6 +1660,7 @@
     "allGrades": "ทุกชั้นปี",
     "classroomLabel": "เลือกห้อง",
     "allClassrooms": "ทุกห้อง",
+    "rowsPerPage": "แถวต่อหน้า",
     "gradeClassroomBadge": "ชั้นปี / ห้อง",
     "fetchError": "เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง"
   },
@@ -1573,6 +1675,10 @@
     "statusRejected": "ไม่อนุมัติ",
     "statusCancelled": "ยกเลิก",
     "typeLabel": "ประเภท",
+    "grade": "ชั้นปี",
+    "allGrades": "ทั้งหมด",
+    "classroom": "ห้อง",
+    "allClassrooms": "ทั้งหมด",
     "typeAll": "ทั้งหมด",
     "typeStudent": "นักเรียน",
     "typeTeacher": "ครู",

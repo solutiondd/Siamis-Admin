@@ -146,6 +146,15 @@
                             <option value="พักงาน">{{ t('TeacherCreate.statusSuspended') }}</option>
                         </select>
                     </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ t('TeacherCreate.note') }} <span
+                                    class="text-gray-500">{{ t('TeacherCreate.optional') }}</span></span>
+                        </label>
+                        <input v-model="formData.note" type="text" class="input input-bordered w-full"
+                            autocomplete="off" />
+                    </div>
                 </div>
 
                 <div class="modal-action">
@@ -173,6 +182,8 @@ const fileName = ref('')
 const fileError = ref('')
 const useridError = ref('')
 const rfidError = ref('')
+let faceapiLib = null
+let tinyFaceModelReady = false
 
 const positionQuery = ref('')
 const positionOpen = ref(false)
@@ -190,6 +201,7 @@ const formData = ref({
     first_name: '',
     last_name: '',
     rfid: '',
+    note: '',
     position: '',
     department: '',
     status: '',
@@ -288,6 +300,7 @@ const openModal = () => {
         first_name: '',
         last_name: '',
         rfid: '',
+        note: '',
         position: '',
         department: '',
         status: '',
@@ -313,6 +326,7 @@ const closeModal = () => {
         first_name: '',
         last_name: '',
         rfid: '',
+        note: '',
         position: '',
         department: '',
         status: '',
@@ -327,6 +341,29 @@ const closeModal = () => {
     departmentQuery.value = ''
     positionOpen.value = false
     departmentOpen.value = false
+}
+
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
 }
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
@@ -348,7 +385,7 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
+                        if (!b) return reject(t('TeacherCreate.errCompressFailed'));
 
                         if (b.size <= maxBytes) {
                             resolve(b);
@@ -369,16 +406,16 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                             return;
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
+                        reject(t('TeacherCreate.errCompressMaxSize', { maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
 
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('TeacherCreate.errInvalidImageFile'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('TeacherCreate.errReadImageFailed'));
         reader.readAsDataURL(file);
     });
 }
@@ -389,13 +426,25 @@ const handleFileChange = async (event) => {
 
     if (file) {
         if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น';
+            fileError.value = t('TeacherCreate.errOnlyJpg');
             event.target.value = '';
             return;
         }
         try {
             const resizedBlob = await resizeImage(file, 70, 450);
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const resizedFile = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const hasFace = await detectFace(resizedFile)
+
+            if (!hasFace) {
+                fileError.value = t('TeacherCreate.errNoFaceDetected');
+                formData.value.picture = null
+                previewImage.value = ''
+                fileName.value = ''
+                event.target.value = ''
+                return
+            }
+
+            formData.value.picture = resizedFile;
             fileName.value = file.name;
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -403,7 +452,7 @@ const handleFileChange = async (event) => {
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || t('TeacherCreate.errResizeImage');
             event.target.value = '';
         }
     }

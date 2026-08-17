@@ -1,5 +1,5 @@
 <template>
-    <div class="container mx-auto p-4 max-w-5xl max-[944px]:pt-14">
+    <div class="container mx-auto p-4 max-w-5xl max-[944px]:pt-16">
         <div class="flex items-center gap-2 mb-6">
             <div>
                 <h1 class="text-xl sm:text-2xl font-bold text-white">{{ t('allowanceSettingPage.title') }}</h1>

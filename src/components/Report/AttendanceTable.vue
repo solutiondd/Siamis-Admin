@@ -14,6 +14,7 @@
             <table class="table table-zebra w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
+                        <th class="w-12 text-center">#</th>
                         <th class="text-center">{{ $t('ReportAttendanceTable.code') }}</th>
                         <th class="text-center">{{ $t('ReportAttendanceTable.profile') }}</th>
                         <th>{{ $t('ReportAttendanceTable.fullName') }}</th>
@@ -28,13 +29,16 @@
                 </thead>
                 <tbody>
                     <tr v-if="data.length === 0">
-                        <td colspan="10" class="text-center py-8 text-base-content/60">
+                        <td colspan="11" class="text-center py-8 text-base-content/60">
                             {{ $t('ReportAttendanceTable.noData') }}
                         </td>
                     </tr>
-                    <template v-for="item in data" :key="item._id">
+                    <template v-for="(item, index) in data" :key="item._id">
                         <template v-if="item.attendances && item.attendances.length > 0">
                             <tr class="hover" :key="item._id + '-first'">
+                                <td class="text-center">
+                                    {{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1 }}
+                                </td>
                                 <td class="text-center">{{ item.userid }}</td>
                                 <td class="text-center">
                                     <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
@@ -93,6 +97,7 @@
                                 <tr v-if="attIdx > 0" class="hover">
                                     <td class="text-center"></td>
                                     <td class="text-center"></td>
+                                    <td class="text-center"></td>
                                     <td></td>
                                     <td class="text-center"></td>
                                     <td class="text-center"></td>
@@ -131,6 +136,9 @@
                             </template>
                         </template>
                         <tr v-else class="hover">
+                            <td class="text-center">
+                                {{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1 }}
+                            </td>
                             <td class="text-center">{{ item.userid }}</td>
                             <td class="text-center">
                                 <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
@@ -346,7 +354,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const loadingExport = ref(false)
 
 function normalizeCellValue(value) {
@@ -599,7 +607,8 @@ const extractAttendanceByUsecase = (attendance) => {
 const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const dataLocale = locale.value === 'th' ? 'th-TH-u-ca-buddhist' : 'en-US';
+    return date.toLocaleDateString(dataLocale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'

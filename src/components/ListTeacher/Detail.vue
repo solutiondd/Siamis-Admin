@@ -22,6 +22,11 @@
                         class="text-sm text-base-content/70">{{ t('TeacherDetail.rfid') }} {{ teacher.rfid }}</div>
                 </div>
             </div>
+            <div class="mb-4 rounded-md bg-base-200 p-3">
+                <div class="text-sm font-semibold">{{ t('TeacherDetail.moreDetail') }}</div>
+                <div class="text-sm text-base-content/80 mt-1">{{ teacher?.note && String(teacher.note).trim()
+                    !== '' ? teacher.note : '-' }}</div>
+            </div>
             <div class="mb-2 font-semibold flex items-center gap-2">
                 <span>{{ t('TeacherDetail.schoolCalendar') }}</span>
                 <select v-model="selectedMonth" class="select select-bordered select-xs">

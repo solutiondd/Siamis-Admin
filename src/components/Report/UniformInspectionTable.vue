@@ -1,5 +1,16 @@
 <template>
     <div class="w-full">
+        <div class="flex justify-end mb-2">
+            <button class="btn btn-sm btn-success" :disabled="loadingExport" @click="exportUniformInspectionToExcel">
+                <span v-if="loadingExport" class="loading loading-spinner loading-xs mr-2"></span>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                {{ $t('ReportUniformInspectionTable.exportExcel') }}
+            </button>
+        </div>
+
         <div v-if="loading" class="flex justify-center py-8">
             <span class="loading loading-spinner loading-lg"></span>
         </div>
@@ -15,7 +26,8 @@
                         <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.total') }}</th>
                         <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.pass') }}</th>
                         <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.notPass') }}</th>
-                        <th class="text-center">{{ $t('ReportUniformInspectionTable.action') }}</th>
+                        <th class="text-center max-[509px]:hidden">{{ $t('ReportUniformInspectionTable.noShow') }}</th>
+                        <th class="text-center"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,7 +38,12 @@
                         <td>{{ formatDate(item.date) }}</td>
                         <td class="text-center max-[509px]:hidden">{{ item.summary?.total ?? 0 }}</td>
                         <td class="text-center max-[509px]:hidden">{{ item.summary?.pass ?? 0 }}</td>
-                        <td class="text-center max-[509px]:hidden">{{ item.summary?.not_pass ?? 0 }}</td>
+                        <td class="text-center max-[509px]:hidden text-error font-semibold">
+                            {{ Math.max(0, (item.summary?.not_pass ?? 0) - (item.summary?.no_show ?? 0)) }}
+                        </td>
+                        <td class="text-center max-[509px]:hidden text-warning font-semibold">
+                            {{ item.summary?.no_show ?? 0 }}
+                        </td>
                         <td class="text-center">
                             <div class="flex items-center justify-center gap-2">
                                 <button @click="openDetail(item)" class="bg-transparent border-none shadow-none p-0"
@@ -88,6 +105,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { UniformInspectionService } from '../../api/uniform_inspection';
 import UniformInspectionDetail from './UniformInspectionDetail.vue';
 import UniformInspectionDelete from './UniformInspectionDelete.vue';
@@ -112,6 +131,7 @@ const uniformInspectionService = new UniformInspectionService();
 const detailRef = ref(null);
 const deleteRef = ref(null);
 const loading = ref(false);
+const loadingExport = ref(false);
 const rows = ref([]);
 const canDeleteUniformInspection = featureFlags.reportUniformInspection?.enableDelete ?? true;
 const pagination = ref({
@@ -194,6 +214,94 @@ const openDetail = (item) => {
 
 const openDelete = (item) => {
     deleteRef.value?.open(item);
+};
+
+const exportUniformInspectionToExcel = async () => {
+    if (loadingExport.value) return;
+    loadingExport.value = true;
+
+    try {
+        const limit = Number(props.filters?.limit || pagination.value.limit || 50);
+        const firstQuery = { ...buildQuery(1), limit };
+        const firstResponse = await uniformInspectionService.getUniformInspections(firstQuery);
+
+        let allRows = firstResponse?.data || [];
+        const total = Number(firstResponse?.total || allRows.length || 0);
+        const totalPageCount = Math.max(1, Math.ceil(total / Math.max(1, limit)));
+
+        for (let page = 2; page <= totalPageCount; page += 1) {
+            const response = await uniformInspectionService.getUniformInspections({ ...firstQuery, page });
+            allRows = allRows.concat(response?.data || []);
+        }
+
+        const sortedForExport = [...allRows].sort((a, b) => {
+            const gradeDiff = getGradeSortOrder(a?.grade) - getGradeSortOrder(b?.grade);
+            if (gradeDiff !== 0) return gradeDiff;
+
+            const classroomDiff = getClassroomNumber(a?.classroom) - getClassroomNumber(b?.classroom);
+            if (classroomDiff !== 0) return classroomDiff;
+
+            return String(a?._id || '').localeCompare(String(b?._id || ''));
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('UniformInspection');
+
+        const reportDate = props.filters?.date ? formatThaiDate(props.filters.date) : '-';
+        worksheet.addRow([`รายงานตรวจระเบียบการแต่งตัว (${reportDate})`]);
+        worksheet.mergeCells('A1:H1');
+        worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getCell('A1').font = { bold: true };
+
+        const headers = ['ลำดับ', 'ชั้น', 'ห้อง', 'ผู้ตรวจ', 'วันที่', 'จำนวนทั้งหมด', 'ผ่าน', 'ไม่ผ่าน', 'ไม่ได้มาตรวจ'];
+        worksheet.addRow(headers);
+
+        sortedForExport.forEach((item, index) => {
+            const notPassReal = Math.max(0, (item.summary?.not_pass ?? 0) - (item.summary?.no_show ?? 0));
+            worksheet.addRow([
+                index + 1,
+                item.grade ? mapGradeDisplay(item.grade) : '-',
+                item.classroom ?? '-',
+                item.inspector?.name || '-',
+                formatThaiDate(item.date),
+                item.summary?.total ?? 0,
+                item.summary?.pass ?? 0,
+                notPassReal,
+                item.summary?.no_show ?? 0,
+            ]);
+        });
+
+        worksheet.columns = [
+            { width: 10 },
+            { width: 16 },
+            { width: 12 },
+            { width: 24 },
+            { width: 18 },
+            { width: 16 },
+            { width: 12 },
+            { width: 12 },
+            { width: 12 },
+        ];
+
+        worksheet.getRow(2).font = { bold: true };
+        worksheet.getRow(2).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(1).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(2).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(3).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(5).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(6).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(7).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(8).alignment = { horizontal: 'center', vertical: 'middle' };
+
+        const safeDate = props.filters?.date || '';
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `UniformInspectionReport_${safeDate}.xlsx`);
+    } catch (error) {
+        alert($t('ReportUniformInspectionTable.exportError'));
+        console.error('Export uniform inspection error:', error);
+    } finally {
+        loadingExport.value = false;
+    }
 };
 
 const changePage = async (page) => {

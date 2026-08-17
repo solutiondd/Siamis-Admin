@@ -33,6 +33,7 @@
                             <div>
                                 <span class="font-medium">{{ teacher.name }}</span>
                                 <div class="text-xs text-base-content/70">{{ t('TeacherDetail.code') }} {{ teacher.code }}</div>
+                                <div v-if="showApiNumber" class="text-xs text-base-content/70">{{ t('TeacherTable.colApiNumber') }} {{ teacher.note || '-' }}</div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 text-sm mt-2">
@@ -97,9 +98,10 @@
                 <table class="table table-zebra table-xs sm:table-sm md:table-md">
                     <thead>
                         <tr>
-                            <th class="bg-primary text-primary-content hidden xl:table-cell">{{ t('TeacherTable.colNumber') }}</th>
+                            <th class="bg-primary text-primary-content hidden xl:table-cell">#</th>
                             <th class="bg-primary text-primary-content">{{ t('TeacherTable.colName') }}</th>
                             <th class="bg-primary text-primary-content hidden sm:table-cell">{{ t('TeacherTable.colCode') }}</th>
+                            <th v-if="showApiNumber" class="bg-primary text-primary-content hidden xl:table-cell">{{ t('TeacherTable.colApiNumber') }}</th>
                             <th class="bg-primary text-primary-content hidden md:table-cell">
                                 <div class="dropdown dropdown-end">
                                     <label tabindex="0"
@@ -152,12 +154,12 @@
                     </thead>
                     <tbody>
                         <tr v-if="loading">
-                            <td colspan="8" class="text-center py-8">
+                            <td :colspan="tableColspan" class="text-center py-8">
                                 <span class="loading loading-spinner loading-lg text-primary"></span>
                             </td>
                         </tr>
                         <tr v-else-if="teachers.length === 0">
-                            <td colspan="8" class="text-center py-8 text-base-content/50">
+                            <td :colspan="tableColspan" class="text-center py-8 text-base-content/50">
                                 {{ t('TeacherTable.noData') }}
                             </td>
                         </tr>
@@ -174,7 +176,7 @@
                                             <div v-else
                                                 class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                                 <span class="text-sm font-semibold">{{ getInitials(teacher.name)
-                                                    }}</span>
+                                                }}</span>
                                                 <svg class="ml-1 w-4 h-4 text-base-content/50" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -188,6 +190,7 @@
                                 </div>
                             </td>
                             <td class="hidden sm:table-cell">{{ teacher.code }}</td>
+                            <td v-if="showApiNumber" class="hidden xl:table-cell text-xs">{{ teacher.note || '-' }}</td>
                             <td class="hidden md:table-cell">
                                 <span class="badge badge-ghost badge-sm">{{ teacher.department }}</span>
                             </td>
@@ -258,7 +261,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 
@@ -299,6 +302,10 @@ const props = defineProps({
     itemsPerPage: {
         type: Number,
         default: 5
+    },
+    showApiNumber: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -306,6 +313,12 @@ const localDepartmentFilter = ref(props.departmentFilter)
 const localPositionFilter = ref(props.positionFilter)
 const pictureModal = ref(null)
 const pictureModalSrc = ref(null)
+const tableColspan = computed(() => {
+    let cols = 6
+    if (props.showApiNumber) cols += 1
+    if (auth.user?.role !== 'teacher') cols += 1
+    return cols
+})
 
 const openPictureModal = (src) => {
     pictureModalSrc.value = src
@@ -353,7 +366,7 @@ const handleDepartmentFilter = (value) => {
 }
 
 const handlePositionFilter = (value) => {
-    localDepartmentFilter.value = value
+    localPositionFilter.value = value
     emit('filterPosition', value)
 }
 

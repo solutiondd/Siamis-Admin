@@ -109,6 +109,31 @@ import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
 
 const { t } = useI18n()
+let faceapiLib = null
+let tinyFaceModelReady = false
+
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
+}
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
@@ -129,7 +154,7 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
+                        if (!b) return reject(t('TeacherImportExcel.errCompressFailed'));
 
                         if (b.size <= maxBytes) {
                             resolve(b);
@@ -150,16 +175,16 @@ async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
                             return;
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`);
+                        reject(t('TeacherImportExcel.errCompressLimit', { size: maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
 
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('TeacherImportExcel.errInvalidImage'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('TeacherImportExcel.errReadImage'));
         reader.readAsDataURL(file);
     });
 }
@@ -221,7 +246,7 @@ function onImagesChange(e) {
 
 function previewExcel() {
     if (!excelFile.value) {
-        Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errSelectExcelFirst'), 'warning')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.errSelectExcelFirst'), 'warning')
         return
     }
 
@@ -245,7 +270,7 @@ function previewExcel() {
             const json = XLSX.utils.sheet_to_json(sheet)
 
             if (!json || json.length === 0) {
-                Swal.fire('ข้อมูลว่างเปล่า', t('TeacherImportExcel.errEmptyData'), 'warning')
+                Swal.fire(t('common.error'), t('TeacherImportExcel.errEmptyData'), 'warning')
             } else {
                 previewData.value = json.map(row => {
                     const userid = (mapHeader('รหัส', row) || mapHeader('userid', row) || '').toString().trim();
@@ -281,7 +306,7 @@ function previewExcel() {
 
         } catch (error) {
             console.error('Error reading Excel:', error)
-            Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errReadExcel'), 'error')
+            Swal.fire(t('common.error'), t('TeacherImportExcel.errReadExcel'), 'error')
             previewData.value = []
         } finally {
             isPreviewing.value = false
@@ -289,14 +314,14 @@ function previewExcel() {
     }
     reader.onerror = () => {
         isPreviewing.value = false
-        Swal.fire('ข้อผิดพลาด', t('TeacherImportExcel.errLoadFile'), 'error')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.errLoadFile'), 'error')
     }
     reader.readAsArrayBuffer(excelFile.value)
 }
 
 async function handleImport() {
     if (!previewData.value.length || !excelFile.value) {
-        Swal.fire('แจ้งเตือน', t('TeacherImportExcel.warnPreviewFirst'), 'warning')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.warnPreviewFirst'), 'warning')
         return
     }
 
@@ -329,9 +354,15 @@ async function handleImport() {
             try {
                 const resizedBlob = await resizeImage(sourceFile, 70, 450);
                 const resizedFile = new File([resizedBlob], sourceFile.name, { type: 'image/jpeg' });
+                const hasFace = await detectFace(resizedFile)
+                if (!hasFace) {
+                    resizedImageCache[normalizedKey] = null;
+                    return null;
+                }
                 resizedImageCache[normalizedKey] = resizedFile;
                 return resizedFile;
             } catch (err) {
+                resizedImageCache[normalizedKey] = null;
                 return null;
             }
         }
@@ -368,7 +399,7 @@ async function handleImport() {
                 || await getResizedImageByKey(cleanedTeacher.userid);
 
             let formData = {};
-            
+
             let existing = null;
             try {
                 existing = await teacherService.getTeacherByUserid(cleanedTeacher.userid);
@@ -377,23 +408,23 @@ async function handleImport() {
 
             if (existing && existing.message === 'Success' && existing.data && existing.data._id) {
                 const oldData = existing.data;
-                
+
                 let fallbackFirstName = oldData.first_name || '';
                 let fallbackLastName = oldData.last_name || '';
 
                 if ((!fallbackFirstName || !fallbackLastName) && oldData.name) {
                     let cleanName = oldData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง|ดร\.|อ\.|ศ\.|ผศ\.|รศ\.)\s*/, '').trim();
                     const nameParts = cleanName.split(/\s+/);
-                    
+
                     fallbackFirstName = nameParts[0] || '';
-                    fallbackLastName = nameParts.slice(1).join(' ') || ''; 
+                    fallbackLastName = nameParts.slice(1).join(' ') || '';
                 }
 
                 formData = {
                     ...oldData,
                     userid: cleanedTeacher.userid,
                 };
-                
+
                 delete formData.picture;
 
                 const isInvalidValue = (val) => {
@@ -405,10 +436,10 @@ async function handleImport() {
                 formData.pre_name = !isInvalidValue(cleanedTeacher.pre_name) ? cleanedTeacher.pre_name : (oldData.pre_name || '');
                 formData.first_name = !isInvalidValue(cleanedTeacher.first_name) ? cleanedTeacher.first_name : fallbackFirstName;
                 formData.last_name = !isInvalidValue(cleanedTeacher.last_name) ? cleanedTeacher.last_name : fallbackLastName;
-                
+
                 formData.position = !isInvalidValue(cleanedTeacher.position) ? cleanedTeacher.position : oldData.position;
                 formData.department = !isInvalidValue(cleanedTeacher.department) ? cleanedTeacher.department : oldData.department;
-                
+
                 formData.rfid = cleanedTeacher.rfid !== '' ? cleanedTeacher.rfid : oldData.rfid;
 
                 if (resolvedImageFile) {
@@ -423,7 +454,7 @@ async function handleImport() {
                         failedTeachers.push({
                             userid: cleanedTeacher.userid,
                             name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
-                            reason: response.message || 'ไม่ทราบสาเหตุ'
+                            reason: response.message || t('TeacherImportExcel.unknownReason')
                         });
                     }
                 } catch (err) {
@@ -431,7 +462,7 @@ async function handleImport() {
                     failedTeachers.push({
                         userid: cleanedTeacher.userid,
                         name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
-                        reason: err.response?.data?.error || err.response?.data?.message || err.message || 'ไม่ทราบสาเหตุ'
+                        reason: err.response?.data?.error || err.response?.data?.message || err.message || t('TeacherImportExcel.unknownReason')
                     });
                 }
 
@@ -459,24 +490,24 @@ async function handleImport() {
                         failedTeachers.push({
                             userid: cleanedTeacher.userid,
                             name: `${cleanedTeacher.pre_name}${cleanedTeacher.first_name} ${cleanedTeacher.last_name}`,
-                            reason: response.message || 'ไม่ทราบสาเหตุ'
+                            reason: response.message || t('TeacherImportExcel.unknownReason')
                         });
                     }
                 } catch (err) {
                     const apiError = err?.response?.data;
-                    let reason = apiError?.error || apiError?.message || err.message || 'ไม่ทราบสาเหตุ';
+                    let reason = apiError?.error || apiError?.message || err.message || t('TeacherImportExcel.unknownReason');
                     if (apiError?.message === 'Validation error' && apiError?.error?.includes('"pre_name" must be one of')) {
-                        reason = 'คำนำหน้าไม่ถูกต้อง กรุณาตรวจสอบ เช่น นาย, นาง, นางสาว, Mr., Ms., Mrs.';
+                        reason = t('TeacherImportExcel.errInvalidPrefix');
                     } else if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
-                        reason = 'รหัสนี้มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel';
+                        reason = t('TeacherImportExcel.errDuplicateUserId');
                     } else if (reason === '"last_name" is not allowed to be empty' || reason === 'last_name" is not allowed to be empty') {
-                        reason = 'กรุณากรอกนามสกุล';
+                        reason = t('TeacherImportExcel.errRequireLastName');
                     } else if (/fails to match the required pattern/.test(reason) && /last_name/.test(reason)) {
-                        reason = 'นามสกุลต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น';
+                        reason = t('TeacherImportExcel.errLastNamePattern');
                     } else if (/fails to match the required pattern/.test(reason) && /first_name/.test(reason)) {
-                        reason = 'ชื่อต้องเป็นภาษาไทยหรืออังกฤษเท่านั้น';
+                        reason = t('TeacherImportExcel.errFirstNamePattern');
                     } else if (/is required/.test(reason)) {
-                        reason = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+                        reason = t('TeacherImportExcel.errIncompleteData');
                     }
                     failedTeachers.push({
                         userid: cleanedTeacher.userid,
@@ -488,12 +519,12 @@ async function handleImport() {
         }
 
         let msg = `<div style='text-align:left;'>`
-            + `บันทึกสำเร็จ <b>${importedTeachers.length}</b> รายการ`
-            + `<br>บันทึกไม่สำเร็จ <b>${failedTeachers.length}</b> รายการ`;
+            + `${t('TeacherImportExcel.importSuccessCount')} <b>${importedTeachers.length}</b> ${t('TeacherImportExcel.itemsText') || 'รายการ'}`
+            + `<br>${t('TeacherImportExcel.importFailCount')} <b>${failedTeachers.length}</b> ${t('TeacherImportExcel.itemsText') || 'รายการ'}`;
         if (failedTeachers.length > 0) {
-            msg += `<br><br><b>รายการที่บันทึกไม่สำเร็จ:</b>`;
+            msg += `<br><br><b>${t('TeacherImportExcel.importFailedListHeader')}</b>`;
             msg += `<div style='max-height:220px;overflow:auto;'><table style='border-collapse:collapse;width:100%;font-size:13px;'>`;
-            msg += `<thead><tr style='background:#f3f4f6;'><th style='border:1px solid #ddd;padding:4px;'>รหัส</th><th style='border:1px solid #ddd;padding:4px;'>ชื่อ</th><th style='border:1px solid #ddd;padding:4px;'>สาเหตุ</th></tr></thead><tbody>`;
+            msg += `<thead><tr style='background:#f3f4f6;'><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colCode')}</th><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colName')}</th><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colReason')}</th></tr></thead><tbody>`;
             msg += failedTeachers.map(f => {
                 return `<tr><td style='border:1px solid #ddd;padding:4px;'>${f.userid}</td><td style='border:1px solid #ddd;padding:4px;'>${f.name}</td><td style='border:1px solid #ddd;padding:4px;color:#b91c1c;'>${f.reason}</td></tr>`;
             }).join('');
@@ -501,7 +532,7 @@ async function handleImport() {
         }
         msg += `</div>`;
         Swal.fire({
-            title: 'สำเร็จ',
+            title: t('TeacherImportExcel.importSummaryTitle'),
             html: msg,
             icon: failedTeachers.length > 0 ? 'warning' : 'success',
             width: 600
@@ -510,8 +541,8 @@ async function handleImport() {
         closeModal();
     } catch (e) {
         console.error('Import error:', e);
-        const errorMessage = e.response?.data?.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
-        Swal.fire('เกิดข้อผิดพลาด', errorMessage, 'error');
+        const errorMessage = e.response?.data?.message || t('TeacherImportExcel.errImportData');
+        Swal.fire(t('common.error'), errorMessage, 'error');
     } finally {
         isImporting.value = false;
     }

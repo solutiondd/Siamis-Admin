@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full space-y-6 max-[944px]:pt-14">
+    <div class="w-full space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
             <h2 class="text-lg md:text-3xl font-bold">{{ $t('Activity.title') }}</h2>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
@@ -52,7 +52,7 @@
                     </select>
                 </div>
 
-                <div v-if="residentRole !== 'teacher'" class="form-control">
+                <!-- <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">{{ $t('Activity.typeLabel') }}</span>
                     </label>
@@ -61,7 +61,7 @@
                         <option value="student">{{ $t('Activity.typeStudent') }}</option>
                         <option value="teacher">{{ $t('Activity.typeTeacher') }}</option>
                     </select>
-                </div>
+                </div> -->
 
                 <div v-if="residentRole === 'teacher'"
                     class="form-control flex justify-end items-center md:items-end md:col-start-2 xl:col-start-4 xl:col-span-1">

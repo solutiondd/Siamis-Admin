@@ -120,6 +120,13 @@
                                 }}</span></label>
                     </div>
 
+                    <div class="form-control w-full md:col-span-2">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" v-model="formData.no_use_face" class="checkbox checkbox-primary" />
+                            <span class="label-text">{{ $t('StudentUpdate.noUseFace') }}</span>
+                        </label>
+                    </div>
+
                 </div>
 
                 <div class="modal-action">
@@ -162,6 +169,8 @@ const useridError = ref('')
 const studentId = ref('')
 const rfidError = ref('')
 const guardianPhoneError = ref('')
+let faceapiLib = null
+let tinyFaceModelReady = false
 
 const formData = ref({
     userid: '',
@@ -172,7 +181,8 @@ const formData = ref({
     classroom: '',
     picture: null,
     rfid: '',
-    guardian_phone: ''
+    guardian_phone: '',
+    no_use_face: false
 })
 
 const props = defineProps({
@@ -247,141 +257,195 @@ const isFormValid = computed(() => {
     )
 })
 
-const handleGradeChange = () => {
-    formData.value.classroom = ''
-    if (availableClassrooms.value.length > 0) {
-        formData.value.classroom = availableClassrooms.value[0]
+const parseName = (name) => {
+    if (!name) return { pre: '', first: '', last: '' }
+    const parts = name.trim().split(/\s+/)
+    return {
+        pre: parts[0] || '',
+        first: parts[1] || '',
+        last: parts.slice(2).join(' ') || ''
     }
 }
 
-const openModal = (studentData) => {
-    studentId.value = studentData._id || studentData.id
+const openModal = async (student) => {
+    studentId.value = student.id
+    const parsed = parseName(student.name)
     formData.value = {
-        userid: studentData.userid || studentData.code || '',
-        pre_name: studentData.pre_name || '',
-        first_name: studentData.first_name || '',
-        last_name: studentData.last_name || '',
-        grade: studentData.grade || '',
-        classroom: studentData.classroom || studentData.room || '',
+        userid: student.userid || student.code || '',
+        pre_name: parsed.pre,
+        first_name: parsed.first,
+        last_name: parsed.last,
+        grade: student.grade || '',
+        classroom: student.room || '',
         picture: null,
-        rfid: studentData.rfid || '',
-        guardian_phone: studentData.guardian_phone || ''
+        rfid: student.rfid !== undefined && student.rfid !== null ? String(student.rfid) : '',
+        guardian_phone: student.guardian_phone !== undefined && student.guardian_phone !== null
+            ? String(student.guardian_phone)
+            : '',
+        no_use_face: Boolean(student.no_use_face === true || student.no_use_face === 'true')
     }
+    currentImage.value = getPictureUrl(student.picture) || ''
+    previewImage.value = ''
+    fileError.value = ''
+    firstNameError.value = ''
+    lastNameError.value = ''
+    useridError.value = ''
+    rfidError.value = ''
+    guardianPhoneError.value = ''
 
-    if (!formData.value.first_name && !formData.value.last_name && studentData.name) {
-        const cleanName = studentData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)\s*/, '').trim()
-        const parts = cleanName.split(/\s+/)
-        formData.value.first_name = parts[0] || ''
-        formData.value.last_name = parts.slice(1).join(' ') || ''
-    }
-
-    if (!formData.value.pre_name && studentData.name) {
-        const match = studentData.name.match(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)/)
-        if (match) {
-            formData.value.pre_name = match[1]
+    if (student.picture) {
+        try {
+            const response = await fetch(student.picture)
+            const blob = await response.blob()
+            if (blob.size > 70 * 1024) {
+                const resizedBlob = await resizeImage(blob, 70, 0)
+                if (resizedBlob.size <= 70 * 1024) {
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        currentImage.value = e.target.result
+                        previewImage.value = ''
+                    }
+                    reader.readAsDataURL(resizedBlob)
+                    formData.value.picture = new File([resizedBlob], 'student.jpg', { type: 'image/jpeg' })
+                } else {
+                    fileError.value = t('StudentUpdate.errOnlyJpg')
+                }
+            }
+        } catch (err) {
+            fileError.value = t('StudentUpdate.errTitle')
         }
     }
 
-    currentImage.value = studentData.picture ? getPictureUrl(studentData.picture) : ''
-    previewImage.value = ''
-    fileError.value = ''
-    useridError.value = ''
-    firstNameError.value = ''
-    lastNameError.value = ''
-    rfidError.value = ''
-    guardianPhoneError.value = ''
+    if (formData.value.classroom && availableClassrooms.value.length > 0 && availableClassrooms.value.includes(formData.value.classroom)) {
+        formData.value.classroom = availableClassrooms.value[0]
+    }
     modalRef.value?.showModal()
 }
 
 const closeModal = () => {
     modalRef.value?.close()
-    previewImage.value = ''
-    currentImage.value = ''
-    fileError.value = ''
-    useridError.value = ''
-    firstNameError.value = ''
-    lastNameError.value = ''
     rfidError.value = ''
     guardianPhoneError.value = ''
 }
 
-const handleFileChange = async (event) => {
-    const file = event.target.files[0]
-    fileError.value = ''
-
-    if (file) {
-        if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = t('StudentUpdate.errOnlyJpg')
-            event.target.value = ''
-            return
-        }
-        try {
-            const resizedBlob = await resizeImage(file, 70, 450)
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' })
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                previewImage.value = e.target.result
-            }
-            reader.readAsDataURL(resizedBlob)
-        } catch (err) {
-            fileError.value = err?.message || String(err) || 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ'
-            event.target.value = ''
-        }
+const handleGradeChange = () => {
+    if (availableClassrooms.value.length > 0) {
+        formData.value.classroom = availableClassrooms.value[0]
+    } else {
+        formData.value.classroom = ''
     }
+}
+
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
 }
 
 async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
-        const img = new window.Image()
-        const reader = new FileReader()
+        const img = new window.Image();
+        const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                const canvas = document.createElement('canvas')
-                const ctx = canvas.getContext('2d')
-                const maxBytes = maxSizeKB * 1024
-                let width = targetWidth > 0 ? targetWidth : img.width
-                let height = Math.max(1, Math.round((img.height * width) / img.width))
-                let quality = 0.9
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
 
                 function tryCompress() {
-                    canvas.width = Math.max(1, Math.round(width))
-                    canvas.height = Math.max(1, Math.round(height))
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ')
+                        if (!b) return reject(t('StudentUpdate.errOnlyJpg'));
 
                         if (b.size <= maxBytes) {
-                            resolve(b)
-                            return
+                            resolve(b);
+                            return;
                         }
 
                         if (quality > 0.45) {
-                            quality -= 0.07
-                            tryCompress()
-                            return
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
                         }
 
                         if (width > 120) {
-                            width = Math.max(120, Math.round(width * 0.9))
-                            height = Math.max(1, Math.round((img.height * width) / img.width))
-                            quality = 0.9
-                            tryCompress()
-                            return
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
                         }
 
-                        reject(`ไม่สามารถบีบอัดรูปให้ไม่เกิน ${maxSizeKB}KB ได้`)
-                    }, 'image/jpeg', quality)
+                        reject(t('StudentUpdate.errOnlyJpg'));
+                    }, 'image/jpeg', quality);
                 }
 
-                tryCompress()
-            }
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง')
-            img.src = e.target.result
+                tryCompress();
+            };
+            img.onerror = () => reject(t('StudentUpdate.errOnlyJpg'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(t('StudentUpdate.errTitle'));
+        reader.readAsDataURL(file);
+    });
+}
+
+const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    fileError.value = '';
+    if (file) {
+        if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
+            fileError.value = t('StudentUpdate.errOnlyJpg');
+            event.target.value = '';
+            return;
         }
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ')
-        reader.readAsDataURL(file)
-    })
+        try {
+            const resizedBlob = await resizeImage(file, 70, 450);
+            const resizedFile = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const hasFace = await detectFace(resizedFile)
+
+            if (!hasFace) {
+                fileError.value = t('StudentUpdate.errNoFaceDetected');
+                formData.value.picture = null
+                previewImage.value = ''
+                event.target.value = ''
+                return
+            }
+
+            formData.value.picture = resizedFile;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.value = e.target.result;
+            };
+            reader.readAsDataURL(resizedBlob);
+        } catch (err) {
+            fileError.value = err?.message || String(err) || t('StudentUpdate.errTitle');
+            event.target.value = '';
+        }
+    }
 }
 
 const removeImage = () => {
@@ -468,7 +532,5 @@ const handleSubmit = async () => {
     }
 }
 
-defineExpose({
-    openModal
-})
+defineExpose({ openModal, closeModal })
 </script>
