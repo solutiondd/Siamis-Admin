@@ -48,12 +48,6 @@ jobs:
           ssh -p "${{ secrets.VM_PORT }}" "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" \
             "mkdir -p '${{ secrets.VM_TARGET_DIR }}'"
 
-      - name: Clean target directory
-        shell: bash
-        run: |
-          ssh -p "${{ secrets.VM_PORT }}" "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" \
-            "find '${{ secrets.VM_TARGET_DIR }}' -mindepth 1 -maxdepth 1 -exec rm -rf {} +"
-
       - name: Upload build artifacts
         shell: bash
         run: |
