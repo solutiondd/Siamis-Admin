@@ -1,10 +1,10 @@
 <template>
-    <div class="max-[570px]:pt-14">
+    <div class="max-[944px]:pt-16">
         <div class="header-row mb-3">
             <div class="header-left">
                 <h2 class="header-title">
-                    <span v-if="activeTab === 'behavior'">รายการพฤติกรรม</span>
-                    <span v-else>รายการบำเพ็ญประโยชน์</span>
+                    <span v-if="activeTab === 'behavior'">{{ $t('behaviorPage.behaviorList') }}</span>
+                    <span v-else>{{ $t('behaviorPage.meritList') }}</span>
                 </h2>
             </div>
             <component :is="activeTab === 'behavior' ? 'CreateBehavior' : 'CreateMerit'"
@@ -14,11 +14,13 @@
             <input type="checkbox" id="toggleTab" v-model="isMerit" class="toggle-input" />
             <label for="toggleTab" class="toggle-label">
                 <span class="toggle-label-inner">
-                    <span v-if="isMerit" class="toggle-label-text-inner active left">เพิ่ม</span>
+                    <span v-if="isMerit" class="toggle-label-text-inner active left">{{ $t('behaviorPage.increase')
+                        }}</span>
 
                     <span class="spacer"></span>
 
-                    <span v-if="!isMerit" class="toggle-label-text-inner active right">หัก</span>
+                    <span v-if="!isMerit" class="toggle-label-text-inner active right">{{ $t('behaviorPage.decrease')
+                        }}</span>
                 </span>
                 <span class="toggle-slider"></span>
             </label>

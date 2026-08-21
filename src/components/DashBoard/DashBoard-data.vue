@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-4">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-white">สรุปรายวัน</h3>
+            <h3 class="text-lg font-semibold text-white">{{ $t('DashBoardData.dailySummary') }}</h3>
             <div class="flex items-center gap-2">
                 <input type="date" v-model="selectedDate" class="input input-sm input-bordered" @change="fetchDaily"
                     :max="getDefaultDate()" />
@@ -14,8 +14,12 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่ {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.attendanceList', {
+                        role: attendanceRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
+                    }) }}
+                </h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -28,7 +32,7 @@
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -37,15 +41,30 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการมาสาย{{ lateRole === 'teacher' ? 'ครู' : 'นักเรียน' }} วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.lateList', {
+                        role: lateRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
+                    }) }}
+                </h3>
 
-                <LateTable :data="lateData" :pagination="latePagination"
-                    :filters="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString(), role: lateRole }"
-                    :hide-export="true" @page-change="handleLatePageChange" summaryTextColor="text-black" />
+                <div v-if="lateRole === 'student'">
+                    <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
+                        :timeSortOrder="lateTimeSortOrder" grade="student"
+                        :filters="{ start: selectedDate, end: selectedDate, role: 'student' }" :hide-export="true"
+                        @page-change="handleLatePageChange" @toggle-time-sort="handleToggleLateTimeSort"
+                        summaryTextColor="text-black" />
+                </div>
+                <div v-else>
+                    <LateTable :data="lateData" :pagination="latePagination" :allowance-rules="allowanceRules"
+                        :timeSortOrder="lateTimeSortOrder"
+                        :filters="{ start: selectedDate, end: selectedDate, role: 'teacher' }" :hide-export="true"
+                        @page-change="handleLatePageChange" @toggle-time-sort="handleToggleLateTimeSort"
+                        summaryTextColor="text-black" />
+                </div>
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -54,16 +73,64 @@
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
-                <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่
-                    {{ displayDate }}</h3>
+                <h3 class="font-bold text-lg mb-4">
+                    {{ $t('DashBoardData.missedList', {
+                        role: missedRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
+                    }) }}
+                </h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination" :hide-export="true"
                     :dateRange="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString() }"
                     :role="missedRole" @page-change="handleMissedPageChange" summaryTextColor="text-black" />
             </div>
             <form method="dialog" class="modal-backdrop">
-                <button>close</button>
+                <button>{{ $t('common.close') }}</button>
+            </form>
+        </dialog>
+
+        <dialog ref="leaveModal" class="modal" @close="handleLeaveModalClose">
+            <div class="modal-box max-w-7xl p-2 min-[481px]:p-6">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
+                <h3 class="font-bold text-lg">
+                    {{ $t('DashBoardData.leaveList', {
+                        role: leaveRole === 'teacher' ? $t('DashBoardData.teacher') : $t('DashBoardData.student'),
+                        date: displayDate
+                    }) }}
+                </h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                    {{ $t('DashBoardData.leaveNote') }}
+                </p>
+
+                <LeaveRequest v-if="leaveTableVisible" :filters="leaveFilters" :hide-export="true" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>{{ $t('common.close') }}</button>
+            </form>
+        </dialog>
+
+        <dialog ref="activityModal" class="modal" @close="handleActivityModalClose">
+            <div class="modal-box max-w-7xl p-2 min-[481px]:p-6">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
+                <h3 class="font-bold text-lg">
+                    {{ $t('DashBoardData.activityList', {
+                        role: $t('DashBoardData.student'),
+                        date: displayDate
+                    }) }}
+                </h3>
+                <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                    {{ $t('DashBoardData.leaveNote') }}
+                </p>
+
+                <ActivityTable v-if="activityTableVisible" :filters="activityFilters" :hide-export="true"
+                    :hide-page-size-selector="true" :default-page-limit="100" summaryTextColor="text-black" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>{{ $t('common.close') }}</button>
             </form>
         </dialog>
 
@@ -71,7 +138,7 @@
             <transition name="slide-fade">
                 <div v-show="showStudentStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="studentStatRef">
-                        <div class="stat-title">จำนวนนักเรียนทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalStudents') }}</div>
                         <div class="stat-value text-primary">{{ totals.total_students || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="studentIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -82,7 +149,7 @@
             <transition v-if="auth.user?.role !== 'teacher'" name="slide-down">
                 <div v-show="showTeacherStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="teacherStatRef">
-                        <div class="stat-title">จำนวนครูทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalTeachers') }}</div>
                         <div class="stat-value text-secondary">{{ totals.total_teachers || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="teacherIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -93,9 +160,9 @@
             <transition name="slide-right">
                 <div v-show="showCombinedStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="combinedStatRef">
-                        <div class="stat-title">ทั้งหมดที่เข้า</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalCombined') }}</div>
                         <div class="stat-value text-purple-500">{{ totalCombined }}</div>
-                        <div class="stat-desc">ประจำวันที่ {{ displayDate }}</div>
+                        <div class="stat-desc">{{ $t('DashBoardData.dateFor', { date: displayDate }) }}</div>
                         <div class="stat-figure">
                             <div ref="combinedIconRef" class="w-20 h-20 transition-transform duration-200"></div>
                         </div>
@@ -109,32 +176,50 @@
                 <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group student-bg"
                     ref="studentAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">นักเรียน</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.student') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full student-bg">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-primary">{{ student.total - student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showAttendanceTable" class="btn btn-xs btn-primary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
+                                <div class="stat-value text-warning">{{ studentLeave }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
+                                        {{ $t('DashBoardData.click') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
+                                <div class="stat-value text-info">{{ studentActivity }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
+                                        {{ $t('DashBoardData.click') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -146,33 +231,33 @@
                 <div v-show="showTeacherAbsentStat" class="card bg-base-100 shadow-xl group teacher-bg"
                     ref="teacherAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">ครู</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.teacher') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full teacher-bg">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-secondary">{{ teacher.total - teacher.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherAttendanceTable"
                                         class="btn btn-xs btn-secondary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ teacher.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat group relative border-l pl-4" ref="teacherAbsentStatRef">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ teacherAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showTeacherMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -185,7 +270,7 @@
             <transition name="slide-fade">
                 <div v-show="showStudentStat" class="stats shadow bg-base-100">
                     <div class="stat group" ref="studentStatRef">
-                        <div class="stat-title">จำนวนนักเรียนทั้งหมด</div>
+                        <div class="stat-title">{{ $t('DashBoardData.totalStudents') }}</div>
                         <div class="stat-value text-primary">{{ totals.total_students || 0 }}</div>
                         <div class="stat-figure">
                             <div ref="studentIconRef" class="w-20 h-20 transition-transform duration-200"></div>
@@ -196,32 +281,50 @@
             <transition name="slide-right">
                 <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group" ref="studentAbsentStatRef">
                     <div class="card-body p-4">
-                        <h4 class="card-title">นักเรียน</h4>
+                        <h4 class="card-title">{{ $t('DashBoardData.student') }}</h4>
                         <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full">
                             <div class="stat relative">
-                                <div class="stat-title">เข้า</div>
+                                <div class="stat-title">{{ $t('DashBoardData.entry') }}</div>
                                 <div class="stat-value text-primary">{{ student.total - student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showAttendanceTable" class="btn btn-xs btn-primary btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative">
-                                <div class="stat-title">มาสาย</div>
+                                <div class="stat-title">{{ $t('DashBoardData.late') }}</div>
                                 <div class="stat-value text-black">{{ student.late }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentLateTable" class="btn btn-xs btn-ghost btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
                             <div class="stat relative border-l pl-4">
-                                <div class="stat-title">ไม่ได้สแกน</div>
+                                <div class="stat-title">{{ $t('DashBoardData.leave') }}</div>
+                                <div class="stat-value text-warning">{{ studentLeave }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentLeaveTable" class="btn btn-xs btn-warning btn-plain">
+                                        {{ $t('DashBoardData.click') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">{{ $t('DashBoardData.activity') }}</div>
+                                <div class="stat-value text-info">{{ studentActivity }}</div>
+                                <div class="stat-desc absolute bottom-2 right-2">
+                                    <button @click="showStudentActivityTable" class="btn btn-xs btn-info btn-plain">
+                                        {{ $t('DashBoardData.click') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="stat relative border-l pl-4">
+                                <div class="stat-title">{{ $t('DashBoardData.missed') }}</div>
                                 <div class="stat-value text-error">{{ studentAbsent }}</div>
                                 <div class="stat-desc absolute bottom-2 right-2">
                                     <button @click="showStudentMissedTable" class="btn btn-xs btn-error btn-plain">
-                                        คลิก
+                                        {{ $t('DashBoardData.click') }}
                                     </button>
                                 </div>
                             </div>
@@ -230,7 +333,6 @@
                 </div>
             </transition>
         </div>
-        <!-- <AttendanceDetail ref="detailModal" /> -->
     </div>
 </template>
 
@@ -241,15 +343,21 @@ import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
 import LateTable from '../Report/LateTable.vue'
 import MissedTable from '../Report/MissedTable.vue'
+import LeaveRequest from '../Report/LeaveRequest.vue'
+import ActivityTable from '../Report/ActivityTable.vue'
 import AttendanceDetail from '../Report/AttendanceDetail.vue'
 import Attendance from './Attendance.vue'
 import { useAuthStore } from '../../stores/auth'
-import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade'
+import { toVisibleSortedGrades } from '../../utils/gradeSystem'
+import { AllowanceService } from '../../api/allowance'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
+const { locale } = useI18n()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref(new Date().toLocaleDateString('sv-SE'))
+const allowanceRules = ref([]);
 
 function getDefaultDate() {
     const now = new Date()
@@ -273,6 +381,10 @@ const teacher = ref({ total: 0, late: 0 })
 const attendanceModal = ref(null)
 const lateModal = ref(null)
 const missedModal = ref(null)
+const leaveModal = ref(null)
+const activityModal = ref(null)
+const activityTableVisible = ref(false)
+const leaveTableVisible = ref(false)
 const attendanceData = ref([])
 const attendancePage = ref(1)
 const attendanceTotalItems = ref(0)
@@ -287,6 +399,8 @@ const lateLimit = ref(5)
 const lateTotalItems = ref(0)
 const lateTotalPages = ref(0)
 const lateRole = ref('student')
+const lateTimeSortOrder = ref('desc')
+const leaveRole = ref('student')
 const missedData = ref([])
 const missedAllData = ref([])
 const missedPage = ref(1)
@@ -295,25 +409,28 @@ const missedTotalItems = ref(0)
 const missedTotalPages = ref(0)
 const missedRole = ref('student')
 const classrooms = ref([])
+// const progressData = ref([])
+const studentLeave = ref(0)
+const teacherLeave = ref(0)
+const studentActivity = ref(0)
 
 const classRoomService = new ClassRoomService()
 
 const residentRole = ref(localStorage.getItem('residentRole') || '')
-const localGrade = ref(toGradeCode(localStorage.getItem('grade') || ''))
+const localGrade = ref(localStorage.getItem('grade') || '')
 const localClassroom = ref(Number(localStorage.getItem('classroom')) || 0)
 const profileName = ref(localStorage.getItem('profileName') || '')
 
 const displayDate = computed(() => {
-    const [year, month, day] = (selectedDate.value || '').split('-').map(Number)
-    if (!year || !month || !day) return ''
+    if (!selectedDate.value) return ''
+    const date = new Date(selectedDate.value)
+    if (Number.isNaN(date.getTime())) return ''
 
-    const thaiMonths = [
-        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-    ]
-    const buddhistYear = year + 543
-
-    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
+    return new Intl.DateTimeFormat(locale.value === 'th' ? 'th-TH' : 'en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(date)
 })
 
 const latePagination = computed(() => ({
@@ -333,8 +450,7 @@ const missedPagination = computed(() => ({
 
 const availableGrades = computed(() => {
     if (!classrooms.value || classrooms.value.length === 0) return []
-    const grades = [...new Set(classrooms.value.map(c => toGradeCode(c.grade)))]
-    return sortGrades(grades)
+    return toVisibleSortedGrades(classrooms.value.map(c => c.grade))
 })
 
 const availableClassrooms = computed(() => {
@@ -345,8 +461,34 @@ const availableClassrooms = computed(() => {
 })
 
 const totalCombined = computed(() => (student.value.total || 0) + (teacher.value.total || 0))
-const studentAbsent = computed(() => Math.max((totals.value.total_students || 0) - (student.value.total || 0), 0))
-const teacherAbsent = computed(() => Math.max((totals.value.total_teachers || 0) - (teacher.value.total || 0), 0))
+const studentAbsent = computed(() => Math.max(
+    (totals.value.total_students || 0) -
+    (student.value.total || 0) -
+    (studentLeave.value || 0) -
+    (studentActivity.value || 0),
+    0
+))
+const teacherAbsent = computed(() => Math.max(
+    (totals.value.total_teachers || 0) -
+    (teacher.value.total || 0),
+    0
+))
+const leaveFilters = computed(() => ({
+    start_date: (selectedDate.value || '').toString(),
+    end_date: (selectedDate.value || '').toString(),
+    status: 'approved',
+    role: leaveRole.value,
+    search: '',
+}))
+
+const activityFilters = computed(() => ({
+    start_date: (selectedDate.value || '').toString(),
+    end_date: (selectedDate.value || '').toString(),
+    // role: 'student',
+    search: '',
+    status: '',
+    activity_name: '',
+}))
 
 const attendanceFilteredData = ref([])
 const showStudentStat = ref(false)
@@ -366,16 +508,26 @@ async function fetchDaily() {
             totals.value.total_students = res.data.total_students || 0
             totals.value.total_teachers = res.data.total_teachers || 0
             const list = res.data.daily_stats || []
-            const stu = list.find(x => x.role === 'student') || { total: 0, late: 0 }
-            const tea = list.find(x => x.role === 'teacher') || { total: 0, late: 0 }
+            const stu = list.find(x => x.role === 'student') || { total: 0, late: 0, total_leave: 0, total_activity: 0 }
+            const tea = list.find(x => x.role === 'teacher') || { total: 0, late: 0, total_leave: 0, total_activity: 0 }
             student.value = { total: stu.total || 0, late: stu.late || 0 }
             teacher.value = { total: tea.total || 0, late: tea.late || 0 }
+            studentLeave.value = stu.total_leave ?? stu.leave ?? 0
+            teacherLeave.value = tea.total_leave ?? tea.leave ?? 0
+            studentActivity.value = stu.total_activity ?? stu.activity ?? 0
+        } else {
+            studentLeave.value = 0
+            teacherLeave.value = 0
+            studentActivity.value = 0
         }
     } catch (e) {
         console.error('Daily summary error', e)
         totals.value = { total_students: 0, total_teachers: 0 }
         student.value = { total: 0, late: 0 }
         teacher.value = { total: 0, late: 0 }
+        studentLeave.value = 0
+        teacherLeave.value = 0
+        studentActivity.value = 0
     } finally {
         loading.value = false
     }
@@ -408,11 +560,11 @@ async function showAttendanceTable() {
             role: 'student',
             page: attendancePage.value,
             limit: 5,
-            grade: toLegacyGrade(attendanceGrade.value),
+            grade: attendanceGrade.value,
             classroom: attendanceClassroom.value
         }
         if (residentRole.value === 'teacher') {
-            params.grade = toLegacyGrade(localGrade.value)
+            params.grade = localGrade.value
             params.classroom = localClassroom.value
             params.limit = 50
         }
@@ -477,34 +629,61 @@ async function showTeacherAttendanceTable() {
     }
 }
 
+function sortLateData(data, sortOrder = 'desc') {
+    if (!Array.isArray(data)) return []
+    return [...data].sort((a, b) => {
+        const getTimeInSeconds = (item) => {
+            const firstStamp = item.late_dates?.[0]?.timeStamps?.[0]?.timeStamp
+            if (!firstStamp) return 0
+            const timeStr = firstStamp.split(' ')[1] || '00:00:00'
+            const [h, m, s] = timeStr.split(':').map(Number)
+            return (h * 3600) + (m * 60) + (s || 0)
+        }
+        const timeA = getTimeInSeconds(a)
+        const timeB = getTimeInSeconds(b)
+
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB
+    })
+}
+
+function handleToggleLateTimeSort() {
+    lateTimeSortOrder.value = lateTimeSortOrder.value === 'desc' ? 'asc' : 'desc'
+    lateData.value = sortLateData(lateAllData.value, lateTimeSortOrder.value)
+}
+
 async function showStudentLateTable() {
     try {
         loading.value = true
         lateRole.value = 'student'
+        latePage.value = 1
+
         let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'student',
-            page: latePage.value,
-            limit: lateLimit.value
+            page: 1,
+            limit: 10000
         }
         if (residentRole.value === 'teacher') {
-            params.grade = toLegacyGrade(localGrade.value)
+            params.grade = localGrade.value
             params.classroom = localClassroom.value
         }
         const res = await reportApi.getLateReport(params)
         if (res.message === 'Success' && res.data) {
-            lateAllData.value = res.data || [];
-            lateTotalItems.value = res.total_items || lateAllData.value.length;
-            lateTotalPages.value = res.total_pages || 1;
-            latePage.value = res.page || 1;
-            lateData.value = lateAllData.value;
-            lateModal.value?.showModal();
+            const sorted = sortLateData(res.data || [], lateTimeSortOrder.value)
+            lateAllData.value = sorted
+
+            lateLimit.value = 5
+            lateTotalItems.value = sorted.length
+            lateTotalPages.value = Math.ceil(sorted.length / lateLimit.value) || 1
+
+            lateData.value = sorted.slice(0, lateLimit.value)
+            lateModal.value?.showModal()
         }
     } catch (e) {
-        console.error('Error fetching student late data:', e);
+        console.error('Error fetching student late data:', e)
     } finally {
-        loading.value = false;
+        loading.value = false
     }
 }
 
@@ -512,29 +691,34 @@ async function showTeacherLateTable() {
     try {
         loading.value = true
         lateRole.value = 'teacher'
+        latePage.value = 1
+
         let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'teacher',
-            page: latePage.value,
-            limit: lateLimit.value
+            page: 1,
+            limit: 10000
         }
         if (residentRole.value === 'teacher') {
             params.name = profileName.value
         }
         const res = await reportApi.getLateReport(params)
         if (res.message === 'Success' && res.data) {
-            lateAllData.value = res.data || [];
-            lateTotalItems.value = res.total_items || lateAllData.value.length;
-            lateTotalPages.value = res.total_pages || 1;
-            latePage.value = res.page || 1;
-            lateData.value = lateAllData.value;
-            lateModal.value?.showModal();
+            const sorted = sortLateData(res.data || [], lateTimeSortOrder.value)
+            lateAllData.value = sorted
+
+            lateLimit.value = 5
+            lateTotalItems.value = sorted.length
+            lateTotalPages.value = Math.ceil(sorted.length / lateLimit.value) || 1
+
+            lateData.value = sorted.slice(0, lateLimit.value)
+            lateModal.value?.showModal()
         }
     } catch (e) {
-        console.error('Error fetching teacher late data:', e);
+        console.error('Error fetching teacher late data:', e)
     } finally {
-        loading.value = false;
+        loading.value = false
     }
 }
 
@@ -551,7 +735,7 @@ async function showStudentMissedTable() {
         if (res.message === 'Success' && res.data) {
             let allMissed = res.data || [];
             if (residentRole.value === 'teacher') {
-                allMissed = allMissed.filter(item => gradeEquals(item.grade, localGrade.value) && Number(item.classroom) === localClassroom.value);
+                allMissed = allMissed.filter(item => item.grade === localGrade.value && Number(item.classroom) === localClassroom.value);
             }
             missedAllData.value = allMissed;
             missedTotalItems.value = missedAllData.value.length;
@@ -598,73 +782,30 @@ async function showTeacherMissedTable() {
     }
 }
 
+function showStudentLeaveTable() {
+    leaveRole.value = 'student'
+    leaveTableVisible.value = true
+    leaveModal.value?.showModal()
+}
+
+function showStudentActivityTable() {
+    activityTableVisible.value = true
+    activityModal.value?.showModal()
+}
+
+function handleActivityModalClose() {
+    activityTableVisible.value = false
+}
+
+function handleLeaveModalClose() {
+    leaveTableVisible.value = false
+}
+
 function handleLatePageChange(page) {
     if (page >= 1 && page <= lateTotalPages.value) {
-        latePage.value = page;
-        if (lateRole.value === 'student') {
-            showStudentLateTableWithPage(page);
-        } else {
-            showTeacherLateTableWithPage(page);
-        }
-    }
-
-    async function showStudentLateTableWithPage(page) {
-        try {
-            loading.value = true;
-            lateRole.value = 'student';
-            let params = {
-                start: selectedDate.value,
-                end: selectedDate.value,
-                role: 'student',
-                page: page,
-                limit: lateLimit.value
-            };
-            if (residentRole.value === 'teacher') {
-                params.grade = toLegacyGrade(localGrade.value);
-                params.classroom = localClassroom.value;
-            }
-            const res = await reportApi.getLateReport(params);
-            if (res.message === 'Success' && res.data) {
-                lateAllData.value = res.data || [];
-                lateTotalItems.value = res.total_items || lateAllData.value.length;
-                lateTotalPages.value = res.total_pages || 1;
-                latePage.value = res.page || page;
-                lateData.value = lateAllData.value;
-            }
-        } catch (e) {
-            console.error('Error fetching student late data:', e);
-        } finally {
-            loading.value = false;
-        }
-    }
-
-    async function showTeacherLateTableWithPage(page) {
-        try {
-            loading.value = true;
-            lateRole.value = 'teacher';
-            let params = {
-                start: selectedDate.value,
-                end: selectedDate.value,
-                role: 'teacher',
-                page: page,
-                limit: lateLimit.value
-            };
-            if (residentRole.value === 'teacher') {
-                params.name = profileName.value;
-            }
-            const res = await reportApi.getLateReport(params);
-            if (res.message === 'Success' && res.data) {
-                lateAllData.value = res.data || [];
-                lateTotalItems.value = res.total_items || lateAllData.value.length;
-                lateTotalPages.value = res.total_pages || 1;
-                latePage.value = res.page || page;
-                lateData.value = lateAllData.value;
-            }
-        } catch (e) {
-            console.error('Error fetching teacher late data:', e);
-        } finally {
-            loading.value = false;
-        }
+        latePage.value = page
+        const start = (page - 1) * lateLimit.value
+        lateData.value = lateAllData.value.slice(start, start + lateLimit.value)
     }
 }
 
@@ -683,6 +824,32 @@ function resetAttendancePage() {
 function resetLatePage() {
     latePage.value = 1;
 }
+
+const fetchAllowanceSettings = async () => {
+    try {
+        const service = new AllowanceService();
+        const res = await service.getAllowance();
+        if (res && res.data && res.data.rules) {
+            allowanceRules.value = res.data.rules;
+        }
+    } catch (error) {
+        console.error("Error fetching allowance settings in dashboard:", error);
+    }
+};
+
+// async function fetchProgressData() {
+//     try {
+//         const res = await reportApi.getProgressReport({ date: selectedDate.value })
+//         if (res && res.message === 'Success') {
+//             progressData.value = res.data || []
+//         } else {
+//             progressData.value = []
+//         }
+//     } catch (e) {
+//         console.error('Error fetching progress report on dashboard:', e)
+//         progressData.value = []
+//     }
+// }
 
 onMounted(() => {
     showStudentStat.value = false
@@ -705,6 +872,7 @@ onMounted(() => {
     setTimeout(() => {
         showTeacherAbsentStat.value = true
     }, 100)
+    fetchAllowanceSettings();
     fetchDaily()
     fetchClassrooms()
     if (studentIconRef.value) {
@@ -761,23 +929,23 @@ onMounted(() => {
         containerEl3.addEventListener('mouseleave', stopAnim3)
     }
 
-    if (studentLateIconRef.value) {
-        const animLate = lottie.loadAnimation({
-            container: studentLateIconRef.value,
-            renderer: 'svg',
-            loop: true,
-            autoplay: false,
-            path: new URL('../../assets/doodle-color-292-clock-time-hover-pinch.json', import.meta.url).href,
-        })
-        animLate.addEventListener('DOMLoaded', () => {
-            animLate.goToAndStop(0, true)
-        })
-        const containerLate = studentCardRef.value || studentLateStatRef.value || studentLateIconRef.value
-        const playLate = () => animLate.play()
-        const stopLate = () => animLate.stop()
-        containerLate.addEventListener('mouseenter', playLate)
-        containerLate.addEventListener('mouseleave', stopLate)
-    }
+    // if (studentLateIconRef.value) {
+    //     const animLate = lottie.loadAnimation({
+    //         container: studentLateIconRef.value,
+    //         renderer: 'svg',
+    //         loop: true,
+    //         autoplay: false,
+    //         path: new URL('../../assets/doodle-color-292-clock-time-hover-pinch.json', import.meta.url).href,
+    //     })
+    //     animLate.addEventListener('DOMLoaded', () => {
+    //         animLate.goToAndStop(0, true)
+    //     })
+    //     const containerLate = studentCardRef.value || studentLateStatRef.value || studentLateIconRef.value
+    //     const playLate = () => animLate.play()
+    //     const stopLate = () => animLate.stop()
+    //     containerLate.addEventListener('mouseenter', playLate)
+    //     containerLate.addEventListener('mouseleave', stopLate)
+    // }
 })
 </script>
 

@@ -1,20 +1,22 @@
 <template>
     <div class="p-4 max-w-2xl mx-auto">
-        <h2 class="text-xl font-bold mb-2 sm:mb-4">เพิ่มวันหยุด</h2>
+        <h2 class="text-xl font-bold mb-2 sm:mb-4">{{ t('HolidaysCreate.title') }}</h2>
         <div class="mb-4 flex justify-end">
-            <button class="btn btn-info btn-sm" @click="openImportDialog" type="button">สร้างวันหยุดตามปฏิทิน</button>
+            <button class="btn btn-info btn-sm" @click="openImportDialog" type="button">{{
+                t('HolidaysCreate.importFromCalendar') }}</button>
         </div>
         <form @submit.prevent="addHoliday" class="space-y-4">
             <div v-if="showImportDialog"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div class="bg-base-100 rounded-lg shadow-lg p-6 w-full max-w-xs relative animate-fade-in">
-                    <h3 class="font-bold mb-4">เลือกปีที่ต้องการนำเข้า</h3>
+                    <h3 class="font-bold mb-4">{{ t('HolidaysCreate.selectImportYear') }}</h3>
                     <div class="flex flex-col gap-2">
-                        <button class="btn btn-outline" @click="importHolidaysByYear(currentYear)">ปีนี้ ({{
-                            currentYearBE
-                        }})</button>
-                        <button class="btn btn-outline" @click="importHolidaysByYear(nextYear)">ปีหน้า ({{
-                            nextYearBE }})</button>
+                        <button class="btn btn-outline" @click="importHolidaysByYear(currentYear)">{{
+                            t('HolidaysCreate.thisYear', {
+                                currentYearBE
+                            }) }}</button>
+                        <button class="btn btn-outline" @click="importHolidaysByYear(nextYear)">{{
+                            t('HolidaysCreate.nextYear', { nextYearBE }) }}</button>
                     </div>
                     <button class="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost"
                         @click="showImportDialog = false">✕</button>
@@ -22,37 +24,39 @@
             </div>
             <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-1 sm:space-y-0">
                 <div class="flex-1">
-                    <label class="block mb-1 font-medium text-sm sm:text-base">ชื่อวันหยุด</label>
+                    <label class="block mb-1 font-medium text-sm sm:text-base">{{ t('HolidaysCreate.holidayName')
+                        }}</label>
                     <input v-model="newHoliday.summary" type="text"
                         class="input input-bordered w-full text-sm sm:text-base px-1 py-1 sm:px-3 sm:py-2 h-10 sm:h-12"
                         required />
                 </div>
                 <div class="flex-1">
-                    <label class="block mb-1 font-medium text-sm sm:text-base">วันที่ (เลือกได้หลายวัน)</label>
+                    <label class="block mb-1 font-medium text-sm sm:text-base">{{ t('HolidaysCreate.dateMulti')
+                        }}</label>
                     <flat-pickr v-model="newHoliday.dates" :config="flatpickrConfig"
                         class="input input-bordered w-full text-sm sm:text-base px-1 py-1 sm:px-3 sm:py-2 h-10 sm:h-12"
                         required />
                 </div>
             </div>
             <button type="button" class="btn btn-secondary w-full h-10 sm:h-12" @click="addHoliday"
-                :disabled="!canAddHoliday">เพิ่มรายการ</button>
+                :disabled="!canAddHoliday">{{ t('HolidaysCreate.addItem') }}</button>
         </form>
 
         <div v-if="holidays.length" class="mt-3">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="font-semibold">รายการวันหยุดที่เพิ่ม</h3>
+                <h3 class="font-semibold">{{ t('HolidaysCreate.addedList') }}</h3>
                 <form @submit.prevent="handleSubmit" class="flex justify-end">
                     <button type="submit" class="btn btn-primary" :disabled="loading">
-                        <span v-if="loading">กำลังบันทึก...</span>
-                        <span v-else>บันทึก</span>
+                        <span v-if="loading">{{ t('HolidaysCreate.saving') }}</span>
+                        <span v-else>{{ t('common.save') }}</span>
                     </button>
                 </form>
             </div>
             <table class="table w-full mb-4">
                 <thead>
                     <tr>
-                        <th>ชื่อวันหยุด</th>
-                        <th>วันที่</th>
+                        <th>{{ t('HolidaysCreate.holidayName') }}</th>
+                        <th>{{ t('HolidaysCreate.date') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -60,7 +64,8 @@
                     <tr v-for="item in pagedHolidays" :key="item.summary + '_' + item.date">
                         <td>{{ item.summary }}</td>
                         <td>{{ formatDisplayDate(item.date) }}</td>
-                        <td><button class="btn btn-xs btn-error" @click="removeHoliday(item)">ลบ</button></td>
+                        <td><button class="btn btn-xs btn-error" @click="removeHoliday(item)">{{ t('common.delete')
+                                }}</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -93,6 +98,9 @@ import FlatPickr from 'vue-flatpickr-component'
 import 'flatpickr/dist/flatpickr.css'
 import { Thai } from 'flatpickr/dist/l10n/th.js'
 import Swal from 'sweetalert2'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 const showImportDialog = ref(false)
 const currentYear = new Date().getFullYear()
 const currentYearBE = currentYear + 543
@@ -112,7 +120,7 @@ async function openImportDialog() {
                 allExternalHolidays.value = [];
             }
         } catch (e) {
-            Swal.fire({ icon: 'error', title: 'ดึงข้อมูลวันหยุดล้มเหลว', text: e?.message || '', showConfirmButton: true })
+            Swal.fire({ icon: 'error', title: t('HolidaysCreate.fetchFailed'), text: e?.message || '', showConfirmButton: true })
             return;
         }
     }
@@ -130,7 +138,7 @@ async function importHolidaysByYear(year) {
         date: formatDateFromICal(ev['DTSTART;VALUE=DATE'])
     }))
     if (!holidaysToAdd.length) {
-        Swal.fire({ icon: 'info', title: 'ไม่พบวันหยุดในปีที่เลือก', showConfirmButton: true })
+        Swal.fire({ icon: 'info', title: t('HolidaysCreate.noHolidaysForYear'), showConfirmButton: true })
         return
     }
     const exists = new Set(holidays.value.map(h => h.summary + h.date))
@@ -138,7 +146,7 @@ async function importHolidaysByYear(year) {
         const key = h.summary + h.date
         if (!exists.has(key)) holidays.value.push(h)
     })
-    Swal.fire({ icon: 'success', title: 'นำเข้าวันหยุดสำเร็จ', showConfirmButton: false, timer: 1200 })
+    Swal.fire({ icon: 'success', title: t('HolidaysCreate.importSuccess'), showConfirmButton: false, timer: 1200 })
 }
 
 function formatDateFromICal(ical) {
@@ -207,6 +215,17 @@ const flatpickrConfig = {
         if (format === 'd/m/Y') return `${day}/${month}/${year + 543}`
         return `${day}/${month}/${year + 543}`
     },
+    parseDate: (dateStr, format) => {
+        if (format === 'd/m/Y') {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                let year = parseInt(parts[2]);
+                if (year > 2400) year -= 543;
+                return new Date(year, parseInt(parts[1]) - 1, parseInt(parts[0]));
+            }
+        }
+        return new Date(dateStr);
+    },
     enableTime: false,
     allowInput: true
 }
@@ -265,8 +284,6 @@ function formatDate(date) {
 }
 
 function formatDisplayDate(date) {
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.']
-
     let year
     let month
     let day
@@ -296,8 +313,19 @@ function formatDisplayDate(date) {
         return '-'
     }
 
-    const buddhistYear = year > 2400 ? year : year + 543
-    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
+    const dateObj = new Date(year, month - 1, day)
+    if (locale.value === 'en') {
+        return new Intl.DateTimeFormat('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }).format(dateObj)
+    }
+    return new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }).format(dateObj)
 }
 
 const emit = defineEmits(['saved'])
@@ -318,16 +346,16 @@ async function handleSubmit() {
         holidays.value = []
         Swal.fire({
             icon: 'success',
-            title: `เพิ่มวันหยุดสำเร็จ ${successCount} รายการ`,
+            title: t('HolidaysCreate.saveSuccess', { count: successCount }),
             showConfirmButton: false,
             timer: 1500
         })
         emit('saved')
     } catch (e) {
-        error.value = 'เกิดข้อผิดพลาดในการบันทึกวันหยุด'
+        error.value = t('HolidaysCreate.saveErrorText')
         Swal.fire({
             icon: 'error',
-            title: 'เพิ่มวันหยุดไม่สำเร็จ',
+            title: t('HolidaysCreate.saveErrorTitle'),
             text: error.value,
             showConfirmButton: true
         })

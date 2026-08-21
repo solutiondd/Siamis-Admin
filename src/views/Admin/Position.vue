@@ -1,13 +1,14 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex justify-between items-center">
-            <h1 class="text-xl sm:text-2xl font-bold text-white">จัดการตำแหน่ง</h1>
-            <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="btn btn-primary" @click="openCreateModal">
+            <h1 class="text-xl sm:text-2xl font-bold text-white">{{ t('positionPage.title') }}</h1>
+            <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="btn btn-primary"
+                @click="openCreateModal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                เพิ่มตำแหน่ง
+                {{ t('positionPage.add') }}
             </button>
         </div>
 
@@ -26,7 +27,9 @@ import CreateModal from '../../components/Position/Create.vue'
 import DeleteModal from '../../components/Position/Delete.vue'
 import { PositionService } from '../../api/position'
 import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const positionService = new PositionService()
 
@@ -46,8 +49,8 @@ const fetchPositions = async () => {
         console.error('Fetch positions error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลตำแหน่งได้',
+            title: t('positionPage.loadErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('positionPage.loadErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -68,7 +71,7 @@ const handleCreateSuccess = async (name) => {
         await fetchPositions()
         Swal.fire({
             icon: 'success',
-            title: 'เพิ่มตำแหน่งสำเร็จ',
+            title: t('positionPage.createSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -79,8 +82,8 @@ const handleCreateSuccess = async (name) => {
         console.error('Create position error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มตำแหน่งได้',
+            title: t('positionPage.createErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('positionPage.createErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -99,7 +102,7 @@ const handleDeleteSuccess = async (id) => {
         await fetchPositions()
         Swal.fire({
             icon: 'success',
-            title: 'ลบตำแหน่งสำเร็จ',
+            title: t('positionPage.deleteSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -110,8 +113,8 @@ const handleDeleteSuccess = async (id) => {
         console.error('Delete position error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถลบตำแหน่งได้',
+            title: t('positionPage.deleteErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('positionPage.deleteErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

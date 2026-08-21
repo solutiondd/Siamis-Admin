@@ -1,19 +1,24 @@
 <template>
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-4 max-[570px]:pt-14">
-        <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap mb-2 sm:mb-0">จัดการวันหยุด</h1>
+    <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-4 max-[944px]:pt-16">
+        <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap mb-2 sm:mb-0">{{ t('holidaysPage.title') }}</h1>
         <div class="flex gap-2">
             <ImportHolidays v-if="auth.user?.role !== 'viewer'" @imported="onImportHolidays" class="" />
             <button v-if="auth.user?.role !== 'viewer'" class="btn btn-primary btn-sm whitespace-nowrap shrink-0"
-                @click="showCreate = true">+
-                เพิ่มวันหยุด</button>
+                @click="showCreate = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                {{ t('holidaysPage.add') }}</button>
         </div>
     </div>
     <div class="flex gap-2 items-center justify-end mb-4">
         <select v-model="filterType"
             class="select select-bordered select-sm min-w-[80px] max-w-[120px] text-xs sm:text-base">
-            <option value="month">เดือน</option>
-            <option value="day">วัน</option>
-            <option value="year">ปี</option>
+            <option value="month">{{ t('holidaysPage.month') }}</option>
+            <option value="day">{{ t('holidaysPage.day') }}</option>
+            <option value="year">{{ t('holidaysPage.year') }}</option>
         </select>
         <input v-if="filterType === 'day'" type="date" v-model="dateInput"
             class="input input-bordered input-sm text-xs sm:text-base w-auto" />
@@ -45,8 +50,10 @@ import ImportHolidays from '../../components/Holidays/Import.vue'
 import holidaysApi from '../../api/holidays'
 import Swal from 'sweetalert2'
 import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const showCreate = ref(false)
 const holidays = ref([])
@@ -67,15 +74,15 @@ async function handleDeleteConfirm() {
         await fetchHolidays()
         Swal.fire({
             icon: 'success',
-            title: 'ลบวันหยุดสำเร็จ',
+            title: t('holidaysPage.deleteSuccess'),
             showConfirmButton: false,
             timer: 1500
         })
     } catch (e) {
         Swal.fire({
             icon: 'error',
-            title: 'ลบวันหยุดไม่สำเร็จ',
-            text: e?.response?.data?.message || 'เกิดข้อผิดพลาด',
+            title: t('holidaysPage.deleteFail'),
+            text: e?.response?.data?.message || t('common.error'),
             showConfirmButton: true
         })
     }
@@ -145,15 +152,15 @@ function onImportHolidays(importedHolidays) {
             await fetchHolidays()
             Swal.fire({
                 icon: 'success',
-                title: `นำเข้าวันหยุดสำเร็จ ${successCount} รายการ`,
+                title: t('holidaysPage.importSuccess', { count: successCount }),
                 showConfirmButton: false,
                 timer: 1500
             })
         } catch (e) {
             Swal.fire({
                 icon: 'error',
-                title: 'นำเข้าวันหยุดไม่สำเร็จ',
-                text: e?.response?.data?.message || 'เกิดข้อผิดพลาด',
+                title: t('holidaysPage.importFail'),
+                text: e?.response?.data?.message || t('common.error'),
                 showConfirmButton: true
             })
         }

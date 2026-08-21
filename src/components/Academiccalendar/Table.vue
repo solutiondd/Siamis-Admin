@@ -1,7 +1,7 @@
 <template>
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body p-3">
-            <div class="flex justify-end gap-2 mb-2">
+            <div v-if="auth.user?.role !== 'viewer'" class="flex justify-end gap-2 mb-2">
                 <button @click="handleEditAll" class="btn btn-warning btn-sm text-white" :disabled="!terms.length">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -21,9 +21,9 @@
                 <table class="table table-zebra table-xs sm:table-sm md:table-md">
                     <thead>
                         <tr>
-                            <th class="bg-primary text-primary-content w-[50%]">รายการ</th>
-                            <th class="bg-primary text-primary-content">วันเริ่มต้น</th>
-                            <th class="bg-primary text-primary-content">วันสิ้นสุด</th>
+                            <th class="bg-primary text-primary-content w-[50%]">{{ t('academicCalendarTable.item') }}</th>
+                            <th class="bg-primary text-primary-content">{{ t('academicCalendarTable.startDate') }}</th>
+                            <th class="bg-primary text-primary-content">{{ t('academicCalendarTable.endDate') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -34,7 +34,7 @@
                         </tr>
                         <tr v-else-if="!terms.length">
                             <td colspan="3" class="text-center py-8 text-base-content/50">
-                                ไม่มีข้อมูลปฏิทินการศึกษา
+                                {{ t('academicCalendarTable.noData') }}
                             </td>
                         </tr>
                         <tr v-else v-for="(item, idx) in terms" :key="idx" class="hover cursor-pointer"
@@ -59,8 +59,12 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { AcademicCalendarService } from '../../api/academiccalendar';
+import { useAuthStore } from '../../stores/auth';
 
+const { t, locale } = useI18n();
+const auth = useAuthStore();
 const props = defineProps({
     year: {
         type: [Number, String],
@@ -81,13 +85,15 @@ const selectedIndex = ref(0);
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    const loc = locale.value === 'th' ? 'th-TH' : 'en-US';
+    return date.toLocaleDateString(loc, { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const formatDateShort = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+    const loc = locale.value === 'th' ? 'th-TH' : 'en-US';
+    return date.toLocaleDateString(loc, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 const handleEditAll = () => {

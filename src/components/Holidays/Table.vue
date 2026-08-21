@@ -5,10 +5,10 @@
                 <table class="table table-zebra table-xs sm:table-sm md:table-md">
                     <thead>
                         <tr>
-                            <th class="bg-primary text-primary-content">ชื่อวันหยุด</th>
-                            <th class="bg-primary text-primary-content">วันที่</th>
+                            <th class="bg-primary text-primary-content">{{ t('HolidaysTable.holidayName') }}</th>
+                            <th class="bg-primary text-primary-content">{{ t('HolidaysTable.date') }}</th>
                             <th v-if="auth.user?.role !== 'viewer'" class="bg-primary text-primary-content text-center">
-                                จัดการ</th>
+                                {{ t('HolidaysTable.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -19,7 +19,7 @@
                         </tr>
                         <tr v-else-if="holidays.length === 0">
                             <td colspan="7" class="text-center py-8 text-base-content/50">
-                                ไม่มีข้อมูลวันหยุด
+                                {{ t('HolidaysTable.noData') }}
                             </td>
                         </tr>
                         <tr v-else v-for="(item, idx) in pagedHolidays" :key="idx + (currentPage - 1) * pageSize"
@@ -29,7 +29,7 @@
                             <td v-if="auth.user?.role !== 'viewer'">
                                 <div class="flex gap-2 justify-center">
                                     <button class="btn btn-sm btn-error btn-outline" @click="$emit('delete', item)"
-                                        title="ลบ">
+                                        :title="t('common.delete')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -60,6 +60,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
+
+const { locale, t } = useI18n()
 
 const auth = useAuthStore()
 
@@ -110,8 +113,6 @@ const visiblePages = computed(() => {
 });
 
 function formatDisplayDate(date) {
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-
     let year;
     let month;
     let day;
@@ -137,8 +138,19 @@ function formatDisplayDate(date) {
         return '-';
     }
 
-    const buddhistYear = year > 2400 ? year : year + 543;
-    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`;
+    const dateObj = new Date(year, month - 1, day);
+    if (locale.value === 'en') {
+        return new Intl.DateTimeFormat('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        }).format(dateObj);
+    }
+    return new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }).format(dateObj);
 }
 </script>
 <style scoped>

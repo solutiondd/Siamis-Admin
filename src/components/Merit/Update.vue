@@ -7,21 +7,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <h3 class="text-lg font-bold mb-4">แก้ไขรายการ</h3>
+            <h3 class="text-lg font-bold mb-4">{{ t('meritUpdate.title') }}</h3>
             <form @submit.prevent="handleSubmit">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">ชื่อรายการ</label>
+                    <label class="block text-sm font-medium mb-1">{{ t('meritUpdate.name') }}</label>
                     <input v-model="form.name" type="text" class="input input-bordered w-full" required />
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">คะแนน</label>
+                    <label class="block text-sm font-medium mb-1">{{ t('meritUpdate.score') }}</label>
                     <input v-model="form.score" type="number" class="input input-bordered w-full" min="1" required />
                 </div>
                 <div class="mt-6 flex justify-end gap-2">
-                    <button type="button" class="btn btn-secondary" @click="closePopup">ยกเลิก</button>
+                    <button type="button" class="btn btn-secondary" @click="closePopup">{{ t('meritUpdate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ t('meritUpdate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -31,8 +32,10 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { MeritService } from '../../api/merit.js'
 import Swal from 'sweetalert2'
+const { t } = useI18n()
 
 const props = defineProps({
     merit: { type: Object, required: true }
@@ -58,16 +61,16 @@ async function handleSubmit() {
         await service.updateMeritType(props.merit._id, { name: form.value.name, score: form.value.score })
         Swal.fire({
             icon: 'success',
-            title: 'บันทึกสำเร็จ',
-            text: 'ข้อมูลถูกแก้ไขเรียบร้อยแล้ว',
+            title: t('meritUpdate.successTitle'),
+            text: t('meritUpdate.successText'),
         })
         emit('updated')
         closePopup()
     } catch (err) {
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถบันทึกข้อมูลได้',
+            title: t('meritUpdate.errorTitle'),
+            text: err?.response?.data?.error || err?.message || t('meritUpdate.errorText'),
         })
     }
     loading.value = false

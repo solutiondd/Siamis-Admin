@@ -1,137 +1,197 @@
 <template>
-    <dialog ref="modalRef" class="modal">
-        <div class="modal-box w-11/12 max-w-4xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg text-primary">นำเข้าข้อมูลนักเรียนจาก Excel 📝</h3>
-                <button class="btn btn-sm btn-circle btn-ghost" @click="closeModal">✕</button>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-4 mb-4 p-4 border rounded-lg bg-base-200">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์ Excel (.xlsx, .xls)</span>
-                    </label>
-                    <input type="file" accept=".xlsx,.xls" @change="onExcelChange"
-                        class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="excelFile" class="text-xs text-success mt-1">ไฟล์ที่เลือก: {{ excelFile.name }}</p>
-                    <div class="mt-2">
-                        <a :href="exampleExcelUrl" download class="link link-primary text-xs">
-                            ดาวน์โหลดไฟล์ตัวอย่าง Excel
-                        </a>
-                    </div>
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์รูปภาพ (หลายไฟล์ได้)</span>
-                    </label>
-                    <input type="file" accept="image/*" multiple @change="onImagesChange"
-                        class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                        }} ไฟล์</p>
-                    <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสนักเรียน เช่น <b>6200.jpg</b>
-                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
-                </div>
-            </div>
-
-            <div class="flex gap-2">
-                <button class="btn btn-warning" @click="previewExcel" :disabled="!excelFile || isPreviewing">
-                    <span v-if="isPreviewing" class="loading loading-spinner"></span>
-                    ดูตัวอย่าง
-                </button>
-            </div>
-
-            <div v-if="previewData.length" class="mt-6">
-                <h3 class="font-bold mb-2 text-secondary">ตัวอย่างข้อมูลนักเรียน ({{ previewData.length }} แถว)</h3>
-                <div class="overflow-x-auto max-h-96">
-                    <table class="table table-zebra w-full table-sm">
-                        <thead>
-                            <tr class="bg-base-300">
-                                <th>รหัส</th>
-                                <th>คำนำหน้า</th>
-                                <th>ชื่อ</th>
-                                <th>นามสกุล</th>
-                                <th>ชั้นปี</th>
-                                <th>ห้อง</th>
-                                <th>ชื่อรูปภาพ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(student, idx) in pagedPreviewData" :key="idx">
-                                <td>{{ student.userid }}</td>
-                                <td>{{ student.pre_name }}</td>
-                                <td>{{ student.first_name }}</td>
-                                <td>{{ student.last_name }}</td>
-                                <td>{{ student.grade }}</td>
-                                <td>{{ student.classroom }}</td>
-                                <td>{{ student.imageName || '-' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex justify-center items-center gap-2 mt-2">
-                    <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">‹</button>
-                    <span class="text-xs">หน้า {{ currentPage }} / {{ totalPages }}</span>
-                    <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">›</button>
-                </div>
-                <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
-                    <span v-if="isImporting" class="loading loading-spinner"></span>
-                    ✅ บันทึกและนำเข้าข้อมูล
-                </button>
-            </div>
-
-            <div v-if="!excelFile && !previewData.length" class="text-center p-8 text-gray-500">
-                กรุณาเลือกไฟล์ Excel เพื่อเริ่มต้นการนำเข้า
-            </div>
+  <dialog ref="modalRef" class="modal">
+    <div class="modal-box w-11/12 max-w-4xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-lg text-primary">{{ $t('StudentImportExcal.title') }}</h3>
+        <button class="btn btn-sm btn-circle btn-ghost" @click="closeModal">✕</button>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4 mb-4 p-4 border rounded-lg bg-base-200">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">{{ $t('StudentImportExcal.excelInputLabel') }}</span>
+          </label>
+          <input type="file" accept=".xlsx,.xls" @change="onExcelChange"
+            class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+          <p v-if="excelFile" class="text-xs text-success mt-1">{{ $t('StudentImportExcal.selectedFile') }} {{
+            excelFile.name }}</p>
+          <div class="mt-2">
+            <a :href="exampleExcelUrl" download class="link link-primary text-xs">
+              {{ $t('StudentImportExcal.downloadSample') }}
+            </a>
+          </div>
         </div>
-        <form method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
-        </form>
-    </dialog>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">{{ $t('StudentImportExcal.imagesInputLabel') }}</span>
+          </label>
+          <input type="file" accept="image/*" multiple @change="onImagesChange"
+            class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+          <p v-if="imageFiles.length" class="text-xs text-success mt-1">{{ $t('StudentImportExcal.selectedImages', {
+            count: imageFiles.length }) }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ $t('StudentImportExcal.imageNameTip') }}</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn btn-warning" @click="previewExcel" :disabled="!excelFile || isPreviewing">
+          <span v-if="isPreviewing" class="loading loading-spinner"></span>
+          {{ $t('StudentImportExcal.previewBtn') }}
+        </button>
+      </div>
+
+      <div v-if="previewData.length" class="mt-6">
+        <h3 class="font-bold mb-2 text-secondary">{{ $t('StudentImportExcal.previewTitle', {
+          count: previewData.length
+          }) }}</h3>
+        <div class="overflow-x-auto max-h-96">
+          <table class="table table-zebra w-full table-sm">
+            <thead>
+              <tr class="bg-base-300">
+                <th>{{ $t('StudentImportExcal.colCode') }}</th>
+                <th>{{ $t('StudentImportExcal.colPrefix') }}</th>
+                <th>{{ $t('StudentImportExcal.colFirstName') }}</th>
+                <th>{{ $t('StudentImportExcal.colLastName') }}</th>
+                <th>{{ $t('StudentImportExcal.colRfid') }}</th>
+                <th>{{ $t('StudentImportExcal.colGrade') }}</th>
+                <th>{{ $t('StudentImportExcal.colRoom') }}</th>
+                <th>{{ $t('StudentImportExcal.colPhone') }}</th>
+                <th>{{ $t('StudentImportExcal.colImage') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(student, idx) in pagedPreviewData" :key="idx">
+                <td>{{ student.userid }}</td>
+                <td>{{ student.pre_name }}</td>
+                <td>{{ student.first_name }}</td>
+                <td>{{ student.last_name }}</td>
+                <td>{{ student.rfid || '-' }}</td>
+                <td>{{ mapGradeDisplay(student.grade) }}</td>
+                <td>{{ student.classroom }}</td>
+                <td>{{ student.guardian_phone || '-' }}</td>
+                <td>
+                  <span :class="student.imageMatched ? 'text-success font-semibold' : 'text-error font-semibold'">
+                    {{ student.imageName || '-' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs mt-2">
+          <span class="text-success font-semibold">{{ $t('StudentImportExcal.legendGreen') }}</span> {{
+            $t('StudentImportExcal.legendGreenDesc') }}
+          <span class="text-error font-semibold">{{ $t('StudentImportExcal.legendRed') }}</span> {{
+            $t('StudentImportExcal.legendRedDesc') }}
+        </p>
+        <div class="flex justify-center items-center gap-2 mt-2">
+          <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">‹</button>
+          <span class="text-xs">{{ $t('StudentImportExcal.pageInfo', { current: currentPage, total: totalPages })
+            }}</span>
+          <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">›</button>
+        </div>
+        <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
+          <span v-if="isImporting" class="loading loading-spinner"></span>
+          {{ $t('StudentImportExcal.saveImportBtn') }}
+        </button>
+      </div>
+
+      <div v-if="!excelFile && !previewData.length" class="text-center p-8 text-gray-500">
+        {{ $t('StudentImportExcal.emptyTip') }}
+      </div>
+    </div>
+
+    <form method="dialog" class="modal-backdrop">
+      <button @click="closeModal">close</button>
+    </form>
+  </dialog>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { StudentService } from '../../api/student'
+import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
+import { StudentService } from '../../api/student'
+import { mapGradeDisplay } from '../../utils/gradeSystem'
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+const { t } = useI18n()
+let faceapiLib = null
+let tinyFaceModelReady = false
+
+const ensureTinyFaceDetectorModel = async () => {
+  if (!faceapiLib) {
+    faceapiLib = await import('face-api.js')
+  }
+
+  if (!tinyFaceModelReady) {
+    await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+    tinyFaceModelReady = true
+  }
+
+  return faceapiLib
+}
+
+const detectFace = async (file) => {
+  const faceapi = await ensureTinyFaceDetectorModel()
+  const img = await faceapi.bufferToImage(file)
+  const detections = await faceapi.detectAllFaces(
+    img,
+    new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+  )
+  return detections.length > 0
+}
+
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+                        if (!b) return reject(t('StudentImportExcal.compressFail'));
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(t('StudentImportExcal.compressFail'));
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('StudentImportExcal.compressFail'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('StudentImportExcal.errLoadFileFail'));
         reader.readAsDataURL(file);
     });
 }
@@ -183,6 +243,7 @@ function onExcelChange(e) {
     currentPage.value = 1
     e.target.value = null
 }
+
 function onImagesChange(e) {
     imageFiles.value = Array.from(e.target.files)
     e.target.value = null
@@ -193,7 +254,7 @@ function onImagesChange(e) {
 
 function previewExcel() {
     if (!excelFile.value) {
-        Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกไฟล์ Excel ก่อน', 'warning')
+        Swal.fire(t('StudentImportExcal.errorTitle'), t('StudentImportExcal.errSelectExcelFirst'), 'warning')
         return
     }
 
@@ -201,9 +262,9 @@ function previewExcel() {
     previewData.value = []
     currentPage.value = 1
 
-    const getImageName = (userid) => {
-        userid = userid?.toString().trim();
-        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === userid);
+    const getImageName = (key) => {
+        key = key?.toString().trim();
+        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === key);
         return found ? found.name : '';
     }
 
@@ -217,25 +278,43 @@ function previewExcel() {
             const json = XLSX.utils.sheet_to_json(sheet)
 
             if (!json || json.length === 0) {
-                Swal.fire('ข้อมูลว่างเปล่า', 'ไม่พบข้อมูลในไฟล์ Excel ที่เลือก', 'warning')
+                Swal.fire(t('StudentImportExcal.errorTitle'), t('StudentImportExcal.errEmptyExcel'), 'warning')
             } else {
                 previewData.value = json.map(row => {
                     const userid = (mapHeader('รหัส', row) || mapHeader('userid', row) || '').toString().trim();
+                    const imageNameFromSheet = (
+                        mapHeader('ชื่อรูป', row) ||
+                        mapHeader('ชื่อรูปภาพ', row) ||
+                        mapHeader('image_name', row) ||
+                        mapHeader('imageName', row)
+                    )?.toString().trim() || '';
+
+                    const imageLookupKey = (imageNameFromSheet || userid)
+                        .toString()
+                        .trim()
+                        .replace(/\.[^/.]+$/, '');
+
+                    const matchedImageName = getImageName(imageLookupKey);
+                    const imageMatched = Boolean(matchedImageName);
+
                     return {
                         userid,
                         pre_name: mapHeader('คำนำหน้า', row) || mapHeader('pre_name', row) || '',
                         first_name: mapHeader('ชื่อ', row) || mapHeader('first_name', row) || '',
                         last_name: mapHeader('นามสกุล', row) || mapHeader('last_name', row) || '',
+                        rfid: (mapHeader('รหัสบัตร (rfid)', row) || mapHeader('rfid', row) || '').toString().trim(),
                         grade: mapHeader('ชั้นปี', row) || mapHeader('grade', row) || '',
                         classroom: mapHeader('ห้อง', row) || mapHeader('classroom', row) || '',
-                        imageName: getImageName(userid)
+                        guardian_phone: (mapHeader('เบอร์โทรผู้ปกครอง', row) || mapHeader('guardian_phone', row) || mapHeader('parent_phone', row) || '').toString().trim(),
+                        imageName: matchedImageName || imageNameFromSheet,
+                        imageMatched
                     }
                 })
             }
 
         } catch (error) {
             console.error('Error reading Excel:', error)
-            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถอ่านไฟล์ Excel ได้ ลองตรวจสอบรูปแบบไฟล์', 'error')
+            Swal.fire(t('StudentImportExcal.errorTitle'), t('StudentImportExcal.errReadExcelFail'), 'error')
             previewData.value = []
         } finally {
             isPreviewing.value = false
@@ -243,35 +322,82 @@ function previewExcel() {
     }
     reader.onerror = () => {
         isPreviewing.value = false
-        Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการโหลดไฟล์', 'error')
+        Swal.fire(t('StudentImportExcal.errorTitle'), t('StudentImportExcal.errLoadFileFail'), 'error')
     }
     reader.readAsArrayBuffer(excelFile.value)
 }
 
 async function handleImport() {
     if (!previewData.value.length || !excelFile.value) {
-        Swal.fire('แจ้งเตือน', 'กรุณาดูตัวอย่างข้อมูลและตรวจสอบความถูกต้องก่อนบันทึก', 'warning')
+        Swal.fire(t('StudentImportExcal.errorTitle'), t('StudentImportExcal.warnPreviewFirst'), 'warning')
         return
     }
 
     isImporting.value = true
     try {
         const imageMap = {};
+        const resizedImageCache = {};
         for (const file of imageFiles.value) {
             const baseName = file.name.split('.')[0];
-            if (file.type.match('image/jpeg') || file.type.match('image/jpg')) {
-                try {
-                    const resizedBlob = await resizeImage(file, 70, 300, 300);
-                    if (resizedBlob.size > 70 * 1024) {
-                        continue;
-                    }
-                    imageMap[baseName] = new File([resizedBlob], file.name, { type: 'image/jpeg' });
-                } catch (err) {
-                }
+            if (file.type.startsWith('image/')) {
+                imageMap[baseName] = file;
             }
         }
 
+        async function getResizedImageByKey(key) {
+            const normalizedKey = (key || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            if (!normalizedKey) return null;
+
+            if (resizedImageCache[normalizedKey]) {
+                return resizedImageCache[normalizedKey];
+            }
+
+            const sourceFile = imageMap[normalizedKey];
+            if (!sourceFile) return null;
+
+            try {
+                const resizedBlob = await resizeImage(sourceFile, 70, 450);
+                const resizedFile = new File([resizedBlob], sourceFile.name, { type: 'image/jpeg' });
+                const hasFace = await detectFace(resizedFile)
+                if (!hasFace) {
+                    resizedImageCache[normalizedKey] = null;
+                    return null;
+                }
+                resizedImageCache[normalizedKey] = resizedFile;
+                return resizedFile;
+            } catch (err) {
+                resizedImageCache[normalizedKey] = null;
+                return null;
+            }
+        }
+
+        function cleanLastName(val) {
+            if (val === undefined || val === null || val === '' || (typeof val === 'string' && val.trim() === '')) return '';
+            if (val === '-') return ' ';
+            if (typeof val === 'string' && val.trim() === '-') return ' ';
+            return val;
+        }
+
+        function cleanGuardianPhone(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
+        }
+
+        function cleanRfid(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
+        }
+
         const importedStudents = [];
+        const failedStudents = [];
         for (const student of previewData.value) {
             let existing = null;
             try {
@@ -280,55 +406,151 @@ async function handleImport() {
                 existing = null;
             }
 
+            const cleanedStudent = {
+                ...student,
+                last_name: cleanLastName(student.last_name),
+                guardian_phone: cleanGuardianPhone(student.guardian_phone),
+                rfid: cleanRfid(student.rfid)
+            };
+
+            const imageNameKey = (cleanedStudent.imageName || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            const resolvedImageFile = await getResizedImageByKey(imageNameKey)
+                || await getResizedImageByKey(cleanedStudent.userid);
+
             let formData = {};
             if (existing && existing.message === 'Success' && existing.data && existing.data._id) {
                 const oldData = existing.data;
+
+                let fallbackFirstName = oldData.first_name || '';
+                let fallbackLastName = oldData.last_name || '';
+
+                if ((!fallbackFirstName || !fallbackLastName) && oldData.name) {
+                    let cleanName = oldData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง)\s*/, '').trim();
+                    const nameParts = cleanName.split(/\s+/);
+
+                    fallbackFirstName = nameParts[0] || '';
+                    fallbackLastName = nameParts.slice(1).join(' ') || '';
+                }
+
                 formData = {
                     ...oldData,
-                    userid: student.userid,
+                    userid: cleanedStudent.userid,
                 };
-                if (student.pre_name) formData.pre_name = student.pre_name;
-                if (student.first_name) formData.first_name = student.first_name;
-                if (student.last_name) formData.last_name = student.last_name;
-                if (student.grade) formData.grade = student.grade;
-                if (student.classroom) formData.classroom = student.classroom;
-                if (imageMap[student.userid]) formData.picture = imageMap[student.userid];
+
+                delete formData.picture;
+
+                const isInvalidValue = (val) => {
+                    if (val === undefined || val === null) return true;
+                    const str = val.toString().trim();
+                    return str === '' || str === '-';
+                };
+
+                formData.pre_name = !isInvalidValue(cleanedStudent.pre_name) ? cleanedStudent.pre_name : (oldData.pre_name || '');
+                formData.first_name = !isInvalidValue(cleanedStudent.first_name) ? cleanedStudent.first_name : fallbackFirstName;
+                formData.last_name = !isInvalidValue(cleanedStudent.last_name) ? cleanedStudent.last_name : fallbackLastName;
+
+                formData.grade = !isInvalidValue(cleanedStudent.grade) ? cleanedStudent.grade : oldData.grade;
+                formData.classroom = !isInvalidValue(cleanedStudent.classroom) ? cleanedStudent.classroom : oldData.classroom;
+
+                formData.guardian_phone = cleanedStudent.guardian_phone !== '' ? cleanedStudent.guardian_phone : oldData.guardian_phone;
+                formData.rfid = cleanedStudent.rfid !== '' ? cleanedStudent.rfid : oldData.rfid;
+
+                if (resolvedImageFile) {
+                    formData.picture = resolvedImageFile;
+                }
+
                 try {
                     const response = await studentService.updateStudent(oldData._id, formData);
                     if (response.message === 'Success') {
                         importedStudents.push(response.data);
+                    } else {
+                        failedStudents.push({
+                            userid: cleanedStudent.userid,
+                            name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                            reason: response.message || t('StudentImportExcal.unknownReason')
+                        });
                     }
                 } catch (err) {
-                    console.error(`Error updating student ${student.userid}:`, err);
+                    console.error(`Error updating student ${cleanedStudent.userid}:`, err);
+                    failedStudents.push({
+                        userid: cleanedStudent.userid,
+                        name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                        reason: err.response?.data?.error || err.response?.data?.message || err.message || t('StudentImportExcal.unknownReason')
+                    });
                 }
             } else {
                 formData = {
-                    userid: student.userid,
-                    pre_name: student.pre_name,
-                    first_name: student.first_name,
-                    last_name: student.last_name,
-                    grade: student.grade,
-                    classroom: student.classroom,
-                    picture: imageMap[student.userid] || null
+                    userid: cleanedStudent.userid,
+                    pre_name: cleanedStudent.pre_name,
+                    first_name: cleanedStudent.first_name,
+                    last_name: cleanedStudent.last_name,
+                    grade: cleanedStudent.grade,
+                    classroom: cleanedStudent.classroom,
+                    guardian_phone: cleanedStudent.guardian_phone,
+                    rfid: cleanedStudent.rfid,
+                    picture: resolvedImageFile || null
                 };
                 try {
                     const response = await studentService.createStudent(formData);
                     if (response.message === 'Success') {
                         importedStudents.push(response.data);
+                    } else {
+                        failedStudents.push({
+                            userid: cleanedStudent.userid,
+                            name: `${cleanedStudent.pre_name}${cleanedStudent.first_name} ${cleanedStudent.last_name}`,
+                            reason: response.message || t('StudentImportExcal.unknownReason')
+                        });
                     }
                 } catch (err) {
-                    console.error(`Error creating student ${student.userid}:`, err);
+                    console.error(`Error creating student ${cleanedStudent.userid}:`, err);
+                    failedStudents.push({
+                        userid: cleanedStudent.userid,
+                        name: `${cleanedStudent.pre_name}${cleanedStudent.first_name} ${cleanedStudent.last_name}`,
+                        reason: err.response?.data?.error || err.message || t('StudentImportExcal.unknownReason')
+                    });
                 }
             }
         }
 
-        Swal.fire('สำเร็จ', `นำเข้าข้อมูลนักเรียนสำเร็จ ${importedStudents.length} รายการ`, 'success');
+        let msg = `<div style='text-align:left;'>`
+            + `${t('StudentImportExcal.importSummarySuccess', { count: importedStudents.length })}`
+            + `<br>${t('StudentImportExcal.importSummaryFail', { count: failedStudents.length })}`;
+        if (failedStudents.length > 0) {
+            msg += `<br><br><b>${t('StudentImportExcal.failedListTitle')}</b>`;
+            msg += `<div style='max-height:220px;overflow:auto;'><table style='border-collapse:collapse;width:100%;font-size:13px;'>`;
+            msg += `<thead><tr style='background:#f3f4f6;'><th style='border:1px solid #ddd;padding:4px;'>${t('StudentImportExcal.colCode')}</th><th style='border:1px solid #ddd;padding:4px;'>${t('StudentImportExcal.colFirstName')}</th><th style='border:1px solid #ddd;padding:4px;'>Reason</th></tr></thead><tbody>`;
+            msg += failedStudents.map(f => {
+                let reason = f.reason;
+                if (reason === '"last_name" is not allowed to be empty' || reason === 'last_name" is not allowed to be empty') {
+                    reason = t('StudentImportExcal.errRequiredLastName');
+                } else if (/fails to match the required pattern/.test(reason) && /last_name/.test(reason)) {
+                    reason = t('StudentImportExcal.errLastNamePattern');
+                } else if (/fails to match the required pattern/.test(reason) && /first_name/.test(reason)) {
+                    reason = t('StudentImportExcal.errFirstNamePattern');
+                } else if (/is required/.test(reason)) {
+                    reason = t('StudentImportExcal.errRequiredData');
+                }
+                return `<tr><td style='border:1px solid #ddd;padding:4px;'>${f.userid}</td><td style='border:1px solid #ddd;padding:4px;'>${f.name}</td><td style='border:1px solid #ddd;padding:4px;color:#b91c1c;'>${reason}</td></tr>`;
+            }).join('');
+            msg += `</tbody></table></div>`;
+        }
+        msg += `</div>`;
+        Swal.fire({
+            title: t('StudentImportExcal.successTitle'),
+            html: msg,
+            icon: failedStudents.length > 0 ? 'warning' : 'success',
+            width: 600
+        });
         emit('success', importedStudents);
         closeModal();
     } catch (e) {
         console.error('Import error:', e);
-        const errorMessage = e.response?.data?.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
-        Swal.fire('เกิดข้อผิดพลาด', errorMessage, 'error');
+        const errorMessage = e.response?.data?.message || t('StudentImportExcal.importErrorDefault');
+        Swal.fire(t('StudentImportExcal.errorTitle'), errorMessage, 'error');
     } finally {
         isImporting.value = false;
     }

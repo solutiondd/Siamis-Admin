@@ -1,18 +1,19 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-            <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap">ปฏิทินการศึกษา</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap">{{ t('academicCalendarPage.title') }}
+            </h1>
             <div class="flex gap-2 items-center w-full sm:w-auto">
                 <select v-model="selectedYear"
                     class="select select-bordered select-sm text-xs sm:text-base flex-1 sm:flex-none">
                     <option v-for="y in yearOptions" :key="y" :value="y">{{ y + 543 }}</option>
                 </select>
-                <button class="btn btn-primary btn-sm" @click="openCreateModal">
+                <button v-if="auth.user?.role !== 'viewer'" class="btn btn-primary btn-sm" @click="openCreateModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span class="hidden sm:inline">เพิ่มรายการ</span>
+                    <span class="hidden sm:inline">{{ t('academicCalendarPage.add') }}</span>
                 </button>
             </div>
         </div>
@@ -41,7 +42,11 @@ import TermSummary from '../../components/Academiccalendar/TermSummary.vue'
 import CreateModal from '../../components/Academiccalendar/Create.vue'
 import UpdateModal from '../../components/Academiccalendar/Update.vue'
 import DeleteModal from '../../components/Academiccalendar/Delete.vue'
+import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 
+const auth = useAuthStore()
+const { t } = useI18n()
 const currentYear = new Date().getFullYear()
 const selectedYear = ref(currentYear)
 const refreshKey = ref(0)
@@ -84,11 +89,11 @@ const handleCreateSuccess = () => {
     handleRefresh()
     setTimeout(() => {
         Swal.fire({
-            title: 'เพิ่มปฏิทินการศึกษาสำเร็จ!',
+            title: t('academicCalendarPage.createSuccess'),
             icon: 'success',
             showCancelButton: false,
             confirmButtonColor: '#2563eb',
-            confirmButtonText: 'ตกลง',
+            confirmButtonText: t('common.ok'),
             allowOutsideClick: true,
             didOpen: () => {
                 const appElement = document.getElementById('app')
@@ -105,11 +110,11 @@ const handleUpdateSuccess = () => {
     handleRefresh()
     setTimeout(() => {
         Swal.fire({
-            title: 'แก้ไขสำเร็จ!',
+            title: t('academicCalendarPage.updateSuccess'),
             icon: 'success',
             showCancelButton: false,
             confirmButtonColor: '#2563eb',
-            confirmButtonText: 'ตกลง',
+            confirmButtonText: t('common.ok'),
             allowOutsideClick: true,
             didOpen: () => {
                 const appElement = document.getElementById('app')
@@ -126,11 +131,11 @@ const handleDeleteSuccess = () => {
     handleRefresh()
     setTimeout(() => {
         Swal.fire({
-            title: 'ลบปฏิทินการศึกษาสำเร็จ!',
+            title: t('academicCalendarPage.deleteSuccess'),
             icon: 'success',
             showCancelButton: false,
             confirmButtonColor: '#2563eb',
-            confirmButtonText: 'ตกลง',
+            confirmButtonText: t('common.ok'),
             allowOutsideClick: true,
             didOpen: () => {
                 const appElement = document.getElementById('app')

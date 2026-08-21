@@ -4,7 +4,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        {{ isProcessing ? 'กำลังประมวลผล...' : 'Re-modeling' }}
+        <span class="button-text">{{ isProcessing ? t('ModelingReModel.processing') : t('ModelingReModel.button')
+            }}</span>
     </button>
 </template>
 
@@ -12,6 +13,9 @@
 import { ref } from 'vue';
 import ModelingService from '../../api/modeling.js';
 import Swal from 'sweetalert2';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
     modelingId: {
@@ -36,12 +40,12 @@ const handleRemodeling = async () => {
         await props.beforeAction();
     }
     const result = await Swal.fire({
-        title: 'ยืนยัน Re-modeling',
-        text: `ต้องการทำ Re-modeling สำหรับอุปกรณ์ "${props.location}" หรือไม่?`,
+        title: t('ModelingReModel.confirmTitle'),
+        text: t('ModelingReModel.confirmText', { location: props.location }),
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'ยืนยัน',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('ModelingReModel.confirmButton'),
+        cancelButtonText: t('common.cancel'),
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33'
     });
@@ -53,8 +57,8 @@ const handleRemodeling = async () => {
             if (response.message === 'Success') {
                 Swal.fire({
                     icon: 'success',
-                    title: 'สำเร็จ',
-                    text: 'ส่งคำขอ Re-modeling สำเร็จ',
+                    title: t('ModelingReModel.successTitle'),
+                    text: t('ModelingReModel.successText'),
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -64,8 +68,8 @@ const handleRemodeling = async () => {
             console.error('Error remodeling:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: error.response?.data?.message || 'ไม่สามารถทำ Re-modeling ได้'
+                title: t('ModelingReModel.errorTitle'),
+                text: error.response?.data?.message || t('ModelingReModel.errorText')
             });
         } finally {
             isProcessing.value = false;
@@ -75,3 +79,11 @@ const handleRemodeling = async () => {
 </script>
 
 <style scoped></style>
+
+<style scoped>
+@media (max-width: 524px) {
+    .button-text {
+        display: none;
+    }
+}
+</style>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button @click="openPopup" class="btn btn-primary">เพิ่มรายการ</button>
+        <button @click="openPopup" class="btn btn-primary">{{ $t('MeritCreate.addItem') }}</button>
         <div v-if="showPopup" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div
                 class="bg-white rounded-lg shadow-lg p-4 w-full max-w-xs sm:max-w-md relative max-h-full overflow-y-auto">
@@ -11,22 +11,22 @@
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <h3 class="text-lg font-bold mb-4 text-primary">เพิ่มรายการ</h3>
+                <h3 class="text-lg font-bold mb-4 text-primary">{{ $t('MeritCreate.addItem') }}</h3>
                 <form @submit.prevent="handleSubmit">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">ชื่อรายการ</label>
+                        <label class="block text-sm font-medium mb-1">{{ $t('MeritCreate.itemNameLabel') }}</label>
                         <input v-model="form.name" type="text" class="input input-bordered w-full"
-                            placeholder="กรอกชื่อ..." required />
+                            :placeholder="$t('MeritCreate.itemNamePlaceholder')" required />
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium mb-1">คะแนน</label>
+                        <label class="block text-sm font-medium mb-1">{{ $t('MeritCreate.scoreLabel') }}</label>
                         <input v-model="form.score" type="number" class="input input-bordered w-full"
-                            placeholder="กรอกคะแนน..." min="1" required />
+                            :placeholder="$t('MeritCreate.scorePlaceholder')" min="1" required />
                     </div>
                     <div class="mt-6 flex justify-end">
                         <button type="submit" class="btn btn-primary" :disabled="loading">
                             <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                            <span v-else>บันทึก</span>
+                            <span v-else>{{ $t('MeritCreate.save') }}</span>
                         </button>
                     </div>
                 </form>
@@ -37,9 +37,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { MeritService } from '../../api/merit.js'
 import Swal from 'sweetalert2'
 
+const { t } = useI18n()
 const emit = defineEmits(['created'])
 const showPopup = ref(false)
 const loading = ref(false)
@@ -61,15 +63,15 @@ async function handleSubmit() {
         closePopup()
         Swal.fire({
             icon: 'success',
-            title: 'บันทึกสำเร็จ',
-            text: 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว',
+            title: t('MeritCreate.swalSaveSuccessTitle'),
+            text: t('MeritCreate.swalSaveSuccessText'),
         })
         emit('created')
     } catch (err) {
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถบันทึกข้อมูลได้',
+            title: t('MeritCreate.swalErrorTitle'),
+            text: err?.response?.data?.error || err?.message || t('MeritCreate.swalSaveErrorText'),
         })
     }
     loading.value = false

@@ -7,17 +7,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 9v2m0 4h.01M5.07 19h13.86A2.07 2.07 0 0021 16.93V7.07A2.07 2.07 0 0018.93 5H5.07A2.07 2.07 0 003 7.07v9.86A2.07 2.07 0 005.07 19z" />
                 </svg>
-                ยืนยันการลบ
+                {{ $t('StudentDelete.title') }}
             </h3>
-            <p class="text-sm mb-4" v-if="student">ต้องการลบนักเรียน <span class="font-semibold">{{ student.name
-            }}</span> ใช่หรือไม่?</p>
-            <p v-else class="text-sm mb-4">กำลังเตรียมข้อมูล...</p>
+            <p class="text-sm mb-4" v-if="student">
+                {{ $t('StudentDelete.confirmText', { name: student.name }) }}
+            </p>
+            <p v-else class="text-sm mb-4">{{ $t('StudentDelete.preparing') }}</p>
 
             <div class="flex justify-end gap-2 mt-2">
-                <button class="btn btn-sm" @click="close" :disabled="loading">ยกเลิก</button>
+                <button class="btn btn-sm" @click="close" :disabled="loading">{{ $t('StudentDelete.cancel') }}</button>
                 <button class="btn btn-sm btn-error" @click="confirmDelete" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    <span v-else>ลบ</span>
+                    <span v-else>{{ $t('StudentDelete.delete') }}</span>
                 </button>
             </div>
         </div>
@@ -29,8 +30,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { StudentService } from '../../api/student'
 
+const { t } = useI18n()
 const dialogRef = ref(null)
 const student = ref(null)
 const loading = ref(false)
@@ -60,7 +63,7 @@ async function confirmDelete() {
         }
     } catch (e) {
         console.error('Delete student error:', e)
-        await showError()
+        await showError(e)
     } finally {
         loading.value = false
     }
@@ -70,20 +73,20 @@ async function showSuccess() {
     const { default: Swal } = await import('sweetalert2')
     await Swal.fire({
         icon: 'success',
-        title: 'ลบสำเร็จ',
-        text: 'ลบนักเรียนเรียบร้อยแล้ว',
+        title: t('StudentDelete.successTitle'),
+        text: t('StudentDelete.successText'),
         showConfirmButton: false,
         timer: 1600,
         didOpen: () => { document.getElementById('app')?.removeAttribute('aria-hidden') }
     })
 }
 
-async function showError() {
+async function showError(error = null) {
     const { default: Swal } = await import('sweetalert2')
     await Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถลบนักเรียนได้',
+        title: t('StudentDelete.errorTitle'),
+        text: error?.response?.data?.error || error?.message || t('StudentDelete.errorDefaultText'),
         confirmButtonColor: '#2563eb',
         didOpen: () => { document.getElementById('app')?.removeAttribute('aria-hidden') }
     })
@@ -91,5 +94,3 @@ async function showError() {
 
 defineExpose({ open })
 </script>
-
-<style scoped></style>

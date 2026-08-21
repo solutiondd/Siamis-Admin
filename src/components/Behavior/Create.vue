@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button @click="openPopup" class="btn btn-primary">เพิ่มรายการ</button>
+        <button @click="openPopup" class="btn btn-primary">{{ $t('BehaviorCreate.addBtn') }}</button>
         <div v-if="showPopup" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div
                 class="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-xs sm:max-w-md relative max-h-full overflow-y-auto">
@@ -11,12 +11,12 @@
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <h3 class="text-lg font-bold mb-4 text-primary">เพิ่มรายการพฤติกรรม</h3>
+                <h3 class="text-lg font-bold mb-4 text-primary">{{ $t('BehaviorCreate.title') }}</h3>
                 <!-- Step 1: เลือก/ค้นหาประเภท -->
                 <div class="mb-4 relative">
-                    <label class="block text-sm font-medium mb-1">ประเภทพฤติกรรม</label>
+                    <label class="block text-sm font-medium mb-1">{{ $t('BehaviorCreate.typeLabel') }}</label>
                     <input type="text" v-model="typeQuery" ref="typeInput" @input="searchTypes"
-                        placeholder="ค้นหาหรือเพิ่มประเภท..." class="input input-bordered w-full"
+                        :placeholder="$t('BehaviorCreate.typePlaceholder')" class="input input-bordered w-full"
                         @focus="typeDropdownOpen = true" @blur="handleTypeBlur" @keydown.enter="handleTypeEnter" />
                     <teleport to="body">
                         <div v-if="filteredTypes.length && typeDropdownOpen" :style="dropdownPosition('type')"
@@ -28,14 +28,13 @@
                             </div>
                         </div>
                     </teleport>
-                    <div v-if="typeQuery && !typeExists" class="mt-2 text-xs text-green-600">สร้างประเภทใหม่: "{{
-                        typeQuery }}"</div>
+                    <div v-if="typeQuery && !typeExists" class="mt-2 text-xs text-green-600">{{ $t('BehaviorCreate.createNewType', { name: typeQuery }) }}</div>
                 </div>
                 <!-- Step 2: เลือก/ค้นหาพฤติกรรม -->
                 <div class="mb-4 relative" v-if="selectedType">
-                    <label class="block text-sm font-medium mb-1">ชื่อพฤติกรรม</label>
+                    <label class="block text-sm font-medium mb-1">{{ $t('BehaviorCreate.behaviorLabel') }}</label>
                     <input type="text" v-model="behaviorQuery" ref="behaviorInput" @input="searchBehaviors"
-                        placeholder="ค้นหาหรือเพิ่มพฤติกรรม..." class="input input-bordered w-full"
+                        :placeholder="$t('BehaviorCreate.behaviorPlaceholder')" class="input input-bordered w-full"
                         @focus="behaviorDropdownOpen = true" @blur="handleBehaviorBlur"
                         @keydown.enter="handleBehaviorEnter" />
                     <teleport to="body">
@@ -50,34 +49,33 @@
                             </div>
                         </div>
                     </teleport>
-                    <div v-if="behaviorQuery && !behaviorExists" class="mt-2 text-xs text-green-600">สร้างพฤติกรรมใหม่:
-                        "{{ behaviorQuery }}"</div>
+                    <div v-if="behaviorQuery && !behaviorExists" class="mt-2 text-xs text-green-600">{{ $t('BehaviorCreate.createNewBehavior', { name: behaviorQuery }) }}</div>
                 </div>
                 <!-- Step 3: ระดับพฤติกรรม -->
                 <div v-if="selectedBehavior">
-                    <label class="block text-sm font-medium mb-1">ระดับพฤติกรรม</label>
-                    <div v-if="behaviorLevels.length === 0" class="text-xs text-gray-400 mb-2">ไม่มีข้อมูลระดับ</div>
+                    <label class="block text-sm font-medium mb-1">{{ $t('BehaviorCreate.levelLabel') }}</label>
+                    <div v-if="behaviorLevels.length === 0" class="text-xs text-gray-400 mb-2">{{ $t('BehaviorCreate.noLevelData') }}</div>
                     <div v-else class="mb-2">
                         <div v-for="level in behaviorLevels" :key="level._id"
                             class="flex items-center justify-between bg-base-200 rounded px-3 py-2 mb-1">
-                            <span>{{ level.level }} : {{ level.name }} (หักคะแนน: {{ level.score }})</span>
+                            <span>{{ level.level }} : {{ level.name }} ({{ $t('BehaviorCreate.scoreDeduct') }}: {{ level.score }})</span>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2 items-end">
-                        <input type="number" v-model="newLevel.level" min="1" placeholder="ระดับ"
+                        <input type="number" v-model="newLevel.level" min="1" :placeholder="$t('BehaviorCreate.levelPlaceholder')"
                             class="input input-bordered w-16 sm:w-20" />
-                        <input type="text" v-model="newLevel.name" placeholder="ชื่อระดับ"
+                        <input type="text" v-model="newLevel.name" :placeholder="$t('BehaviorCreate.levelNamePlaceholder')"
                             class="input input-bordered w-24 sm:w-32" />
-                        <input type="number" v-model="newLevel.score" placeholder="คะแนน"
+                        <input type="number" v-model="newLevel.score" :placeholder="$t('BehaviorCreate.scorePlaceholder')"
                             class="input input-bordered w-20 sm:w-24" />
                         <button @click="addLevel" class="btn btn-success w-full sm:w-auto mt-2 sm:mt-0"
-                            :disabled="!canAddLevel">เพิ่มระดับ</button>
+                            :disabled="!canAddLevel">{{ $t('BehaviorCreate.addLevelBtn') }}</button>
                     </div>
-                    <div v-if="levelExists" class="text-xs text-red-500 mt-1">ระดับนี้มีอยู่แล้ว</div>
-                    <div v-if="levelNameExists" class="text-xs text-red-500 mt-1">ชื่อระดับนี้มีอยู่แล้ว</div>
+                    <div v-if="levelExists" class="text-xs text-red-500 mt-1">{{ $t('BehaviorCreate.levelExists') }}</div>
+                    <div v-if="levelNameExists" class="text-xs text-red-500 mt-1">{{ $t('BehaviorCreate.levelNameExists') }}</div>
                 </div>
                 <div class="mt-6 flex justify-end">
-                    <button @click="saveAll" class="btn btn-primary" :disabled="!canSave">บันทึก</button>
+                    <button @click="saveAll" class="btn btn-primary" :disabled="!canSave">{{ $t('BehaviorCreate.saveBtn') }}</button>
                 </div>
             </div>
         </div>
@@ -276,8 +274,8 @@ export default {
                 });
                 Swal.fire({
                     icon: 'success',
-                    title: 'บันทึกสำเร็จ',
-                    text: 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว',
+                    title: this.$t('BehaviorCreate.saveSuccessTitle'),
+                    text: this.$t('BehaviorCreate.saveSuccessText'),
                 });
                 return;
             }
@@ -311,8 +309,8 @@ export default {
             });
             Swal.fire({
                 icon: 'success',
-                title: 'บันทึกสำเร็จ',
-                text: 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว',
+                title: this.$t('BehaviorCreate.saveSuccessTitle'),
+                text: this.$t('BehaviorCreate.saveSuccessText'),
             });
         },
     },

@@ -1,20 +1,20 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4">เพิ่มแผนก</h3>
+            <h3 class="font-bold text-lg mb-4">{{ t('departmentCreate.title') }}</h3>
             <form @submit.prevent="handleSubmit">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ชื่อแผนก</span>
+                        <span class="label-text">{{ t('departmentCreate.name') }}</span>
                     </label>
-                    <input v-model="formData.name" type="text" placeholder="กรอกชื่อแผนก" class="input input-bordered"
+                    <input v-model="formData.name" type="text" :placeholder="t('departmentCreate.namePlaceholder')" class="input input-bordered"
                         required />
                 </div>
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ t('departmentCreate.cancel') }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>เพิ่ม</span>
+                        <span v-else>{{ t('departmentCreate.add') }}</span>
                     </button>
                 </div>
             </form>
@@ -24,7 +24,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const modalRef = ref(null)
 const loading = ref(false)
 const formData = ref({

@@ -1,17 +1,17 @@
 <template>
-    <div class="max-[570px]:pt-14">
+    <div class="max-[944px]:pt-16">
         <div class="w-full bg-base-200 min-h-full rounded-lg shadow-md p-6">
             <div class="flex flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 class="text-xl sm:text-3xl font-bold text-primary">จัดการอุปกรณ์</h1>
-                    <p class="text-sm sm:text-base text-base-content/60 mt-1">ระบบจัดการข้อมูลอุปกรณ์</p>
+                    <h1 class="text-xl sm:text-3xl font-bold text-primary">{{ t('devicePage.title') }}</h1>
+                    <p class="text-sm sm:text-base text-base-content/60 mt-1">{{ t('devicePage.subtitle') }}</p>
                 </div>
                 <button v-if="auth.user?.role !== 'viewer'" @click="openCreateModal" class="btn btn-primary gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 sm:h-5 w-3 sm:w-5" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มอุปกรณ์
+                    {{ t('devicePage.add') }}
                 </button>
             </div>
 
@@ -25,9 +25,9 @@
                                     d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <div class="stat-title">อุปกรณ์ทั้งหมด</div>
+                        <div class="stat-title">{{ t('devicePage.total') }}</div>
                         <div class="stat-value text-primary">{{ devices.length }}</div>
-                        <div class="stat-desc">รายการอุปกรณ์ในระบบ</div>
+                        <div class="stat-desc">{{ t('devicePage.description') }}</div>
                     </div>
                 </div>
             </div>
@@ -55,8 +55,10 @@ import UpdateModal from '../../components/Device/Update.vue'
 import DeleteModal from '../../components/Device/Delete.vue'
 import DeviceService from '../../api/device'
 import Swal from 'sweetalert2'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 const showDeleteModal = ref(false)
 
 const openDeleteModal = (device) => {
@@ -86,9 +88,9 @@ const fetchDevices = async () => {
         console.error('Error fetching devices:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลอุปกรณ์ได้',
-            confirmButtonText: 'ตรวจสอบอีกครั้ง'
+            title: t('devicePage.loadErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('devicePage.loadErrorText'),
+            confirmButtonText: t('common.retry')
         })
     }
 }
@@ -107,8 +109,8 @@ const handleCreateSuccess = async (formData) => {
             setTimeout(() => {
                 Swal.fire({
                     icon: 'success',
-                    title: 'เพิ่มอุปกรณ์สำเร็จ',
-                    text: 'เพิ่มข้อมูลอุปกรณ์เรียบร้อยแล้ว',
+                    title: t('devicePage.createSuccess'),
+                    text: t('devicePage.createSuccessText'),
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
@@ -124,9 +126,9 @@ const handleCreateSuccess = async (formData) => {
         }
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มอุปกรณ์ได้',
-            confirmButtonText: 'ตรวจสอบอีกครั้ง'
+            title: t('devicePage.createErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('devicePage.createErrorText'),
+            confirmButtonText: t('common.retry')
         })
     }
 }
@@ -152,8 +154,8 @@ const handleUpdateSuccess = async (formData) => {
             setTimeout(() => {
                 Swal.fire({
                     icon: 'success',
-                    title: 'แก้ไขอุปกรณ์สำเร็จ',
-                    text: 'แก้ไขข้อมูลอุปกรณ์เรียบร้อยแล้ว',
+                    title: t('devicePage.updateSuccess'),
+                    text: t('devicePage.updateSuccessText'),
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
@@ -169,9 +171,9 @@ const handleUpdateSuccess = async (formData) => {
         }
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถแก้ไขอุปกรณ์ได้',
-            confirmButtonText: 'ตรวจสอบอีกครั้ง'
+            title: t('devicePage.updateErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('devicePage.updateErrorText'),
+            confirmButtonText: t('common.retry')
         })
     }
 }
@@ -187,8 +189,8 @@ const handleDeletedSuccess = async () => {
     await nextTick()
     Swal.fire({
         icon: 'success',
-        title: 'ลบอุปกรณ์สำเร็จ',
-        text: 'ลบข้อมูลอุปกรณ์เรียบร้อยแล้ว',
+        title: t('devicePage.deleteSuccess'),
+        text: t('devicePage.deleteSuccessText'),
         timer: 1500,
         showConfirmButton: false
     }).then(() => {
@@ -196,14 +198,14 @@ const handleDeletedSuccess = async () => {
     })
 }
 
-const handleDeleteError = async () => {
+const handleDeleteError = async (error) => {
     closeDeleteModal()
     await nextTick()
     Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถลบอุปกรณ์ได้',
-        confirmButtonText: 'ตรวจสอบอีกครั้ง'
+        title: t('devicePage.deleteErrorTitle'),
+        text: error?.response?.data?.error || error?.message || t('devicePage.deleteErrorText'),
+        confirmButtonText: t('common.retry')
     })
 }
 

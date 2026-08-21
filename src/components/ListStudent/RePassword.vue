@@ -1,13 +1,14 @@
 <template>
     <dialog ref="dialogRef" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-2">รีเซ็ตรหัสผ่าน</h3>
-            <p class="mb-4">ต้องการรีเซ็ตรหัสผ่านของ <span class="font-semibold">{{ user?.name }}</span> ใช่หรือไม่?</p>
+            <h3 class="font-bold text-lg mb-2">{{ $t('StudentRePassword.title') }}</h3>
+            <p class="mb-4">{{ $t('StudentRePassword.confirmText', { name: user?.name }) }}</p>
             <div class="flex justify-end gap-2">
-                <button class="btn btn-sm" @click="close" :disabled="loading">ยกเลิก</button>
+                <button class="btn btn-sm" @click="close" :disabled="loading">{{ $t('StudentRePassword.cancel')
+                    }}</button>
                 <button class="btn btn-sm btn-success" @click="confirmReset" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    <span v-else>รีเซ็ต</span>
+                    <span v-else>{{ $t('StudentRePassword.reset') }}</span>
                 </button>
             </div>
         </div>
@@ -19,8 +20,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
+const { t } = useI18n()
 const dialogRef = ref(null)
 const user = ref(null)
 const loading = ref(false)
@@ -55,7 +58,7 @@ async function confirmReset() {
         const { default: Swal } = await import('sweetalert2')
         await Swal.fire({
             icon: 'success',
-            title: 'รีเซ็ตรหัสผ่านสำเร็จ',
+            title: t('StudentRePassword.successTitle'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -68,8 +71,8 @@ async function confirmReset() {
         const { default: Swal } = await import('sweetalert2')
         await Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถรีเซ็ตรหัสผ่านได้',
+            title: t('StudentRePassword.errorTitle'),
+            text: e?.response?.data?.error || e?.message || t('StudentRePassword.errorDefaultText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')

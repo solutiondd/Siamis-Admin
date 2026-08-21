@@ -2,7 +2,7 @@
     <div class="flex justify-end mb-2 gap-2">
         <!-- <button v-if="role === 'teacher' && !hideExport" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
             @click="exportDocxLeaveReport">
-            เอกสารสรุปการออกงาน
+            {{ $t('ReportMissedTable.docExport') }}
         </button> -->
         <button v-if="!hideExport" class="btn btn-sm btn-success" :disabled="loadingExport"
             @click="exportMissedToExcel">
@@ -11,30 +11,34 @@
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            ส่งออก Excel
+            {{ $t('ReportMissedTable.excelExport') }}
         </button>
     </div>
     <div class="hidden lg:block bg-base-100 rounded-lg shadow-lg overflow-x-auto">
         <table class="table table-zebra w-full">
             <thead>
                 <tr class="bg-primary text-primary-content">
-                    <th class="text-center">รหัส</th>
-                    <th class="text-center">รูป</th>
-                    <th>ชื่อ-สกุล</th>
-                    <th class="text-center">ตำแหน่ง</th>
-                    <th class="text-center">ชั้นเรียน/แผนก</th>
-                    <th class="text-center">วันที่ขาด</th>
-                    <th class="text-center">จัดการ</th>
+                    <th class="text-center w-12">#</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.code') }}</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.image') }}</th>
+                    <th>{{ $t('ReportMissedTable.fullName') }}</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.position') }}</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.classOrDept') }}</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.missedDate') }}</th>
+                    <th class="text-center">{{ $t('ReportMissedTable.action') }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="flattenedData.length === 0">
-                    <td colspan="6" class="text-center py-8 text-base-content/60">
-                        ไม่พบข้อมูล
+                    <td colspan="8" class="text-center py-8 text-base-content/60">
+                        {{ $t('ReportMissedTable.noData') }}
                     </td>
                 </tr>
-                <template v-for="group in groupedData" :key="group[0]._id">
+                <template v-for="(group, groupIndex) in groupedData" :key="group[0]._id">
                     <tr class="hover">
+                        <td class="text-center align-center">
+                            {{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + groupIndex + 1 }}
+                        </td>
                         <td class="text-center align-center">{{ group[0].userid }}</td>
                         <td class="text-center align-center flex items-center justify-center">
                             <img v-if="group[0].picture" :src="`${imgProBaseUrl}${group[0].picture}`" alt="profile"
@@ -47,9 +51,8 @@
                         <td class="align-center">{{ group[0].name }}</td>
                         <td class="text-center align-center">{{ group[0].position }}</td>
                         <td class="text-center align-center">
-                            <span v-if="group[0].position === 'นักเรียน'">{{ displayGrade(group[0].grade) }}/{{
-                                group[0].classroom
-                                }}</span>
+                            <span v-if="group[0].position === 'นักเรียน' || group[0].position === 'student'">{{ formatGradeClassroomDisplay(group[0].grade,
+                                group[0].classroom) }}</span>
                             <span v-else>{{ group[0].department || '-' }}</span>
                         </td>
                         <td class="text-center">{{ formatDate(group[0].missed_date) }}</td>
@@ -66,6 +69,7 @@
                         </td>
                     </tr>
                     <tr v-for="item in group.slice(1)" :key="item._id + '-' + item.missed_date" class="hover">
+                        <td></td>
                         <td class="text-center"></td>
                         <td></td>
                         <td></td>
@@ -82,9 +86,9 @@
     <div class="lg:hidden space-y-4">
         <div v-if="flattenedData.length === 0"
             class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-            ไม่พบข้อมูล
+            {{ $t('ReportMissedTable.noData') }}
         </div>
-        <div v-for="group in groupedData" :key="group[0]._id + '-mobile-group'"
+        <div v-for="(group, groupIndex) in groupedData" :key="group[0]._id + '-mobile-group'"
             class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
             <div class="flex items-start gap-3">
                 <img v-if="group[0].picture" :src="`${imgProBaseUrl}${group[0].picture}`" alt="profile"
@@ -93,7 +97,10 @@
                     <span class="text-base font-bold">{{ getInitials(group[0].name) }}</span>
                 </div>
                 <div class="flex-1">
-                    <div class="badge badge-primary badge-sm mb-2">{{ group[0].userid }}</div>
+                    <div class="flex gap-1">
+                <div class="badge badge-neutral badge-sm mb-2">#{{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + groupIndex + 1 }}</div>
+                <div class="badge badge-primary badge-sm mb-2">{{ group[0].userid }}</div>
+            </div>
                     <h3 class="font-bold text-md">{{ group[0].name }}</h3>
                     <p class="text-sm text-base-content/70">{{ group[0].position }}</p>
                 </div>
@@ -102,19 +109,17 @@
             <div class="divider my-2"></div>
 
             <div class="text-sm">
-                <span class="text-base-content/60" v-if="group[0].position === 'นักเรียน'">ชั้นเรียน:</span>
-                <span class="text-base-content/60" v-else>แผนก:</span>
-                <p class="font-medium inline ml-2" v-if="group[0].position === 'นักเรียน'">{{
-                    displayGrade(group[0].grade)
-                    }}/{{
-                        group[0].classroom }}</p>
+                <span class="text-base-content/60" v-if="group[0].position === 'นักเรียน' || group[0].position === 'student'">{{ $t('ReportMissedTable.class') }}</span>
+                <span class="text-base-content/60" v-else>{{ $t('ReportMissedTable.dept') }}</span>
+                <p class="font-medium inline ml-2" v-if="group[0].position === 'นักเรียน' || group[0].position === 'student'">{{
+                    formatGradeClassroomDisplay(group[0].grade, group[0].classroom) }}</p>
                 <p class="font-medium inline ml-2" v-else>{{ group[0].department || '-' }}</p>
             </div>
 
             <div class="divider my-2"></div>
 
             <div class="text-sm">
-                <span class="text-base-content/60">วันที่ขาด:</span>
+                <span class="text-base-content/60">{{ $t('ReportMissedTable.missedDateLabel') }}</span>
                 <div class="space-y-1 mt-2">
                     <div v-for="item in group" :key="item._id + '-mobile-date-' + item.missed_date" class="font-medium">
                         {{ formatDate(item.missed_date) }}
@@ -156,9 +161,7 @@
 
     <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4"
         :class="summaryTextColor">
-        แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{
-            Math.min(pagination.page * pagination.limit, pagination.total_items)
-        }} จาก {{ pagination.total_items }} รายการ
+        {{ $t('ReportMissedTable.summaryTotal', { total: pagination.total_items, page: pagination.page, totalPages: pagination.total_pages }) }}
     </div>
 
     <dialog ref="imageModal" class="modal">
@@ -179,14 +182,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, getCurrentInstance } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, BorderStyle, ImageRun } from 'docx'
 import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
 import ExcelJS from 'exceljs'
 import MissedTableDetail from './MissedTableDetail.vue'
-import { toGradeCode, toLegacyGrade } from '../../utils/grade'
+import { formatGradeClassroomDisplay, mapGradeDisplay } from '../../utils/gradeSystem'
 
+const { t, locale } = useI18n()
 const loadingExportDoc = ref(false)
 const loadingExport = ref(false)
 const props = defineProps({
@@ -258,8 +263,8 @@ const flattenedData = computed(() => {
 
 const selectedStudent = ref(null)
 const showDetail = ref(false)
-import { getCurrentInstance } from 'vue'
 const detailRef = ref(null)
+
 function openDetail(student) {
     const instance = getCurrentInstance()
     const hasParentHandler = !!(instance?.vnode.props && (
@@ -276,7 +281,8 @@ function openDetail(student) {
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const dateLocale = locale.value === 'th' ? 'th-TH-u-ca-buddhist' : 'en-US';
+    return date.toLocaleDateString(dateLocale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -373,30 +379,35 @@ async function exportMissedToExcel() {
             }
         } while (params.page <= totalPages);
 
+        const labelCode = t('ReportMissedTable.code');
+        const labelName = t('ReportMissedTable.fullName');
+        const labelPos = t('ReportMissedTable.position');
+        const labelClassDept = t('ReportMissedTable.classOrDept');
+        const labelMissedDate = t('ReportMissedTable.missedDate');
 
         const rows = [];
         allData.forEach(item => {
             if (Array.isArray(item.missed_date) && item.missed_date.length > 0) {
                 item.missed_date.forEach(date => {
                     rows.push({
-                        'รหัส': item.userid,
-                        'ชื่อ-สกุล': item.name,
-                        'ตำแหน่ง': item.position,
-                        'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                            ? `${displayGrade(item.grade)}/${item.classroom}`
+                        [labelCode]: item.userid,
+                        [labelName]: item.name,
+                        [labelPos]: item.position,
+                        [labelClassDept]: (item.position === 'นักเรียน' || item.position === 'student')
+                            ? formatGradeClassroomDisplay(item.grade, item.classroom)
                             : (item.department || '-'),
-                        'วันที่ขาด': formatDate(date),
+                        [labelMissedDate]: formatDate(date),
                     });
                 });
             } else {
                 rows.push({
-                    'รหัส': item.userid,
-                    'ชื่อ-สกุล': item.name,
-                    'ตำแหน่ง': item.position,
-                    'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                        ? `${displayGrade(item.grade)}/${item.classroom}`
+                    [labelCode]: item.userid,
+                    [labelName]: item.name,
+                    [labelPos]: item.position,
+                    [labelClassDept]: (item.position === 'นักเรียน' || item.position === 'student')
+                        ? formatGradeClassroomDisplay(item.grade, item.classroom)
                         : (item.department || '-'),
-                    'วันที่ขาด': '-',
+                    [labelMissedDate]: '-',
                 });
             }
         });
@@ -404,10 +415,10 @@ async function exportMissedToExcel() {
         let filteredRows = rows;
         if (props.role === 'student') {
             if (props.grade !== undefined && props.grade !== null && props.grade !== '') {
-                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).startsWith(String(displayGrade(props.grade) + '/')));
+                filteredRows = filteredRows.filter(item => String(item[labelClassDept]).startsWith(String(mapGradeDisplay(props.grade) + '/')));
             }
             if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') {
-                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).endsWith('/' + String(props.classroom)));
+                filteredRows = filteredRows.filter(item => String(item[labelClassDept]).endsWith('/' + String(props.classroom)));
             }
         }
 
@@ -418,12 +429,12 @@ async function exportMissedToExcel() {
         if (props.dateRange && props.dateRange.start && props.dateRange.end) {
             reportRange = `(${formatDate(props.dateRange.start)} - ${formatDate(props.dateRange.end)})`;
         }
-        worksheet.addRow([`รายงานข้อมูลขาดเรียน/ขาดงาน ${reportRange}`]);
+        worksheet.addRow([t('ReportMissedTable.excelTitle', { range: reportRange })]);
         worksheet.mergeCells('A1:E1');
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
         worksheet.getCell('A1').font = { bold: true };
 
-        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่ขาด'];
+        const header = [labelCode, labelName, labelPos, labelClassDept, labelMissedDate];
         worksheet.addRow(header);
 
         filteredRows.forEach(row => {
@@ -442,9 +453,13 @@ async function exportMissedToExcel() {
         worksheet.getRow(2).font = { bold: true };
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `MissedDetail_${props.dateRange?.start || ''}_${props.dateRange?.end || ''}.xlsx`);
+        const fileName = t('ReportMissedTable.excelFileName', {
+            start: props.dateRange?.start || '',
+            end: props.dateRange?.end || ''
+        });
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), fileName);
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Excel');
+        alert(t('ReportMissedTable.exportExcelError'));
         console.error(e);
     } finally {
         loadingExport.value = false;
@@ -475,7 +490,7 @@ async function exportDocxLeaveReport() {
                     children: [
                         new TableCell({
                             children: [new Paragraph({
-                                children: [new TextRun({ text: `ข้าราชการครู ครูอัตราจ้าง จำนวน ${totalTeachers} คน`, font, size: 32 })],
+                                children: [new TextRun({ text: t('ReportMissedTable.wordTeacherTotal', { total: totalTeachers }), font, size: 32 })],
                             })],
                             columnSpan: 3,
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
@@ -486,7 +501,7 @@ async function exportDocxLeaveReport() {
                     children: [
                         new TableCell({
                             children: [new Paragraph({
-                                children: [new TextRun({ text: `ไม่ลงเวลากลับ ${notCheckOut} คน`, font, size: 32 })],
+                                children: [new TextRun({ text: t('ReportMissedTable.wordNotCheckOut', { total: notCheckOut }), font, size: 32 })],
                             })],
                             columnSpan: 3,
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
@@ -496,12 +511,12 @@ async function exportDocxLeaveReport() {
                 new TableRow({
                     children: [
                         new TableCell({
-                            children: [new Paragraph({ children: [new TextRun({ text: 'ไม่ลงเวลากลับ', font, size: 32 })], alignment: AlignmentType.CENTER })],
+                            children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordNotCheckOutLabel'), font, size: 32 })], alignment: AlignmentType.CENTER })],
                             verticalAlign: 'center',
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
                         }),
                         new TableCell({
-                            children: [new Paragraph({ children: [new TextRun({ text: `ข้าราชการครู ${notCheckOut} คน`, font, size: 32 })], alignment: AlignmentType.CENTER })],
+                            children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordCivilServant', { total: notCheckOut }), font, size: 32 })], alignment: AlignmentType.CENTER })],
                             verticalAlign: 'center',
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
                         }),
@@ -514,13 +529,13 @@ async function exportDocxLeaveReport() {
                 new TableRow({
                     children: [
                         new TableCell({
-                            children: [new Paragraph({ children: [new TextRun({ text: 'ขออนุญาตออกนอกบริเวณ', font, size: 32 })], alignment: AlignmentType.CENTER })],
+                            children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordPermissionOut'), font, size: 32 })], alignment: AlignmentType.CENTER })],
                             rowSpan: 2,
                             verticalAlign: 'center',
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
                         }),
                         new TableCell({
-                            children: [new Paragraph({ children: [new TextRun({ text: `ไม่กลับมาลงเวลา ${notCheckOut} คน`, font, size: 32 })], alignment: AlignmentType.CENTER })],
+                            children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordNotReturned', { total: notCheckOut }), font, size: 32 })], alignment: AlignmentType.CENTER })],
                             verticalAlign: 'center',
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
                         }),
@@ -534,7 +549,7 @@ async function exportDocxLeaveReport() {
                 new TableRow({
                     children: [
                         new TableCell({
-                            children: [new Paragraph({ children: [new TextRun({ text: `กลับมาลงเวลา ${totalTeachers - notCheckOut} คน`, font, size: 32 })], alignment: AlignmentType.CENTER })],
+                            children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordReturned', { total: totalTeachers - notCheckOut }), font, size: 32 })], alignment: AlignmentType.CENTER })],
                             rowSpan: 2,
                             verticalAlign: 'center',
                             borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } }
@@ -552,6 +567,8 @@ async function exportDocxLeaveReport() {
             margins: { top: 113, bottom: 113, left: 113, right: 113 },
             columnWidths: [1650, 1800, 6000],
         });
+
+        const formattedDate = props.dateRange ? formatDateTHFull(props.dateRange.start) : '';
 
         const doc = new Document({
             styles: {
@@ -581,7 +598,7 @@ async function exportDocxLeaveReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'บันทึกข้อความ', font, bold: true, size: 48 })], alignment: AlignmentType.CENTER })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordDocTitle'), font, bold: true, size: 48 })], alignment: AlignmentType.CENTER })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -596,7 +613,7 @@ async function exportDocxLeaveReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'กลุ่มบริหารงานบุคคล โรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })] })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordDepartment'), font, size: 32 })] })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -632,7 +649,7 @@ async function exportDocxLeaveReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'สรุปรายงานการลงเวลากลับของลูกจ้างประจำและบุคลากรทางการศึกษา', font, size: 32 })] })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordSubject'), font, size: 32 })] })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -647,7 +664,7 @@ async function exportDocxLeaveReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'ผู้อำนวยการโรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })] })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordTo'), font, size: 32 })] })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -658,7 +675,7 @@ async function exportDocxLeaveReport() {
                                 children: [
                                     new TableCell({
                                         children: [new Paragraph({
-                                            children: [new TextRun({ text: `  ด้วยงานปฏิบัติราชการของบุคลากรทางการศึกษา ได้จัดทำสรุปรายงานการลงเวลากลับของข้าราชการครู ประจำวันที่ ${props.dateRange ? formatDateTHFull(props.dateRange.start) : ''} ดังนี้`, font, size: 32 })],
+                                            children: [new TextRun({ text: `  ${t('ReportMissedTable.wordBody', { date: formattedDate })}`, font, size: 32 })],
                                         })],
                                         columnSpan: 4,
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -673,20 +690,21 @@ async function exportDocxLeaveReport() {
                     new Paragraph({ text: '', spacing: { after: 200 } }),
                     leaveTable,
                     new Paragraph({ text: '', spacing: { after: 200 } }),
-                    new Paragraph({ children: [new TextRun({ text: '   จึงเรียนมาเพื่อโปรดทราบ', font, size: 32 })] }),
+                    new Paragraph({ children: [new TextRun({ text: `   ${t('ReportMissedTable.wordRespectfully')}`, font, size: 32 })] }),
                     new Paragraph({ text: '', spacing: { after: 200 } }),
                     new Paragraph({ children: [new TextRun({ text: '(.............................................)', font, size: 32 })], alignment: AlignmentType.RIGHT }),
-                    new Paragraph({ children: [new TextRun({ text: 'ผู้บันทึกข้อมูล', font, size: 32 })], alignment: AlignmentType.RIGHT }),
+                    new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordRecorder'), font, size: 32 })], alignment: AlignmentType.RIGHT }),
                     new Paragraph({ text: '', spacing: { after: 200 } }),
                     new Paragraph({ children: [new TextRun({ text: '(.............................................)', font, size: 32 })], alignment: AlignmentType.RIGHT }),
-                    new Paragraph({ children: [new TextRun({ text: 'ผู้อำนวยการโรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })], alignment: AlignmentType.RIGHT }),
+                    new Paragraph({ children: [new TextRun({ text: t('ReportMissedTable.wordDirector'), font, size: 32 })], alignment: AlignmentType.RIGHT }),
                 ]
             }]
         });
         const blob = await Packer.toBlob(doc)
-        saveAs(blob, `รายงานการออกงาน_${new Date().toISOString().slice(0, 10)}.docx`)
+        const docFileName = t('ReportMissedTable.wordFileName', { date: new Date().toISOString().slice(0, 10) });
+        saveAs(blob, docFileName)
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Word')
+        alert(t('ReportMissedTable.exportWordError'))
         console.error(e)
     } finally {
         loadingExportDoc.value = false
@@ -696,27 +714,18 @@ async function exportDocxLeaveReport() {
 function formatDateTHFull(dateStr) {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
-    const months = [
+    const months = locale.value === 'th' ? [
         'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
         'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ] : [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
     ];
     const day = d.getDate();
     const month = months[d.getMonth()];
-    const year = d.getFullYear() + 543;
-    return `${day} ${month} พ.ศ.${year}`;
+    const year = locale.value === 'th' ? d.getFullYear() + 543 : d.getFullYear();
+    return locale.value === 'th' ? `${day} ${month} พ.ศ.${year}` : `${month} ${day}, ${year}`;
 }
-
-const displayGrade = (grade) => toGradeCode(grade)
-
-function formatDateRangeTH(start, end) {
-    if (!start || !end) return '-';
-    if (start === end) {
-        return formatDateTHFull(start);
-    } else {
-        return `${formatDateTHFull(start)} ถึง ${formatDateTHFull(end)}`;
-    }
-}
-
 </script>
 
 <style scoped></style>

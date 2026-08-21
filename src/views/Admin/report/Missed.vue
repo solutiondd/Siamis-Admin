@@ -1,15 +1,15 @@
 <template>
-    <div class="p-0 md:p-6 space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
-            <h1 class="text-lg md:text-3xl font-bold">ตารางขาดเรียน/ขาดงาน</h1>
+            <h1 class="text-lg md:text-3xl font-bold">{{ $t('Missed.title') }}</h1>
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium">จาก</label>
+                    <label class="text-sm font-medium">{{ $t('Missed.fromDate') }}</label>
                     <input v-model="filters.start" type="date" :max="filters.end" @change="fetchData"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium">ถึง</label>
+                    <label class="text-sm font-medium">{{ $t('Missed.toDate') }}</label>
                     <input v-model="filters.end" type="date" :min="filters.start" :max="getDefaultDate()"
                         @change="fetchData"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
@@ -21,47 +21,48 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.typeLabel') }}</span>
                     </label>
                     <select v-model="filters.role" @change="handleRoleChange"
                         class="select select-sm select-bordered w-full">
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">ครู</option>
+                        <option value="student">{{ $t('Missed.typeStudent') }}</option>
+                        <option value="teacher">{{ $t('Missed.typeTeacher') }}</option>
                     </select>
                 </div>
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ค้นหาชื่อ/รหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.searchLabel') }}</span>
                     </label>
-                    <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
+                    <input v-model="filters.search" type="text" :placeholder="$t('Missed.searchPlaceholder')"
                         class="input input-sm input-bordered w-full" />
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.gradeLabel') }}</span>
                     </label>
                     <select v-model="filters.grade" @change="handleGradeChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกชั้นปี</option>
-                        <option v-for="grade in allGrades" :key="grade" :value="grade">{{ grade }}</option>
+                        <option value="">{{ $t('Missed.allGrades') }}</option>
+                        <option v-for="grade in allGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
+                        </option>
                     </select>
                 </div>
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">เลือกห้อง</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Missed.classroomLabel') }}</span>
                     </label>
                     <select v-model="filters.classroom" @change="handleClassroomChange"
                         class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
-                        <option value="">ทุกห้อง</option>
-                        <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
+                        <option value="">{{ $t('Missed.allClassrooms') }}</option>
+                        <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
                 <div v-if="residentRole === 'teacher'"
                     class="form-control md:col-start-4 flex flex-col items-center md:items-end md:justify-end md:h-full">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
-                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
-                        <span>{{ teacherGrade }}/{{ teacherClassroom }}</span>
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">{{ $t('Missed.gradeClassroomBadge') }}</span>
+                        <span>{{ mapGradeDisplay(teacherGrade) }}/{{ teacherClassroom }}</span>
                     </div>
                 </div>
             </div>
@@ -90,13 +91,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import MissedTable from '../../../components/Report/MissedTable.vue'
 import reportApi from '../../../api/report.js'
 import { ClassRoomService } from '../../../api/class-room.js'
-import { DEFAULT_GRADE_CODE, gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../../utils/grade'
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem'
 
+const { t } = useI18n()
 const residentRole = localStorage.getItem('residentRole') || ''
-const teacherGrade = toGradeCode(localStorage.getItem('grade') || '')
+const teacherGrade = localStorage.getItem('grade') || ''
 const teacherClassroom = localStorage.getItem('classroom') || ''
 
 const loading = ref(false)
@@ -106,7 +109,6 @@ const missedData = ref([])
 const classRoomService = new ClassRoomService()
 const allClassRooms = ref([])
 const allGrades = ref([])
-const allRooms = ref([])
 
 const today = getDefaultDate();
 const filters = ref({
@@ -114,7 +116,7 @@ const filters = ref({
     start: today,
     end: today,
     search: '',
-    grade: residentRole === 'teacher' ? toGradeCode(teacherGrade) : '',
+    grade: residentRole === 'teacher' ? teacherGrade : '',
     classroom: residentRole === 'teacher' ? teacherClassroom : ''
 })
 
@@ -133,6 +135,8 @@ const fetchData = async () => {
     error.value = null
 
     try {
+        const rawSearch = filters.value.search.trim()
+        const isNumeric = /^\d+$/.test(rawSearch)
         let gradeValue = filters.value.grade;
         if (gradeValue === '' || gradeValue === undefined || gradeValue === null) {
             gradeValue = '';
@@ -141,18 +145,19 @@ const fetchData = async () => {
         if (classroomValue === '' || classroomValue === undefined || classroomValue === null) {
             classroomValue = '';
         }
-        if (filters.value.role === 'teacher' && (!classroomValue || classroomValue === '' || classroomValue === '0')) {
+        if (filters.value.role === 'teacher') {
+            gradeValue = '';
             classroomValue = 0;
         }
         let params = {
             start: filters.value.start,
             end: filters.value.end,
             role: filters.value.role,
-            name: filters.value.search || "",
+            name: isNumeric ? '' : rawSearch,
             department: "",
-            userid: "",
+            userid: isNumeric ? rawSearch : '',
         };
-        if (gradeValue !== '') params.grade = toLegacyGrade(gradeValue);
+        if (gradeValue !== '') params.grade = gradeValue;
         if (classroomValue !== '' && classroomValue !== undefined) params.classroom = classroomValue;
         const response = await reportApi.getMissedReport(params)
 
@@ -160,7 +165,7 @@ const fetchData = async () => {
             missedData.value = response.data || []
         }
     } catch (err) {
-        error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
+        error.value = t('Missed.fetchError')
         console.error('Error fetching missed report:', err)
     } finally {
         loading.value = false
@@ -173,11 +178,18 @@ const handleRoleChange = () => {
         filters.value.grade = ''
         filters.value.classroom = 0
     } else {
-        filters.value.grade = allGrades.value[0] || DEFAULT_GRADE_CODE
-        filters.value.classroom = '1'
+        filters.value.grade = allGrades.value[0] || ''
+        filters.value.classroom = availableClassrooms.value[0] || ''
     }
     fetchData()
 }
+
+const availableClassrooms = computed(() => {
+    if (!filters.value.grade || !allClassRooms.value || allClassRooms.value.length === 0) return []
+    const filtered = allClassRooms.value.filter(c => c.grade === filters.value.grade)
+    const classNums = [...new Set(filtered.map(c => c.classroom))]
+    return classNums.sort((a, b) => a - b)
+})
 
 const isNumericSearch = computed(() => /^\d+$/.test(filters.value.search.trim()))
 
@@ -187,6 +199,12 @@ const filteredData = computed(() => {
     const grade = filters.value.grade
     const room = filters.value.classroom
 
+    function normalizeGrade(val) {
+        if (!val) return '';
+        const str = String(val).trim();
+        const match = str.match(/(\d+)/);
+        return match ? match[1] : str;
+    }
     function normalizeRoom(val) {
         if (!val) return '';
         return String(val).trim();
@@ -194,11 +212,11 @@ const filteredData = computed(() => {
 
     if (grade && room) {
         base = base.filter(item =>
-            gradeEquals(item.grade, grade) &&
+            normalizeGrade(item.grade) === normalizeGrade(grade) &&
             normalizeRoom(item.classroom) === normalizeRoom(room)
         );
     } else if (grade) {
-        base = base.filter(item => gradeEquals(item.grade, grade));
+        base = base.filter(item => normalizeGrade(item.grade) === normalizeGrade(grade));
     } else if (room) {
         base = base.filter(item => normalizeRoom(item.classroom) === normalizeRoom(room));
     }
@@ -214,14 +232,14 @@ const filteredData = computed(() => {
 
 const handleGradeChange = () => {
     pagination.value.page = 1
+    filters.value.classroom = ''
     fetchData()
 }
+
 const handleClassroomChange = () => {
     pagination.value.page = 1
     fetchData()
 }
-
-
 
 const paginatedData = computed(() => {
     const start = (pagination.value.page - 1) * pagination.value.limit;
@@ -251,15 +269,13 @@ onMounted(() => {
         classRoomService.getClassRooms().then(res => {
             allClassRooms.value = res.data || []
             const gradesSet = new Set()
-            const roomsSet = new Set()
             allClassRooms.value.forEach(item => {
-                if (item.grade) gradesSet.add(toGradeCode(item.grade))
-                if (item.classroom) roomsSet.add(item.classroom)
+                if (item.grade) gradesSet.add(item.grade)
             })
-            allGrades.value = sortGrades(Array.from(gradesSet))
-            allRooms.value = Array.from(roomsSet)
-                .map(room => Number(room))
-                .sort((a, b) => a - b)
+            allGrades.value = toVisibleSortedGrades(Array.from(gradesSet))
+            if (filters.value.role === 'student' && !filters.value.grade) {
+                filters.value.grade = allGrades.value[0] || ''
+            }
         })
     } catch (err) {
         console.error('Error fetching class rooms:', err)

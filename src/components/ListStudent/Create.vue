@@ -1,12 +1,13 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box max-w-2xl">
-            <h3 class="font-bold text-lg mb-4">เพิ่มนักเรียน</h3>
+            <h3 class="font-bold text-lg mb-4">{{ $t('StudentCreate.title') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold">
-                        รูปภาพ <span class="text-gray-500">(ไม่บังคับ)</span>
+                        {{ $t('StudentCreate.imageLabel') }} <span class="text-gray-500">{{ $t('StudentCreate.optional')
+                            }}</span>
                     </label>
 
                     <div v-if="previewImage" class="relative flex justify-center mb-4">
@@ -33,8 +34,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
-                                <span class="text-sm font-medium text-gray-700">เลือกรูปภาพนักเรียน</span>
-                                <span class="text-xs text-gray-500">JPG only (สูงสุด 70KB)</span>
+                                <span class="text-sm font-medium text-gray-700">{{ $t('StudentCreate.chooseImage')
+                                    }}</span>
+                                <span class="text-xs text-gray-500">{{ $t('StudentCreate.imageFormatLimit') }}</span>
                             </span>
                             <input id="pictureInput" type="file" @change="handleFileChange"
                                 accept="image/jpeg,image/jpg"
@@ -47,7 +49,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">รหัสนักเรียน</span>
+                            <span class="label-text">{{ $t('StudentCreate.studentId') }}</span>
                         </label>
                         <input v-model="formData.userid" type="text" class="input input-bordered w-full" required
                             @input="validateUserId" :class="{ 'input-error': useridError }" autocomplete="off" />
@@ -58,20 +60,17 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">คำนำหน้า</span>
+                            <span class="label-text">{{ $t('StudentCreate.prefix') }}</span>
                         </label>
                         <select v-model="formData.pre_name" class="select select-bordered w-full" required>
-                            <option value="">เลือกคำนำหน้า</option>
-                            <option value="เด็กชาย">เด็กชาย</option>
-                            <option value="เด็กหญิง">เด็กหญิง</option>
-                            <option value="นาย">นาย</option>
-                            <option value="นางสาว">นางสาว</option>
+                            <option value="">{{ $t('StudentCreate.selectPrefix') }}</option>
+                            <option v-for="prefix in prefixOptions" :key="prefix" :value="prefix">{{ prefix }}</option>
                         </select>
                     </div>
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ชื่อ</span>
+                            <span class="label-text">{{ $t('StudentCreate.firstName') }}</span>
                         </label>
                         <input v-model="formData.first_name" type="text" class="input input-bordered w-full" required
                             @input="validateFirstName" :class="{ 'input-error': firstNameError }" autocomplete="off" />
@@ -82,7 +81,7 @@
 
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">นามสกุล</span>
+                            <span class="label-text">{{ $t('StudentCreate.lastName') }}</span>
                         </label>
                         <input v-model="formData.last_name" type="text" class="input input-bordered w-full" required
                             @input="validateLastName" :class="{ 'input-error': lastNameError }" autocomplete="off" />
@@ -91,47 +90,85 @@
                         </label>
                     </div>
 
-                    <div class="form-control w-full md:col-span-2">
+                    <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">ชั้นปี / ห้อง</span>
+                            <span class="label-text">{{ $t('StudentCreate.rfidCard') }} <span class="text-gray-500">{{
+                                    $t('StudentCreate.optional') }}</span></span>
                         </label>
+                        <input v-model="formData.rfid" type="text" class="input input-bordered w-full"
+                            @input="validateRfid" :class="{ 'input-error': rfidError }" autocomplete="off" />
+                        <label v-if="rfidError" class="label">
+                            <span class="label-text-alt text-error">{{ rfidError }}</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">{{ $t('StudentCreate.guardianPhone') }} <span
+                                    class="text-gray-500">{{ $t('StudentCreate.optional') }}</span></span>
+                        </label>
+                        <input v-model="formData.guardian_phone" type="text" class="input input-bordered w-full"
+                            @input="validateGuardianPhone" :class="{ 'input-error': guardianPhoneError }"
+                            autocomplete="off" />
+                        <label v-if="guardianPhoneError" class="label">
+                            <span class="label-text-alt text-error">{{ guardianPhoneError }}</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control w-full md:col-span-2">
+                        <!-- <label class="label">
+                            <span class="label-text">{{ $t('StudentCreate.gradeAndClassroom') }}</span>
+                        </label> -->
                         <template v-if="auth.user?.role === 'teacher'">
                             <div class="p-2 rounded bg-gray-100 border text-base">
-                                ชั้น: {{ formData.grade }} ห้อง: {{ formData.classroom }}
+                                {{ $t('StudentCreate.grade') }}: {{ mapGradeDisplay(formData.grade) }} {{
+                                    $t('StudentCreate.classroom') }}: {{ formData.classroom }}
                             </div>
                         </template>
                         <template v-else>
-                            <div class="form-control w-full mb-2">
-                                <label class="label">
-                                    <span class="label-text">ชั้นปี</span>
-                                </label>
-                                <select v-model="formData.grade" @change="handleGradeChange"
-                                    class="select select-bordered w-full" required>
-                                    <option value="">เลือกชั้นปี</option>
-                                    <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ grade }}
-                                    </option>
-                                </select>
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">{{ $t('StudentCreate.grade') }}</span>
+                                    </label>
+                                    <select v-model="formData.grade" @change="handleGradeChange"
+                                        class="select select-bordered w-full" required>
+                                        <option value="">{{ $t('StudentCreate.selectGrade') }}</option>
+                                        <option v-for="grade in availableGrades" :key="grade" :value="grade">
+                                            {{ mapGradeDisplay(grade) }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                            <div class="form-control w-full">
-                                <label class="label">
-                                    <span class="label-text">ห้อง</span>
-                                </label>
-                                <select v-model="formData.classroom" class="select select-bordered w-full" required>
-                                    <option value="">เลือกห้อง</option>
-                                    <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}
-                                    </option>
-                                </select>
+                                <div class="form-control w-full">
+                                    <label class="label">
+                                        <span class="label-text">{{ $t('StudentCreate.classroom') }}</span>
+                                    </label>
+                                    <select v-model="formData.classroom" class="select select-bordered w-full" required>
+                                        <option value="">{{ $t('StudentCreate.selectClassroom') }}</option>
+                                        <option v-for="room in availableClassrooms" :key="room" :value="room">
+                                            {{ room }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </template>
+                    </div>
+
+                    <div class="form-control w-full md:col-span-2">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" v-model="formData.no_use_face" class="checkbox checkbox-primary" />
+                            <span class="label-text">{{ $t('StudentCreate.noUseFace') }}</span>
+                        </label>
                     </div>
                 </div>
 
                 <div class="modal-action">
-                    <button type="button" @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                    <button type="button" @click="closeModal" class="btn btn-ghost">{{ $t('StudentCreate.cancel')
+                        }}</button>
                     <button type="submit" class="btn btn-primary" :disabled="loading || !isFormValid">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึก</span>
+                        <span v-else>{{ $t('StudentCreate.save') }}</span>
                     </button>
                 </div>
             </form>
@@ -141,10 +178,14 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
-import { gradeEquals, sortGrades, toGradeCode } from '../../utils/grade'
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
+import { getPrefixOptions } from '../../utils/prefixSystem'
 
+const { t } = useI18n()
 const auth = useAuthStore()
+const prefixOptions = computed(() => getPrefixOptions())
 
 const modalRef = ref(null)
 const loading = ref(false)
@@ -152,17 +193,24 @@ const previewImage = ref('')
 const fileError = ref('')
 const firstNameError = ref('')
 const lastNameError = ref('')
+const rfidError = ref('')
+const guardianPhoneError = ref('')
 const formData = ref({
     userid: '',
     pre_name: '',
     first_name: '',
     last_name: '',
+    rfid: '',
+    guardian_phone: '',
     grade: '',
     classroom: '',
-    picture: null
+    picture: null,
+    no_use_face: false
 })
 
 const useridError = ref('')
+let faceapiLib = null
+let tinyFaceModelReady = false
 
 const props = defineProps({
     classrooms: {
@@ -182,8 +230,7 @@ const props = defineProps({
 const emit = defineEmits(['success'])
 
 const availableGrades = computed(() => {
-    const grades = [...new Set(props.classrooms.map(c => toGradeCode(c.grade)))]
-    return sortGrades(grades)
+    return toVisibleSortedGrades(props.classrooms.map(c => c.grade))
 })
 
 watch(() => auth.user?.role, (role) => {
@@ -200,7 +247,7 @@ watch(() => auth.user?.role, (role) => {
 
 const availableClassrooms = computed(() => {
     const rooms = props.classrooms
-        .filter(c => gradeEquals(c.grade, formData.value.grade))
+        .filter(c => c.grade === formData.value.grade)
         .map(c => c.classroom)
     return rooms.sort((a, b) => a - b)
 })
@@ -209,9 +256,9 @@ const nameRegex = /^[A-Za-z\u0E00-\u0E7F]+$/
 
 const validateFirstName = () => {
     if (!formData.value.first_name) {
-        firstNameError.value = 'กรุณากรอกชื่อ'
+        firstNameError.value = t('StudentCreate.errRequiredFirstName')
     } else if (!nameRegex.test(formData.value.first_name)) {
-        firstNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        firstNameError.value = t('StudentCreate.errNameFormat')
     } else {
         firstNameError.value = ''
     }
@@ -219,11 +266,37 @@ const validateFirstName = () => {
 
 const validateLastName = () => {
     if (!formData.value.last_name) {
-        lastNameError.value = 'กรุณากรอกนามสกุล'
+        lastNameError.value = t('StudentCreate.errRequiredLastName')
     } else if (!nameRegex.test(formData.value.last_name)) {
-        lastNameError.value = 'ใส่ได้เฉพาะตัวอักษรภาษาไทยหรืออังกฤษเท่านั้น'
+        lastNameError.value = t('StudentCreate.errNameFormat')
     } else {
         lastNameError.value = ''
+    }
+}
+
+const validateRfid = () => {
+    if (!formData.value.rfid) {
+        rfidError.value = ''
+        return
+    }
+
+    if (!/^\d+$/.test(formData.value.rfid)) {
+        rfidError.value = t('StudentCreate.errRfidNumber')
+    } else {
+        rfidError.value = ''
+    }
+}
+
+const validateGuardianPhone = () => {
+    if (!formData.value.guardian_phone) {
+        guardianPhoneError.value = ''
+        return
+    }
+
+    if (!/^\d+$/.test(formData.value.guardian_phone)) {
+        guardianPhoneError.value = t('StudentCreate.errPhoneOption')
+    } else {
+        guardianPhoneError.value = ''
     }
 }
 
@@ -231,6 +304,8 @@ const isFormValid = computed(() => {
     return (
         !firstNameError.value &&
         !lastNameError.value &&
+        !rfidError.value &&
+        !guardianPhoneError.value &&
         formData.value.userid &&
         formData.value.pre_name &&
         formData.value.first_name &&
@@ -248,9 +323,12 @@ const openModal = (fixed = null) => {
             pre_name: '',
             first_name: '',
             last_name: '',
+            rfid: '',
+            guardian_phone: '',
             grade: fixed.grade,
             classroom: fixed.classroom,
-            picture: null
+            picture: null,
+            no_use_face: false
         }
     } else {
         formData.value = {
@@ -258,9 +336,12 @@ const openModal = (fixed = null) => {
             pre_name: '',
             first_name: '',
             last_name: '',
+            rfid: '',
+            guardian_phone: '',
             grade: '',
             classroom: '',
-            picture: null
+            picture: null,
+            no_use_face: false
         }
     }
     previewImage.value = ''
@@ -268,6 +349,8 @@ const openModal = (fixed = null) => {
     useridError.value = ''
     firstNameError.value = ''
     lastNameError.value = ''
+    rfidError.value = ''
+    guardianPhoneError.value = ''
     modalRef.value.showModal()
 }
 
@@ -278,15 +361,20 @@ const closeModal = () => {
         pre_name: '',
         first_name: '',
         last_name: '',
+        rfid: '',
+        guardian_phone: '',
         grade: '',
         classroom: '',
-        picture: null
+        picture: null,
+        no_use_face: false
     }
     previewImage.value = ''
     fileError.value = ''
     useridError.value = ''
     firstNameError.value = ''
     lastNameError.value = ''
+    rfidError.value = ''
+    guardianPhoneError.value = ''
 }
 
 const handleGradeChange = () => {
@@ -296,44 +384,79 @@ const handleGradeChange = () => {
     }
 }
 
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
+}
+
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
-                let blob = null;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+                        if (!b) return reject(t('StudentCreate.errCompressFail'));
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(t('StudentCreate.errCompressExceed', { size: maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('StudentCreate.errInvalidImage'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('StudentCreate.errReadImageFail'));
         reader.readAsDataURL(file);
     });
 }
@@ -344,25 +467,31 @@ const handleFileChange = async (event) => {
 
     if (file) {
         if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
-            fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น';
+            fileError.value = t('StudentCreate.errOnlyJpg');
             event.target.value = '';
             return;
         }
         try {
-            const resizedBlob = await resizeImage(file, 70, 300, 300);
-            if (resizedBlob.size > 70 * 1024) {
-                fileError.value = `ขนาดไฟล์หลังรีไซส์ยังเกิน 70KB (${(resizedBlob.size / 1024).toFixed(2)}KB)`;
-                event.target.value = '';
-                return;
+            const resizedBlob = await resizeImage(file, 70, 450);
+            const resizedFile = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+            const hasFace = await detectFace(resizedFile)
+
+            if (!hasFace) {
+                fileError.value = t('StudentCreate.errNoFaceDetected')
+                formData.value.picture = null
+                previewImage.value = ''
+                event.target.value = ''
+                return
             }
-            formData.value.picture = new File([resizedBlob], file.name, { type: 'image/jpeg' });
+
+            formData.value.picture = resizedFile;
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewImage.value = e.target.result;
             };
             reader.readAsDataURL(resizedBlob);
         } catch (err) {
-            fileError.value = 'เกิดข้อผิดพลาดในการรีไซส์รูปภาพ';
+            fileError.value = err?.message || String(err) || t('StudentCreate.errResizeFail');
             event.target.value = '';
         }
     }
@@ -381,13 +510,15 @@ const removeImage = () => {
 const handleSubmit = async () => {
     validateFirstName()
     validateLastName()
+    validateRfid()
+    validateGuardianPhone()
 
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'ข้อมูลไม่ถูกต้อง',
-            text: 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง',
+            title: t('StudentCreate.errInvalidDataTitle'),
+            text: t('StudentCreate.errInvalidDataText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')
@@ -401,14 +532,16 @@ const handleSubmit = async () => {
         onError: async (err) => {
             const errStr = String(err).replace(/\s+/g, '').toLowerCase();
             if (errStr.includes('duplicatestudentuserid')) {
-                useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
+                useridError.value = t('StudentCreate.errDuplicateId')
             } else {
+
+                const errorMessage = err?.response?.data?.error || err?.message || t('StudentCreate.errCreateFail');
                 closeModal();
                 const { default: Swal } = await import('sweetalert2');
                 Swal.fire({
                     icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: 'ไม่สามารถเพิ่มนักเรียนได้',
+                    title: t('StudentCreate.errTitle'),
+                    text: errorMessage,
                     confirmButtonColor: '#2563eb',
                     didOpen: () => {
                         document.getElementById('app')?.removeAttribute('aria-hidden')
@@ -426,5 +559,3 @@ defineExpose({
     openModal
 })
 </script>
-
-<style scoped></style>

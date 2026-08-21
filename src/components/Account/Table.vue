@@ -3,11 +3,11 @@
         <table class="table table-zebra table-xs sm:table-sm md:table-md">
             <thead>
                 <tr>
-                    <th class="bg-primary text-primary-content hidden min-[808px]:table-cell">ลำดับ</th>
-                    <th class="bg-primary text-primary-content">User ID</th>
-                    <th class="bg-primary text-primary-content hidden sm:table-cell">Role</th>
-                    <th class="bg-primary text-primary-content">ชื่อ</th>
-                    <th class="bg-primary text-primary-content text-center">จัดการ</th>
+                    <th class="bg-primary text-primary-content hidden min-[808px]:table-cell">{{ t('adminTable.index') }}</th>
+                    <th class="bg-primary text-primary-content">{{ t('adminTable.userId') }}</th>
+                    <th class="bg-primary text-primary-content hidden sm:table-cell">{{ t('adminTable.role') }}</th>
+                    <th class="bg-primary text-primary-content">{{ t('adminTable.name') }}</th>
+                    <th class="bg-primary text-primary-content text-center">{{ t('adminTable.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,19 +18,19 @@
                 </tr>
                 <tr v-else-if="!admins || admins.length === 0">
                     <td colspan="5" class="text-center py-8 text-base-content/50">
-                        ไม่มีข้อมูลผู้ดูแลระบบ
+                        {{ t('adminTable.noData') }}
                     </td>
                 </tr>
                 <tr v-else v-for="(admin, index) in admins" :key="admin._id" class="hover">
                     <td class="hidden min-[808px]:table-cell">{{ index + 1 }}</td>
                     <td class="whitespace-nowrap">{{ admin.userid }}</td>
                     <td class="hidden sm:table-cell">
-                        <span class="badge badge-secondary badge-sm">{{ admin.role }}</span>
+                        <span class="badge badge-secondary badge-sm">{{ t(`roles.${admin.role}`, admin.role) }}</span>
                     </td>
                     <td>
                         <div class="flex flex-col">
                             <span>{{ admin.name }}</span>
-                            <span class="badge badge-secondary badge-xs sm:hidden mt-1">{{ admin.role }}</span>
+                            <span class="badge badge-secondary badge-xs sm:hidden mt-1">{{ t(`roles.${admin.role}`, admin.role) }}</span>
                         </div>
                     </td>
                     <td class="text-center">
@@ -40,7 +40,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            <span v-if="auth.user?.role !== 'admin'" class="hidden min-[808px]:inline ml-1">ลบ</span>
+                            <span v-if="auth.user?.role !== 'admin'" class="hidden min-[808px]:inline ml-1">{{ t('common.delete') }}</span>
                         </button>
                     </td>
                 </tr>
@@ -50,7 +50,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
+
+const { t } = useI18n()
 const auth = useAuthStore()
 
 const props = defineProps({

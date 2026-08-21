@@ -1,12 +1,12 @@
 <template>
     <div class="conduct-form-container max-w-full">
-        <h2 class="form-title">บันทึกพฤติกรรม</h2>
+        <h2 class="form-title">{{ $t('ConductCreate.title') }}</h2>
         <form @submit.prevent="handleSubmit" class="conduct-form">
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">🔎</span> รหัสนักเรียน</label>
+                    <label class="form-label"><span class="icon">🔎</span> {{ $t('ConductCreate.studentIdLabel') }}</label>
                     <div class="input-wrapper">
-                        <input v-model="searchStudentIdText" @input="searchStudentById" placeholder="รหัสนักเรียน"
+                        <input v-model="searchStudentIdText" @input="searchStudentById" :placeholder="$t('ConductCreate.studentIdPlaceholder')"
                             class="input input-bordered" ref="studentIdInput" @focus="studentIdDropdownOpen = true"
                             @blur="handleStudentIdBlur" />
                         <teleport to="body">
@@ -21,9 +21,9 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">👤</span> ชื่อนักเรียน</label>
+                    <label class="form-label"><span class="icon">👤</span> {{ $t('ConductCreate.studentNameLabel') }}</label>
                     <div class="input-wrapper">
-                        <input v-model="searchStudentNameText" @input="searchStudentByName" placeholder="ชื่อนักเรียน"
+                        <input v-model="searchStudentNameText" @input="searchStudentByName" :placeholder="$t('ConductCreate.studentNamePlaceholder')"
                             class="input input-bordered" ref="studentNameInput" @focus="studentNameDropdownOpen = true"
                             @blur="handleStudentNameBlur" />
                         <teleport to="body">
@@ -41,9 +41,9 @@
 
             <div class="form-row" v-if="selectedStudent">
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">📂</span> ประเภทพฤติกรรม</label>
+                    <label class="form-label"><span class="icon">📂</span> {{ $t('ConductCreate.behaviorTypeLabel') }}</label>
                     <div class="input-wrapper">
-                        <input v-model="searchTypeText" @input="searchType" placeholder="ค้นหาหรือเลือกประเภท"
+                        <input v-model="searchTypeText" @input="searchType" :placeholder="$t('ConductCreate.behaviorTypePlaceholder')"
                             class="input input-bordered" ref="typeInput" @focus="handleTypeFocus"
                             @blur="handleTypeBlur" />
                         <teleport to="body">
@@ -59,9 +59,9 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">📝</span> รายการพฤติกรรม</label>
+                    <label class="form-label"><span class="icon">📝</span> {{ $t('ConductCreate.behaviorListLabel') }}</label>
                     <div class="input-wrapper">
-                        <input v-model="searchBehaviorText" @input="searchBehavior" placeholder="ค้นหาหรือเลือกรายการ"
+                        <input v-model="searchBehaviorText" @input="searchBehavior" :placeholder="$t('ConductCreate.behaviorListPlaceholder')"
                             class="input input-bordered" ref="behaviorInput" @focus="behaviorDropdownOpen = true"
                             @blur="handleBehaviorBlur" />
                         <teleport to="body">
@@ -77,11 +77,11 @@
                 </div>
             </div>
 
-            <div class="form-row" v-if="selectedType && selectedBehavior">
+            <div class="form-row" v-if="selectedType && (selectedType.name === $t('ConductCreate.meritTypeName') || selectedBehavior)">
                 <div v-if="showLevel" class="form-group">
-                    <label class="form-label"><span class="icon">🏷️</span> ระดับ</label>
+                    <label class="form-label"><span class="icon">🏷️</span> {{ $t('ConductCreate.levelLabel') }}</label>
                     <div class="input-wrapper">
-                        <input v-model="searchLevelText" @input="searchLevel" placeholder="ค้นหาหรือเลือกระดับ"
+                        <input v-model="searchLevelText" @input="searchLevel" :placeholder="$t('ConductCreate.levelPlaceholder')"
                             class="input input-bordered" ref="levelInput" @focus="levelDropdownOpen = true"
                             @blur="handleLevelBlur" />
                         <teleport to="body">
@@ -96,11 +96,11 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">💬</span> รายละเอียด</label>
+                    <label class="form-label"><span class="icon">💬</span> {{ $t('ConductCreate.descriptionLabel') }}</label>
                     <div class="input-wrapper">
-                        <template v-if="selectedType && selectedType.name !== 'บำเพ็ญประโยชน์'">
+                        <template v-if="selectedType && selectedType.name !== $t('ConductCreate.meritTypeName')">
                             <input v-model="form.description" @input="searchDescription"
-                                placeholder="ค้นหาหรือเลือกรายละเอียด" class="input input-bordered"
+                                :placeholder="$t('ConductCreate.searchDescriptionPlaceholder')" class="input input-bordered"
                                 ref="descriptionInput" @focus="handleDescriptionFocus" @blur="handleDescriptionBlur" />
                             <teleport to="body">
                                 <div v-if="descriptionResults.length && descriptionDropdownOpen"
@@ -112,12 +112,12 @@
                                 </div>
                             </teleport>
                         </template>
-                        <input v-else v-model="form.description" placeholder="รายละเอียด"
+                        <input v-else v-model="form.description" :placeholder="$t('ConductCreate.descriptionPlaceholder')"
                             class="input input-bordered" />
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span class="icon">⭐</span> คะแนน</label>
+                    <label class="form-label"><span class="icon">⭐</span> {{ $t('ConductCreate.scoreLabel') }}</label>
                     <div class="input-wrapper">
                         <input v-model="form.score" type="number" class="input input-bordered"
                             @input="handleScoreInput" />
@@ -125,7 +125,7 @@
                 </div>
             </div>
             <div class="flex justify-end max-w-full">
-                <button type="submit" class="btn-submit">บันทึก</button>
+                <button type="submit" class="btn-submit">{{ $t('ConductCreate.save') }}</button>
             </div>
         </form>
     </div>
@@ -133,12 +133,14 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { StudentService } from '../../api/student.js'
 import { ConductService } from '../../api/conduct.js'
 import { BehaviorService } from '../../api/behavior.js'
 import { MeritService } from '../../api/merit.js'
 import Swal from 'sweetalert2'
 
+const { t } = useI18n()
 const typeInput = ref(null);
 const studentService = new StudentService()
 const conductService = new ConductService()
@@ -205,7 +207,7 @@ function handleLevelBlur() {
 }
 
 function handleDescriptionFocus() {
-    if (selectedType.value && selectedType.value.name !== 'บำเพ็ญประโยชน์') {
+    if (selectedType.value && selectedType.value.name !== t('ConductCreate.meritTypeName')) {
         descriptionDropdownOpen.value = true;
         searchDescription();
     }
@@ -265,7 +267,7 @@ async function searchStudentById() {
         studentIdResults.value = res.data || [];
     } catch (e) {
         studentIdResults.value = [];
-        Swal.fire('เกิดข้อผิดพลาด', e.message || 'ค้นหานักเรียนไม่สำเร็จ', 'error');
+        Swal.fire(t('ConductCreate.swalErrorTitle'), e.message || t('ConductCreate.swalSearchStudentFailed'), 'error');
     }
 }
 
@@ -281,7 +283,7 @@ async function searchStudentByName() {
         studentNameResults.value = res.data || [];
     } catch (e) {
         studentNameResults.value = [];
-        Swal.fire('เกิดข้อผิดพลาด', e.message || 'ค้นหานักเรียนไม่สำเร็จ', 'error');
+        Swal.fire(t('ConductCreate.swalErrorTitle'), e.message || t('ConductCreate.swalSearchStudentFailed'), 'error');
     }
 }
 
@@ -318,8 +320,9 @@ watch(() => props.preselectedStudent, (student) => {
 async function searchType() {
     const res = await behaviorService.getBehaviortypes();
     let types = res.data || [];
-    if (!types.some(t => t.name === 'บำเพ็ญประโยชน์')) {
-        types.unshift({ _id: 'merit', name: 'บำเพ็ญประโยชน์' });
+    const meritName = t('ConductCreate.meritTypeName');
+    if (!types.some(t => t.name === meritName)) {
+        types.unshift({ _id: 'merit', name: meritName });
     }
     typeResults.value = types.filter(type => type.name.includes(searchTypeText.value));
 }
@@ -341,7 +344,7 @@ function selectType(type) {
     form.value.description = '';
     form.value.score = '';
 
-    if (type.name === 'บำเพ็ญประโยชน์') {
+    if (type.name === t('ConductCreate.meritTypeName')) {
         showLevel.value = false;
         loadMeritTypes();
     } else {
@@ -376,7 +379,7 @@ function selectBehavior(behavior) {
     searchBehaviorText.value = behavior.name;
     behaviorResults.value = [];
     behaviorDropdownOpen.value = false;
-    if (selectedType.value && selectedType.value.name === 'บำเพ็ญประโยชน์') {
+    if (selectedType.value && selectedType.value.name === t('ConductCreate.meritTypeName')) {
         form.value.score = behavior.score;
         form.value.description = '';
         selectedLevel.value = { level: 1 };
@@ -416,7 +419,7 @@ function applyLevelSelection(level) {
     form.value.description = level.name || '';
     descriptionResults.value = [];
     descriptionDropdownOpen.value = false;
-    if (selectedType.value && selectedType.value.name !== 'บำเพ็ญประโยชน์') {
+    if (selectedType.value && selectedType.value.name !== t('ConductCreate.meritTypeName')) {
         form.value.score = `-${level.score}`;
     } else {
         form.value.score = level.score;
@@ -428,7 +431,7 @@ function normalizeScoreByType(rawScore) {
     const parsed = Number(rawScore)
     if (!Number.isFinite(parsed)) return ''
 
-    if (selectedType.value && selectedType.value.name !== 'บำเพ็ญประโยชน์') {
+    if (selectedType.value && selectedType.value.name !== t('ConductCreate.meritTypeName')) {
         return String(-Math.abs(parsed))
     }
 
@@ -453,21 +456,34 @@ function selectDescription(level) {
 }
 
 async function handleSubmit() {
-    if (!selectedStudent.value || !selectedType.value || !selectedBehavior.value) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบ', '', 'warning')
+    if (!selectedStudent.value || !selectedType.value) {
+        Swal.fire(t('ConductCreate.swalIncompleteData'), '', 'warning')
         return
     }
+
+    if (selectedType.value.name !== t('ConductCreate.meritTypeName') && !selectedBehavior.value) {
+        Swal.fire(t('ConductCreate.swalIncompleteData'), '', 'warning')
+        return
+    }
+
+    if (selectedType.value.name === t('ConductCreate.meritTypeName')) {
+        if (!selectedBehavior.value && !(form.value.description || '').trim()) {
+            Swal.fire(t('ConductCreate.swalIncompleteData'), '', 'warning')
+            return
+        }
+    }
+
     const description = String(form.value.description || '').trim() || '-'
     const normalizedScore = normalizeScoreByType(form.value.score)
     if (normalizedScore === '') {
-        Swal.fire('กรุณากรอกคะแนนให้ถูกต้อง', '', 'warning')
+        Swal.fire(t('ConductCreate.swalInvalidScore'), '', 'warning')
         return
     }
 
     const payload = {
         student_id: selectedStudent.value._id,
         behavior_type: selectedType.value.name,
-        behavior: selectedBehavior.value.name,
+        behavior: selectedBehavior.value?.name || form.value.description || t('ConductCreate.meritTypeName'),
         behavior_level: selectedLevel.value ? selectedLevel.value.level : 1,
         description,
         score: Number(normalizedScore),
@@ -475,7 +491,7 @@ async function handleSubmit() {
     try {
         await conductService.createConduct(payload)
         emit('conduct-saved', payload.student_id)
-        Swal.fire('บันทึกสำเร็จ', '', 'success')
+        Swal.fire(t('ConductCreate.swalSaveSuccess'), '', 'success')
         searchStudentIdText.value = ''
         searchStudentNameText.value = ''
         selectedStudent.value = null
@@ -491,12 +507,12 @@ async function handleSubmit() {
     } catch (e) {
         const errDetail = e?.response?.data?.error || ''
         if (errDetail === 'teacher give score reached limit of 10') {
-            Swal.fire('ไม่สามารถบันทึกได้', 'ครูให้คะแนนบวกได้ไม่เกิน 10 คะแนน', 'warning')
+            Swal.fire(t('ConductCreate.swalCannotSave'), t('ConductCreate.swalTeacherLimitReached'), 'warning')
         } else if (errDetail === 'max teacher give score is 10') {
-            Swal.fire('คะแนนเกินกำหนด', 'คะแนนบวกสูงสุดที่ให้ได้คือ 10 คะแนน', 'warning')
+            Swal.fire(t('ConductCreate.swalScoreExceeded'), t('ConductCreate.swalMaxScoreIs10'), 'warning')
         } else {
-            const errorMessage = e?.response?.data?.message || e.message || 'บันทึกไม่สำเร็จ'
-            Swal.fire('เกิดข้อผิดพลาด', errorMessage, 'error')
+            const errorMessage = e?.response?.data?.message || e.message || t('ConductCreate.swalSaveFailed')
+            Swal.fire(t('ConductCreate.swalErrorTitle'), errorMessage, 'error')
         }
     }
 }

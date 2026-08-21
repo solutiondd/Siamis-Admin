@@ -4,19 +4,19 @@
         <div class="flex flex-wrap gap-2 mb-4 items-center sm:flex-row flex-col">
             <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
                 <input v-if="!props.hideSearch" v-model="searchText" @keyup.enter="handleSearch" type="text"
-                    class="input input-sm input-bordered w-full sm:w-44" placeholder="ค้นหาชื่อหรือรหัส" />
+                    class="input input-sm input-bordered w-full sm:w-44" :placeholder="$t('DashBoardAttendance.searchPlaceholder')" />
                 <select v-if="props.role !== 'teacher' && !props.hideDropdown" v-model="selectedGrade"
                     @change="handleGradeChange" class="select select-sm select-bordered w-full sm:w-32">
-                    <option value="">เลือกชั้น</option>
-                    <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
+                    <option value="">{{ $t('DashBoardAttendance.selectGrade') }}</option>
+                    <option v-for="grade in grades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}</option>
                 </select>
                 <select v-if="props.role !== 'teacher' && !props.hideDropdown" v-model="selectedClassroom"
                     @change="handleClassroomChange" class="select select-sm select-bordered w-full sm:w-32">
-                    <option value="">เลือกห้อง</option>
+                    <option value="">{{ $t('DashBoardAttendance.selectClassroom') }}</option>
                     <option v-for="room in classrooms" :key="room" :value="room">{{ room }}</option>
                 </select>
                 <button v-if="!props.hideSearch" class="btn btn-sm btn-primary w-full sm:w-auto"
-                    @click="handleSearch">ค้นหา</button>
+                    @click="handleSearch">{{ $t('DashBoardAttendance.search') }}</button>
             </div>
         </div>
 
@@ -25,38 +25,43 @@
             <table class="table table-zebra w-full min-w-[600px]">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th>รหัส</th>
-                        <th>ชื่อ</th>
-                        <th>ตำแหน่ง</th>
-                        <th v-if="props.role !== 'teacher'">ชั้น</th>
-                        <th>เวลาเข้า</th>
-                        <th>รูปเข้า</th>
-                        <th>ดูรายละเอียด</th>
+                        <th class="w-12 text-center">#</th>
+                        <th>{{ $t('DashBoardAttendance.code') }}</th>
+                        <th>{{ $t('DashBoardAttendance.name') }}</th>
+                        <th>{{ $t('DashBoardAttendance.position') }}</th>
+                        <th v-if="props.role !== 'teacher'">{{ $t('DashBoardAttendance.grade') }}</th>
+                        <th>{{ $t('DashBoardAttendance.entryTime') }}</th>
+                        <th>{{ $t('DashBoardAttendance.entryImage') }}</th>
+                        <th>{{ $t('DashBoardAttendance.viewDetail') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="loading">
-                        <td colspan="7" class="text-center">กำลังโหลดข้อมูล...</td>
+                        <td colspan="8" class="text-center">{{ $t('DashBoardAttendance.loading') }}</td>
                     </tr>
                     <tr v-if="!loading && data.length === 0">
-                        <td colspan="7" class="text-center">ไม่พบข้อมูล</td>
+                        <td colspan="8" class="text-center">{{ $t('DashBoardAttendance.notFound') }}</td>
                     </tr>
-                    <tr v-for="item in data" :key="item._id">
+                    <tr v-for="(item, index) in data" :key="item._id">
+                        <td class="text-center">
+                            {{ (pagination.page - 1) * pagination.limit + index + 1 }}
+                        </td>
                         <td>{{ item.userid }}</td>
                         <td>{{ item.name }}</td>
                         <td>{{ item.position }}</td>
-                        <td v-if="props.role !== 'teacher'">{{ item.department || `${item.grade}/${item.classroom}` }}
+                        <td v-if="props.role !== 'teacher'">{{ item.department ||
+                            formatGradeClassroomDisplay(item.grade, item.classroom) }}
                         </td>
                         <td>{{ getEntryTime(item) }}</td>
                         <td>
                             <img v-if="getEntryImage(item)" :src="imgBaseUrl + getEntryImage(item)" alt="entry"
                                 class="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                                 @error="item.attendance[0].imageUrl = null" />
-                            <span v-else class="text-gray-400">โหลดรูปไม่สำเร็จ</span>
+                            <span v-else class="text-gray-400">{{ $t('DashBoardAttendance.imageError') }}</span>
                         </td>
                         <td>
                             <button class="btn btn-xs sm:btn-sm btn-info"
-                                @click="viewDetail(item)">ดูรายละเอียด</button>
+                                @click="viewDetail(item)">{{ $t('DashBoardAttendance.viewDetail') }}</button>
                         </td>
                     </tr>
                 </tbody>
@@ -66,15 +71,18 @@
         <!-- Mobile Card List -->
         <div class="lg:hidden space-y-4">
             <div v-if="loading" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                กำลังโหลดข้อมูล...
+                {{ $t('DashBoardAttendance.loading') }}
             </div>
             <div v-if="!loading && data.length === 0"
                 class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                ไม่พบข้อมูล
+                {{ $t('DashBoardAttendance.notFound') }}
             </div>
-            <div v-for="item in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
+            <div v-for="(item, index) in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
+                        <span class="badge badge-neutral badge-sm mr-2">
+                        #{{ (pagination.page - 1) * pagination.limit + index + 1 }}
+                        </span>
                         <div class="badge badge-primary badge-sm mb-2">{{ item.userid }}</div>
                         <h3 class="font-bold text-lg">{{ item.name }}</h3>
                         <p class="text-sm text-base-content/70">{{ item.position }}</p>
@@ -82,32 +90,33 @@
                     <div>
                         <img v-if="getEntryImage(item)" :src="imgBaseUrl + getEntryImage(item)" alt="entry"
                             class="w-12 h-12 object-cover rounded" @error="item.attendance[0].imageUrl = null" />
-                        <span v-else class="text-gray-400">โหลดรูปไม่สำเร็จ</span>
+                        <span v-else class="text-gray-400">{{ $t('DashBoardAttendance.imageError') }}</span>
                     </div>
                 </div>
                 <div class="divider my-2"></div>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                        <span class="text-base-content/60">{{ item.department ? 'แผนก:' : 'ชั้นเรียน:' }}</span>
-                        <p class="font-medium">{{ item.department || `${item.grade}/${item.classroom}` }}</p>
+                        <span class="text-base-content/60">{{ item.department ? $t('DashBoardAttendance.department') : $t('DashBoardAttendance.classroomLabel') }}</span>
+                        <p class="font-medium">{{ item.department || formatGradeClassroomDisplay(item.grade,
+                            item.classroom) }}</p>
                     </div>
                 </div>
                 <div class="divider my-2"></div>
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div>
-                        <p class="text-xs text-base-content/60 mb-1">เข้า</p>
+                        <p class="text-xs text-base-content/60 mb-1">{{ $t('DashBoardAttendance.entry') }}</p>
                         <span v-if="getEntryTime(item) !== '-'" class="badge badge-success badge-sm">{{
                             getEntryTime(item) }}</span>
-                        <span v-else class="badge badge-error badge-sm">ไม่มีเข้า</span>
+                        <span v-else class="badge badge-error badge-sm">{{ $t('DashBoardAttendance.noEntry') }}</span>
                     </div>
                     <div>
-                        <p class="text-xs text-base-content/60 mb-1">รูปเข้า</p>
-                        <span v-if="getEntryImage(item)" class="badge badge-success badge-sm">มีรูป</span>
-                        <span v-else class="badge badge-error badge-sm">ไม่มีรูป</span>
+                        <p class="text-xs text-base-content/60 mb-1">{{ $t('DashBoardAttendance.entryImage') }}</p>
+                        <span v-if="getEntryImage(item)" class="badge badge-success badge-sm">{{ $t('DashBoardAttendance.hasImage') }}</span>
+                        <span v-else class="badge badge-error badge-sm">{{ $t('DashBoardAttendance.noImage') }}</span>
                     </div>
                 </div>
                 <button class="btn btn-sm btn-info btn-outline w-full mt-2"
-                    @click="viewDetail(item)">ดูรายละเอียด</button>
+                    @click="viewDetail(item)">{{ $t('DashBoardAttendance.viewDetail') }}</button>
             </div>
         </div>
 
@@ -126,10 +135,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DetailAttendance from './DetailAttendance.vue'
 import reportApi from '../../api/report.js'
 import { ClassRoomService } from '../../api/class-room.js'
-import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade'
+import { formatGradeClassroomDisplay, mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem'
+
+const { t } = useI18n()
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 const data = ref([])
 const loading = ref(false)
@@ -157,8 +169,7 @@ async function fetchClassRooms() {
         const res = await service.getClassRooms()
         if (res.message === 'Success' && res.data) {
             allClassrooms.value = res.data
-            const unique = [...new Set(res.data.map(c => toGradeCode(c.grade)))]
-            grades.value = sortGrades(unique)
+            grades.value = toVisibleSortedGrades(res.data.map(c => c.grade))
         }
     } catch (e) {
         grades.value = []
@@ -172,7 +183,7 @@ function handleGradeChange() {
         classrooms.value = []
         return
     }
-    const filtered = allClassrooms.value.filter(c => gradeEquals(c.grade, selectedGrade.value))
+    const filtered = allClassrooms.value.filter(c => c.grade === selectedGrade.value)
     classrooms.value = [...new Set(filtered.map(c => c.classroom))]
 }
 
@@ -202,10 +213,7 @@ const displayedPages = computed(() => {
 function getEntryTime(item) {
     if (!item.attendance || item.attendance.length === 0) return '-'
     const ts = item.attendance[0].timeStamp || item.attendance[0].timeStamps?.[0]?.timestamp
-    if (!ts) return '-'
-    const timePart = String(ts).includes(' ') ? String(ts).split(' ')[1] : String(ts)
-    const [hour = '00', minute = '00'] = timePart.split(':')
-    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`
+    return ts ? ts.split(' ')[1].slice(0, 5) : '-'
 }
 function getEntryImage(item) {
     if (!item.attendance || item.attendance.length === 0) return ''
@@ -226,7 +234,7 @@ async function fetchData(page = 1) {
             userid: '',
             page,
             limit: 5,
-            grade: toLegacyGrade(props.fixedGrade || selectedGrade.value),
+            grade: props.fixedGrade || selectedGrade.value,
             classroom: props.fixedClassroom !== '' ? props.fixedClassroom : (selectedClassroom.value || 0)
         }
         if (props.fixedName) {

@@ -1,7 +1,7 @@
 <template>
     <dialog ref="detailModal" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
-            <h3 class="font-bold text-lg mb-4 text-primary">รายละเอียดอุปกรณ์</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ t('device.deviceDetailTitle') }}</h3>
 
             <div v-if="currentDevice" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -10,67 +10,73 @@
                         <div class="font-semibold">{{ currentDevice.serial_number || '-' }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">Model</div>
-                        <div class="font-semibold">{{ currentDevice.modelname || '-' }}</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.deviceType') }}</div>
+                        <div class="font-semibold">{{ currentDevice.device_type || '-' }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
                         <div class="text-xs text-base-content/60">IP Address</div>
                         <div class="font-semibold">{{ currentDevice.ipaddress || '-' }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">สถานที่</div>
+                        <div class="text-xs text-base-content/60">MAC Address</div>
+                        <div class="font-semibold">{{ currentDevice.mac || '-' }}</div>
+                    </div>
+                    <div class="bg-base-200 rounded-lg p-3">
+                        <div class="text-xs text-base-content/60">{{ t('device.location') }}</div>
                         <div class="font-semibold">{{ currentDevice.location || '-' }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">ประเภทประตู</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.gateType') }}</div>
                         <div class="font-semibold">{{ formatGateType(currentDevice.gate_type) }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">เวลาปัจจุบันจากอุปกรณ์</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.currentDeviceTime') }}</div>
                         <div class="font-semibold">{{ formatDateTime(currentDevice.current_time) }}</div>
                     </div>
                 </div>
 
-                <div class="divider my-2">การตั้งเวลา</div>
+                <div class="divider my-2">{{ t('device.schedule') }}</div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">การใช้งานเวลาเข้าเรียน</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.attendanceUse') }}</div>
                         <div class="font-semibold">
                             <span class="badge"
                                 :class="parseUseAttendanceTime(currentDevice.use_attendance_time) ? 'badge-success' : 'badge-ghost'">
-                                {{ parseUseAttendanceTime(currentDevice.use_attendance_time) ? 'เปิดใช้งาน' :
-                                    'ไม่ใช้งาน' }}
+                                {{ parseUseAttendanceTime(currentDevice.use_attendance_time) ? t('device.active') :
+                                t('device.inactive') }}
                             </span>
                         </div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">เวลาเริ่มเช็คชื่อ</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.attendanceStart') }}</div>
                         <div class="font-semibold">{{ currentDevice.attendance_start_time || '-' }}</div>
                     </div>
                     <div class="bg-base-200 rounded-lg p-3">
-                        <div class="text-xs text-base-content/60">เวลาสิ้นสุดเช็คชื่อ</div>
+                        <div class="text-xs text-base-content/60">{{ t('device.attendanceEnd') }}</div>
                         <div class="font-semibold">{{ currentDevice.attendance_end_time || '-' }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="modal-action">
-                <button type="button" class="btn" @click="closeModal">ปิด</button>
+                <button type="button" class="btn" @click="closeModal">{{ t('common.close') }}</button>
             </div>
         </div>
 
         <form method="dialog" class="modal-backdrop">
-            <button @click="closeModal">close</button>
+            <button @click="closeModal">{{ t('common.close') }}</button>
         </form>
     </dialog>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const detailModal = ref(null)
 const currentDevice = ref(null)
+const { t, locale } = useI18n()
 
 const parseUseAttendanceTime = (value) => {
     if (typeof value === 'boolean') return value
@@ -83,7 +89,8 @@ const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return '-'
     try {
         const date = new Date(dateTimeString)
-        return date.toLocaleString('th-TH-u-ca-buddhist', {
+        const activeLocale = locale.value === 'en' ? 'en-US' : 'th-TH-u-ca-buddhist'
+        return date.toLocaleString(activeLocale, {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -99,8 +106,8 @@ const formatDateTime = (dateTimeString) => {
 const formatGateType = (gateType) => {
     if (!gateType) return '-'
     const s = String(gateType).toLowerCase()
-    if (s === 'in' || s === 'enter' || s === 'entry') return 'เข้า'
-    if (s === 'out' || s === 'exit') return 'ออก'
+    if (s === 'in' || s === 'enter' || s === 'entry') return t('device.gateIn')
+    if (s === 'out' || s === 'exit') return t('device.gateOut')
     return gateType
 }
 

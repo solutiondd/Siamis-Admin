@@ -1,29 +1,32 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <form method="dialog" class="modal-box">
-            <h3 class="font-bold text-lg text-error">ยืนยันการลบทั้งหมด</h3>
-            <p class="py-4">คุณต้องการลบข้อมูลนักเรียนทั้งหมดใน <span class="font-semibold">{{ grade }}</span>
-                ใช่หรือไม่?</p>
+            <h3 class="font-bold text-lg text-error">{{ $t('StudentDeleteAll.titleStep1') }}</h3>
+            <p class="py-4">
+                {{ $t('StudentDeleteAll.confirmStep1', { grade: mapGradeDisplay(grade) }) }}
+            </p>
             <div class="modal-action">
-                <button type="button" class="btn btn-ghost" @click="close">ยกเลิก</button>
+                <button type="button" class="btn btn-ghost" @click="close">{{ $t('StudentDeleteAll.cancel') }}</button>
                 <button type="button" class="btn btn-error" @click="confirmSecond" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    ถัดไป
+                    {{ $t('StudentDeleteAll.next') }}
                 </button>
             </div>
         </form>
     </dialog>
     <dialog ref="secondDialogRef" class="modal">
         <form method="dialog" class="modal-box">
-            <h3 class="font-bold text-lg text-error">ยืนยันอีกครั้ง</h3>
-            <p class="py-4">คุณแน่ใจหรือไม่ว่าต้องการลบ <span class="font-semibold">{{ grade }}</span> ทั้งหมด?
-                <br>การกระทำนี้ไม่สามารถย้อนกลับได้
+            <h3 class="font-bold text-lg text-error">{{ $t('StudentDeleteAll.titleStep2') }}</h3>
+            <p class="py-4">
+                {{ $t('StudentDeleteAll.confirmStep2', { grade: mapGradeDisplay(grade) }) }}
+                <br>{{ $t('StudentDeleteAll.warningStep2') }}
             </p>
             <div class="modal-action">
-                <button type="button" class="btn btn-ghost" @click="closeSecond">ยกเลิก</button>
+                <button type="button" class="btn btn-ghost" @click="closeSecond">{{ $t('StudentDeleteAll.cancel')
+                    }}</button>
                 <button type="button" class="btn btn-error" @click="deleteAll" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-xs"></span>
-                    ยืนยันลบจริง
+                    {{ $t('StudentDeleteAll.confirmDelete') }}
                 </button>
             </div>
         </form>
@@ -32,8 +35,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { StudentService } from '../../api/student'
-import { toLegacyGrade } from '../../utils/grade'
+import { mapGradeDisplay } from '../../utils/gradeSystem'
+
+const { t } = useI18n()
 const modalRef = ref(null)
 const secondDialogRef = ref(null)
 const grade = ref('')
@@ -63,10 +69,10 @@ const deleteAll = async () => {
             emit('success')
             closeSecond()
         } else {
-            alert('เกิดข้อผิดพลาดในการลบ')
+            alert(t('StudentDeleteAll.deleteError'))
         }
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการลบ')
+        alert(t('StudentDeleteAll.deleteError'))
     } finally {
         loading.value = false
     }

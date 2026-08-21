@@ -5,15 +5,15 @@
                 <span class="loading loading-spinner loading-lg text-primary"></span>
             </div>
             <div v-else-if="meritTypes.length === 0" class="text-center py-8 text-base-content/60">
-                ไม่มีข้อมูลประเภทความดี
+                {{ $t('MeritMeritTypeTable.noData') }}
             </div>
             <div v-else class="overflow-x-auto">
                 <table class="table table-zebra">
                     <thead>
                         <tr>
-                            <th class="w-10 md:w-20">#</th>
-                            <th>รายการ</th>
-                            <th>คะแนน</th>
+                            <th class="w-10 md:w-20">{{ $t('MeritMeritTypeTable.hashHeader') }}</th>
+                            <th>{{ $t('MeritMeritTypeTable.itemHeader') }}</th>
+                            <th>{{ $t('MeritMeritTypeTable.scoreHeader') }}</th>
                             <th class="w-10 md:w-24 text-center"></th>
                         </tr>
                     </thead>
@@ -25,7 +25,7 @@
                             <td>
                                 <div class="flex justify-center gap-4">
                                     <button class="bg-transparent border-none shadow-none p-0" @click="editMerit(item)"
-                                        title="แก้ไข">
+                                        :title="$t('MeritMeritTypeTable.editTitle')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="#fbbf24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,7 +33,7 @@
                                         </svg>
                                     </button>
                                     <button class="bg-transparent border-none shadow-none p-0"
-                                        @click="deleteMerit(item)" title="ลบ">
+                                        @click="deleteMerit(item)" :title="$t('MeritMeritTypeTable.deleteTitle')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="#ef4444">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,10 +54,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { MeritService } from '../../api/merit.js'
 import UpdateMerit from './Update.vue'
 import Swal from 'sweetalert2'
 
+const { t } = useI18n()
 const showUpdate = ref(false)
 const selectedMerit = ref(null)
 
@@ -68,12 +70,12 @@ function editMerit(item) {
 
 async function deleteMerit(item) {
     const result = await Swal.fire({
-        title: 'ยืนยันการลบ',
-        text: `ต้องการลบ "${item.name}" หรือไม่?`,
+        title: t('MeritMeritTypeTable.confirmDeleteTitle'),
+        text: t('MeritMeritTypeTable.confirmDeleteText', { name: item.name }),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: t('MeritMeritTypeTable.confirmButton'),
+        cancelButtonText: t('MeritMeritTypeTable.cancelButton'),
         confirmButtonColor: '#d33',
     })
     if (result.isConfirmed) {
@@ -82,15 +84,15 @@ async function deleteMerit(item) {
             await service.deleteMeritType(item._id)
             Swal.fire({
                 icon: 'success',
-                title: 'ลบสำเร็จ',
-                text: 'ข้อมูลถูกลบเรียบร้อยแล้ว',
+                title: t('MeritMeritTypeTable.swalDeleteSuccessTitle'),
+                text: t('MeritMeritTypeTable.swalDeleteSuccessText'),
             })
             getMeritTypes()
         } catch (err) {
             Swal.fire({
                 icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถลบข้อมูลได้',
+                title: t('MeritMeritTypeTable.swalErrorTitle'),
+                text: err?.response?.data?.error || err?.message || t('MeritMeritTypeTable.swalDeleteErrorText'),
             })
         }
     }

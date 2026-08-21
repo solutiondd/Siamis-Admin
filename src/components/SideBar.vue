@@ -5,12 +5,12 @@
     <aside @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave" :class="[
         'min-h-screen bg-base-100 shadow-lg transition-all duration-300 ease-in-out relative',
         isExpanded ? 'w-64' : 'w-20',
-        'max-[570px]:fixed max-[570px]:top-0 max-[570px]:left-0 max-[570px]:h-full max-[570px]:z-50',
-        isMobileMenuOpen ? 'max-[570px]:translate-x-0' : 'max-[570px]:-translate-x-full'
+        'max-[944px]:fixed max-[944px]:top-0 max-[944px]:left-0 max-[944px]:h-full max-[944px]:z-50',
+        isMobileMenuOpen ? 'max-[944px]:translate-x-0' : 'max-[944px]:-translate-x-full'
     ]">
 
         <button @click="toggleSidebar"
-            class="absolute -right-3 top-6 bg-secondary text-secondary-content rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform z-10 max-[570px]:hidden">
+            class="absolute -right-3 top-6 bg-secondary text-secondary-content rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform z-10 max-[944px]:hidden">
             <svg xmlns="http://www.w3.org/2000/svg"
                 :class="['h-4 w-4 transition-transform', isExpanded ? '' : 'rotate-180']" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor">
@@ -21,17 +21,18 @@
         <div class="p-4 border-b overflow-hidden bg-gradient-to-r from-primary/5 to-secondary/5">
             <div class="flex items-center gap-2">
                 <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <img src="/src/assets/Siam_Logo-2048x2048.png" alt="Siamis Logo"
-                        class="w-full h-full object-contain" />
+                    <img src="/src/assets/Siam_Logo-2048x2048.png" alt="CKK Logo" class="w-full h-full object-contain" />
+                    <!-- <div class="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-yellow-400">
+                    </div> -->
                 </div>
                 <div v-show="isExpanded" class="transition-opacity duration-300">
-                    <h2 class="text-lg font-bold text-primary whitespace-nowrap">โรงเรียนนานาชาติสยาม</h2>
-                    <p class="text-sm text-secondary font-medium whitespace-nowrap">จังหวัดปทุมธานี</p>
+                    <h2 class="text-lg font-bold text-primary whitespace-nowrap">{{ t('auth.school') }}</h2>
+                    <p class="text-sm text-secondary font-medium whitespace-nowrap">{{ t('auth.province') }}</p>
                 </div>
             </div>
         </div>
 
-        <nav class="menu p-4 overflow-y-auto h-[calc(100vh-96px)]">
+        <nav class="menu p-4 max-[944px]:overflow-y-auto max-[944px]:h-[calc(100vh-96px)]">
             <ul class="space-y-2">
                 <li>
                     <router-link to="/home/dashboard"
@@ -42,11 +43,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">หน้าหลัก</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.home') }}</span>
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            หน้าหลัก
+                            {{ t('sidebar.home') }}
                         </div>
                     </router-link>
                 </li>
@@ -60,7 +61,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการบุคลากร</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.personnel')
+                        }}</span>
                         <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 ml-auto transition-transform', isPersonnelOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +71,7 @@
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            จัดการบุคลากร
+                            {{ t('sidebar.personnel') }}
                         </div>
                     </div>
 
@@ -83,7 +85,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                <span class="text-sm">จัดการบุคลากร</span>
+                                <span class="text-sm">{{ t('sidebar.personnelTeacher') }}</span>
                             </router-link>
                         </li>
 
@@ -96,7 +98,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
-                                <span class="text-sm">จัดการนักเรียน</span>
+                                <span class="text-sm">{{ t('sidebar.student') }}</span>
                             </router-link>
                         </li>
                     </ul>
@@ -111,7 +113,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการโครงสร้าง</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.structure')
+                        }}</span>
                         <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 ml-auto transition-transform', isStructureOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +123,7 @@
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            จัดการโครงสร้าง
+                            {{ t('sidebar.structure') }}
                         </div>
                     </div>
 
@@ -134,7 +137,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                 </svg>
-                                <span class="text-sm">จัดการแผนก</span>
+                                <span class="text-sm">{{ t('sidebar.department') }}</span>
                             </router-link>
                         </li>
 
@@ -147,7 +150,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <span class="text-sm">จัดการตำแหน่ง</span>
+                                <span class="text-sm">{{ t('sidebar.position') }}</span>
                             </router-link>
                         </li>
 
@@ -160,7 +163,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <span class="text-sm">จัดการห้องเรียน</span>
+                                <span class="text-sm">{{ t('sidebar.classroom') }}</span>
                             </router-link>
                         </li>
                         <li>
@@ -172,7 +175,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 7V3m8 4V3m-9 8h10m-12 8a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
                                 </svg>
-                                <span class="text-sm">จัดการวันหยุด</span>
+                                <span class="text-sm">{{ t('sidebar.holidays') }}</span>
                             </router-link>
                         </li>
                         <li>
@@ -184,7 +187,19 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                 </svg>
-                                <span class="text-sm">ปฏิทินการศึกษา</span>
+                                <span class="text-sm">{{ t('sidebar.academicCalendar') }}</span>
+                            </router-link>
+                        </li>
+                        <li v-if="auth.user?.role !== 'teacher' && featureFlags.menu.enableAllowanceSetting">
+                            <router-link to="/home/allowance-setting"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/allowance-setting')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                </svg>
+                                <span class="text-sm">{{ t('sidebar.allowanceSetting') }}</span>
                             </router-link>
                         </li>
                     </ul>
@@ -200,7 +215,8 @@
                                 d="M12 3l8 4v5c0 5.25-3.75 10-8 10s-8-4.75-8-10V7l8-4z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการความประพฤติ</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.behavior')
+                        }}</span>
                         <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 ml-auto transition-transform', isBehaviorMenuOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -208,11 +224,11 @@
                         </svg>
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            จัดการความประพฤติ
+                            {{ t('sidebar.behavior') }}
                         </div>
                     </div>
                     <ul v-show="isExpanded && isBehaviorMenuOpen" class="ml-4 mt-2 space-y-2">
-                        <li>
+                        <li v-if="auth.user?.role !== 'teacher'">
                             <router-link to="/home/behavior"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
                                 :class="submenuClass('/home/behavior')">
@@ -221,7 +237,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 12h8m-8 4h8M5 7h14" />
                                 </svg>
-                                <span class="text-sm">รายการพฤติกรรม</span>
+                                <span class="text-sm">{{ t('sidebar.behaviorList') }}</span>
                             </router-link>
                         </li>
                         <li>
@@ -235,7 +251,43 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4" />
                                 </svg>
-                                <span class="text-sm">จัดการคะแนน</span>
+                                <span class="text-sm">{{ t('sidebar.conduct') }}</span>
+                            </router-link>
+                        </li>
+                        <li v-if="auth.user?.role !== 'teacher'">
+                            <router-link to="/home/leave"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/leave')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10m-12 8a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+                                </svg>
+                                <span class="text-sm">{{ t('sidebar.leave') }}</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/checkname"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/checkname')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <span class="text-sm">{{ t('sidebar.checkName') }}</span>
+                            </router-link>
+                        </li>
+                        <li v-if="featureFlags.menu.enableUniformInspection">
+                            <router-link to="/home/uniform-inspection"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-sm">{{ t('sidebar.uniformInspection') }}</span>
                             </router-link>
                         </li>
                     </ul>
@@ -250,7 +302,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการอุปกรณ์</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.deviceCat') }}</span>
                         <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 ml-auto transition-transform', isEquipmentOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -259,7 +311,7 @@
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            จัดการอุปกรณ์
+                            {{ t('sidebar.deviceCat') }}
                         </div>
                     </div>
 
@@ -273,7 +325,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span class="text-sm">จัดการอุปกรณ์</span>
+                                <span class="text-sm">{{ t('sidebar.device') }}</span>
                             </router-link>
                         </li>
 
@@ -286,7 +338,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                                 </svg>
-                                <span class="text-sm">จัดการเชื่อมต่ออุปกรณ์</span>
+                                <span class="text-sm">{{ t('sidebar.deviceConnection') }}</span>
                             </router-link>
                         </li>
                     </ul>
@@ -301,7 +353,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">รายงาน</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.reports')
+                        }}</span>
                         <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
                             :class="['h-4 w-4 ml-auto transition-transform', isReportOpen ? 'rotate-180' : '']"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -310,50 +363,74 @@
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            รายงาน
+                            {{ t('sidebar.reports') }}
                         </div>
                     </div>
 
                     <ul v-show="isExpanded && isReportOpen" class="ml-4 mt-2 space-y-2">
                         <li>
                             <router-link to="/home/report"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                <span>เข้า-ออก</span>
+                                <span>{{ t('sidebar.attendance') }}</span>
                             </router-link>
                         </li>
                         <li>
                             <router-link to="/home/report/late"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/late')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span>มาสาย</span>
+                                <span>{{ t('sidebar.late') }}</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/report/leave"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/leave')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10m-12 8a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12z" />
+                                </svg>
+                                <span>{{ t('sidebar.leave') }}</span>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link to="/home/report/activity"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/activity')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>{{ t('sidebar.activity') }}</span>
                             </router-link>
                         </li>
                         <li>
                             <router-link to="/home/report/missed"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/missed')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span>ขาดเรียน/ขาดงาน</span>
+                                <span>{{ t('sidebar.missed') }}</span>
                             </router-link>
                         </li>
                         <li v-if="auth.user?.role !== 'teacher'">
                             <router-link to="/home/report/stranger"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stranger')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -361,35 +438,64 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4m0 4h.01" />
                                 </svg>
-                                <span>สแกนไม่สำเร็จ</span>
+                                <span>{{ t('sidebar.stranger') }}</span>
                             </router-link>
                         </li>
-                        <!-- <li>
+                        <li v-if="featureFlags.menu.enableReportUniformInspection">
+                            <router-link to="/home/report/uniform-inspection"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01" />
+                                </svg>
+                                <span>{{ t('sidebar.uniformInspection') }}</span>
+                            </router-link>
+                        </li>
+                        <li>
                             <router-link to="/home/report/at-risk"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/at-risk')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6M5 7h14M5 10h14M7 16h10M7 20h10a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <span>พฤติกรรมเสี่ยง</span>
+                                <span>{{ t('sidebar.atRisk') }}</span>
                             </router-link>
-                        </li> -->
-                        <li>
+                        </li>
+                        <!-- <li>
                             <router-link to="/home/report/stats"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stats')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
-                                <span>สถิติ</span>
+                                <span>{{ t('sidebar.stats') }}</span>
                             </router-link>
-                        </li>
+                        </li> -->
                     </ul>
                 </li>
+
+                <!-- <li v-if="auth.user?.role !== 'screen' && auth.user?.role !== 'teacher'">
+                    <router-link to="/home/camera"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors relative group"
+                        :class="{ 'bg-primary text-primary-content': isActive('/home/camera') }">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 10l4.553-2.276A2 2 0 0021 6.382V5a2 2 0 00-2-2H5a2 2 0 00-2 2v1.382a2 2 0 00.447 1.342L8 10m7 0v4a1 1 0 01-1 1H6a1 1 0 01-1-1V10m7 0H8" />
+                        </svg>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.realtimeCamera') }}</span>
+                        <div v-show="!isExpanded"
+                            class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                            {{ t('sidebar.realtimeCamera') }}
+                        </div>
+                    </router-link>
+                </li> -->
 
                 <li v-if="auth.user?.role == 'super admin'">
                     <router-link to="/home/account"
@@ -402,11 +508,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการผู้ดูแล</span>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">{{ t('sidebar.admin') }}</span>
 
                         <div v-show="!isExpanded"
                             class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                            จัดการผู้ดูแล
+                            {{ t('sidebar.admin') }}
                         </div>
                     </router-link>
                 </li>
@@ -419,7 +525,10 @@
 import { useRoute } from 'vue-router'
 import { computed, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import featureFlags from '../config/featureFlags'
+import { useI18n } from 'vue-i18n'
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const route = useRoute()
 const isExpanded = ref(true)
@@ -439,7 +548,7 @@ const isPersonnelActive = computed(() => {
 })
 
 const isStructureActive = computed(() => {
-    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom' || route.path === '/home/holidays' || route.path === '/home/academiccalendar'
+    return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom' || route.path === '/home/holidays' || route.path === '/home/academiccalendar' || route.path === '/home/allowance-setting'
 })
 
 const isEquipmentActive = computed(() => {
@@ -447,7 +556,7 @@ const isEquipmentActive = computed(() => {
 })
 
 const isReportActive = computed(() => {
-    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/at-risk' || route.path === '/home/report/stats'
+    return route.path === '/home/report' || route.path === '/home/report/late' || route.path === '/home/report/leave' || route.path === '/home/report/missed' || route.path === '/home/report/stranger' || route.path === '/home/report/at-risk' || route.path === '/home/report/uniform-inspection' || route.path === '/home/report/stats'
 })
 
 const submenuClass = (path) => {
@@ -495,7 +604,7 @@ const handleMouseLeave = () => {
 
 const isBehaviorMenuOpen = ref(false)
 const isBehaviorMenuActive = computed(() => {
-    return route.path === '/home/behavior' || route.path === '/home/conduct'
+    return route.path === '/home/behavior' || route.path === '/home/conduct' || route.path === '/home/leave' || route.path === '/home/checkname' || route.path === '/home/uniform-inspection'
 })
 const toggleBehaviorMenu = () => {
     isBehaviorMenuOpen.value = !isBehaviorMenuOpen.value

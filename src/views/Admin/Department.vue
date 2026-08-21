@@ -1,13 +1,14 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex justify-between items-center">
-            <h1 class="text-xl sm:text-2xl font-bold text-white">จัดการแผนก</h1>
-            <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="btn btn-primary" @click="openCreateModal">
+            <h1 class="text-xl sm:text-2xl font-bold text-white">{{ $t('Department.title') }}</h1>
+            <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="btn btn-primary"
+                @click="openCreateModal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                เพิ่มแผนก
+                {{ $t('Department.addDepartment') }}
             </button>
         </div>
 
@@ -20,12 +21,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Swal from 'sweetalert2'
 import DepartmentTable from '../../components/Department/Table.vue'
 import CreateModal from '../../components/Department/Create.vue'
 import DeleteModal from '../../components/Department/Delete.vue'
 import { DepartmentService } from '../../api/department'
 import { useAuthStore } from '../../stores/auth'
+
+const { t } = useI18n()
 const auth = useAuthStore()
 
 const departmentService = new DepartmentService()
@@ -46,8 +50,8 @@ const fetchDepartments = async () => {
         console.error('Fetch departments error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลแผนกได้',
+            title: t('Department.errorTitle'),
+            text: error?.response?.data?.error || error?.message || t('Department.fetchError'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -68,7 +72,7 @@ const handleCreateSuccess = async (name) => {
         await fetchDepartments()
         Swal.fire({
             icon: 'success',
-            title: 'เพิ่มแผนกสำเร็จ',
+            title: t('Department.createSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -79,8 +83,8 @@ const handleCreateSuccess = async (name) => {
         console.error('Create department error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มแผนกได้',
+            title: t('Department.errorTitle'),
+            text: error?.response?.data?.error || error?.message || t('Department.createError'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -99,7 +103,7 @@ const handleDeleteSuccess = async (id) => {
         await fetchDepartments()
         Swal.fire({
             icon: 'success',
-            title: 'ลบแผนกสำเร็จ',
+            title: t('Department.deleteSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -110,8 +114,8 @@ const handleDeleteSuccess = async (id) => {
         console.error('Delete department error:', error)
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถลบแผนกได้',
+            title: t('Department.errorTitle'),
+            text: error?.response?.data?.error || error?.message || t('Department.deleteError'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

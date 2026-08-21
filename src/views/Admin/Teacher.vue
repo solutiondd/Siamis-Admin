@@ -1,7 +1,7 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการบุคลากร</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">{{ $t('Teacher.title') }}</h2>
             <div v-if="auth.user?.role !== 'viewer'" class="flex gap-2">
                 <button v-if="auth.user?.role !== 'teacher'" class="btn btn-success btn-sm" @click="openImportModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
@@ -11,29 +11,28 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 10l4 4m0 0l4-4m-4 4V4" />
                     </svg>
-                    นำเข้า Excel
+                    {{ $t('Teacher.importExcel') }}
                 </button>
                 <button v-if="auth.user?.role !== 'teacher'" @click="openCreateModal" class="btn btn-primary btn-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มบุคลากร
+                    {{ $t('Teacher.addTeacher') }}
                 </button>
             </div>
         </div>
-
 
         <div class="card bg-base-100 shadow-md">
             <div class="card-body p-4">
                 <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0">
                     <div class="form-control w-full sm:flex-1">
                         <label class="label py-1">
-                            <span class="label-text text-sm">ค้นหา</span>
+                            <span class="label-text text-sm">{{ $t('Teacher.search') }}</span>
                         </label>
                         <div class="relative">
                             <input v-model="searchQuery" @input="fetchTeachers" type="text"
-                                placeholder="ค้นหาชื่อหรือรหัสครู..." class="input input-bordered input-sm w-full" />
+                                :placeholder="$t('Teacher.searchPlaceholder')" class="input input-bordered input-sm w-full" />
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-base-content/50"
                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,13 +50,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                รีเซ็ต
+                                {{ $t('Teacher.reset') }}
                             </button>
                         </div>
 
                         <div class="flex sm:form-control w-auto gap-1">
                             <label class="label py-1">
-                                <span class="label-text text-sm">แถวต่อหน้า</span>
+                                <span class="label-text text-sm">{{ $t('Teacher.rowsPerPage') }}</span>
                             </label>
                             <select v-model.number="itemsPerPage" @change="handleItemsPerPageChange"
                                 class="select select-bordered select-sm">
@@ -72,26 +71,31 @@
             </div>
         </div>
 
-
         <TeacherTable :teachers="paginatedTeachers" :loading="loading" :departmentFilter="filterDepartment"
             :positionFilter="filterPosition" :departments="departments" :positions="positions"
-            :currentPage="currentPage" :itemsPerPage="itemsPerPage" @filterDepartment="handleFilterDepartment"
-            @filterPosition="handleFilterPosition" @edit="openEditModal" @delete="openDeleteModal"
-            @reset="openRePasswordModal" @detail="openDetailModal" />
+            :currentPage="currentPage" :itemsPerPage="itemsPerPage" :showApiNumber="showApiNumberColumn"
+            @filterDepartment="handleFilterDepartment" @filterPosition="handleFilterPosition" @edit="openEditModal"
+            @delete="openDeleteModal" @reset="openRePasswordModal" @detail="openDetailModal" />
 
-        <div v-if="totalPages > 1" class="flex justify-center">
-            <div class="join">
-                <button class="join-item btn btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                    ‹
-                </button>
-                <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm"
-                    :class="{ 'btn-active': page === currentPage }" @click="goToPage(page)">
-                    {{ page }}
-                </button>
-                <button class="join-item btn btn-sm" @click="goToPage(currentPage + 1)"
-                    :disabled="currentPage === totalPages">
-                    ›
-                </button>
+        <div v-if="totalPages > 1" class="flex flex-col items-center gap-2">
+            <div class="flex justify-center">
+                <div class="join">
+                    <button class="join-item btn btn-sm" @click="goToPage(currentPage - 1)"
+                        :disabled="currentPage === 1">
+                        ‹
+                    </button>
+                    <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm"
+                        :class="{ 'btn-active': page === currentPage }" @click="goToPage(page)">
+                        {{ page }}
+                    </button>
+                    <button class="join-item btn btn-sm" @click="goToPage(currentPage + 1)"
+                        :disabled="currentPage === totalPages">
+                        ›
+                    </button>
+                </div>
+            </div>
+            <div class="text-sm text-base-content/60 text-center text-white">
+                {{ $t('Teacher.paginationSummary', { total: totalItems, current: currentPage, totalPages: totalPages }) }}
             </div>
         </div>
 
@@ -116,6 +120,7 @@
 import ImportExcalModal from '../../components/ListTeacher/ImportExcal.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import TeacherTable from '../../components/ListTeacher/Table.vue'
 import UpdateModal from '../../components/ListTeacher/Update.vue'
 import CreateModal from '../../components/ListTeacher/Create.vue'
@@ -126,7 +131,9 @@ import { TeacherService } from '../../api/teacher'
 import { DepartmentService } from '../../api/department'
 import { PositionService } from '../../api/position'
 import { useAuthStore } from '../../stores/auth'
+import featureFlags from '../../config/featureFlags'
 
+const { t } = useI18n()
 const importModalRef = ref(null)
 const openImportModal = () => {
     importModalRef.value?.openModal()
@@ -173,6 +180,9 @@ const updateModalRef = ref(null)
 const createModalRef = ref(null)
 const deleteModalRef = ref(null)
 const rePasswordModalRef = ref(null)
+const showApiNumberColumn = featureFlags.teacher?.enableApiNumberColumn === true
+
+const totalItems = computed(() => teachers.value.length)
 
 const totalPages = computed(() => Math.ceil(teachers.value.length / itemsPerPage.value))
 
@@ -219,12 +229,15 @@ const fetchTeachers = async () => {
                 userid: teacher.userid,
                 name: teacher.name,
                 code: teacher.userid,
+                rfid: teacher.rfid,
+                note: teacher.note || '-',
                 department: teacher.department || '-',
                 position: teacher.position || '-',
                 email: teacher.userid + '@siamis.ac.th',
                 phone: teacher.phone || '-',
                 picture: teacher.picture ? imageBaseUrl + teacher.picture : '',
-                has_password: teacher.has_password
+                has_password: teacher.has_password,
+                rfid: teacher.rfid || ''
             }))
         }
     } catch (error) {
@@ -233,7 +246,7 @@ const fetchTeachers = async () => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลอาจารย์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถโหลดข้อมูลอาจารย์ได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -338,13 +351,13 @@ const handleCreateSuccess = async (formData) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มอาจารย์ได้',
+            text: error?.response?.data?.error || error?.message || 'ไม่สามารถเพิ่มอาจารย์ได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
             }
         })
-        if (onError) onError('other')
+        if (onError) onError(error)
     }
 }
 

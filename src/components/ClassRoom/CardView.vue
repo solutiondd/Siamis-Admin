@@ -9,7 +9,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
-        <p class="text-base-content/60 text-white">ไม่มีข้อมูลห้องเรียน</p>
+        <p class="text-base-content/60 text-white">{{ $t('ClassroomCardView.noData') }}</p>
     </div>
 
     <div v-else class="space-y-6">
@@ -21,12 +21,13 @@
                             'w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-white shadow-md',
                             getGradeColor(grade.grade)
                         ]">
-                            <span class="text-[11px] md:text-sm">{{ getGradeBadgeText(grade.grade) }}</span>
+                            {{ getGradeBadge(grade.grade) }}
                         </div>
                         <span class="text-base md:text-xl">{{ getGradeLabel(grade.grade) }}</span>
                     </h3>
-                    <div class="badge badge-primary badge-sm md:badge-lg px-2 py-1 md:p-3 mt-1 md:mt-0">มี {{
-                        grade.classrooms.length }} ห้อง</div>
+                    <div class="badge badge-primary badge-sm md:badge-lg px-2 py-1 md:p-3 mt-1 md:mt-0">
+                        {{ $t('ClassroomCardView.roomCount', { count: grade.classrooms.length }) }}
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -36,7 +37,8 @@
                             class="p-4 rounded-lg border-2 border-primary/30 hover:border-primary hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 h-full flex flex-col cursor-pointer">
                             <div class="text-center flex-1 flex flex-col justify-between">
                                 <div @click="goToStudent(classroom.grade, classroom.classroom)">
-                                    <div class="text-2xl font-bold text-primary mb-1">ห้อง {{ classroom.classroom }}
+                                    <div class="text-2xl font-bold text-primary mb-1">
+                                        {{ $t('ClassroomCardView.roomNumber', { number: classroom.classroom }) }}
                                     </div>
                                     <div class="text-xs text-secondary font-medium">{{ getGradeLabel(classroom.grade) }}
                                     </div>
@@ -51,7 +53,7 @@
                                             <path
                                                 d="M21.996 2.004c-.024-.024-.048-.048-.072-.072-.264-.264-.624-.408-.984-.408-.072 0-.144.008-.216.024l-19.2 4.8c-.408.104-.72.432-.792.84-.072.408.096.816.432 1.056l6.48 4.704 2.88 8.64c.12.36.432.624.816.672.048.008.096.008.144.008.336 0 .648-.192.792-.504l3.072-6.576 6.48-13.44c.168-.336.12-.744-.144-1.008zm-7.464 13.464l-2.304-6.912 8.064-5.856-5.76 12.768zm-2.304-6.912l-6.048-4.392 15.36-3.84-9.312 8.232zm-1.104 8.208l-2.304-6.912 8.064-5.856-5.76 12.768z" />
                                         </svg>
-                                        มี Telegram
+                                        {{ $t('ClassroomCardView.hasTelegram') }}
                                     </span>
                                     <span v-else class="flex items-center gap-1 text-gray-400 text-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor"
@@ -61,12 +63,12 @@
                                             <path
                                                 d="M21.996 2.004c-.024-.024-.048-.048-.072-.072-.264-.264-.624-.408-.984-.408-.072 0-.144.008-.216.024l-19.2 4.8c-.408.104-.72.432-.792.84-.072.408.096.816.432 1.056l6.48 4.704 2.88 8.64c.12.36.432.624.816.672.048.008.096.008.144.008.336 0 .648-.192.792-.504l3.072-6.576 6.48-13.44c.168-.336.12-.744-.144-1.008zm-7.464 13.464l-2.304-6.912 8.064-5.856-5.76 12.768zm-2.304-6.912l-6.048-4.392 15.36-3.84-9.312 8.232zm-1.104 8.208l-2.304-6.912 8.064-5.856-5.76 12.768z" />
                                         </svg>
-                                        ยังไม่มี Telegram
+                                        {{ $t('ClassroomCardView.noTelegram') }}
                                     </span>
                                 </div>
                                 <div @click="auth.user?.role !== 'viewer' && $emit('edit', classroom)"
                                     :class="[auth.user?.role !== 'viewer' ? 'cursor-pointer hover:bg-primary/10' : '', 'mt-2 pt-2 border-t border-primary/20 rounded']">
-                                    <div class="text-xs text-base-content/70">ครูที่ปรึกษา</div>
+                                    <div class="text-xs text-base-content/70">{{ $t('ClassroomCardView.adviserTitle') }}</div>
                                     <div class="text-xs font-semibold text-primary mt-1">
                                         <template
                                             v-if="(classroom.adviser && classroom.adviser.name) || (classroom.adviser2 && classroom.adviser2.name)">
@@ -106,10 +108,12 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useRouter } from 'vue-router'
-import { compareGrades, getGradeBadgeText, normalizeGradeCode, toGradeCode } from '../../utils/grade'
+import { compareGrades, getGradeSortOrder, getGradeUiBadge, getGradeUiLabel } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const router = useRouter()
 
@@ -143,9 +147,7 @@ const groupedClassrooms = computed(() => {
     })
 
     return Object.values(groups)
-        .sort((a, b) => {
-            return compareGrades(a.grade, b.grade)
-        })
+        .sort((a, b) => compareGrades(a.grade, b.grade))
         .map(group => ({
             ...group,
             classrooms: group.classrooms.sort((a, b) => a.classroom - b.classroom)
@@ -153,31 +155,20 @@ const groupedClassrooms = computed(() => {
 })
 
 const getGradeLabel = (grade) => {
-    return toGradeCode(grade)
+    return getGradeUiLabel(grade)
 }
 
 const getGradeColor = (grade) => {
-    const gradeCode = normalizeGradeCode(grade)
-    const colorMap = {
-        NS: 'bg-teal-500',
-        KG1: 'bg-emerald-500',
-        KG2: 'bg-lime-500',
-        YR1: 'bg-sky-400',
-        YR2: 'bg-sky-500',
-        YR3: 'bg-sky-600',
-        YR4: 'bg-blue-400',
-        YR5: 'bg-blue-500',
-        YR6: 'bg-blue-600',
-        YR7: 'bg-indigo-400',
-        YR8: 'bg-indigo-500',
-        YR9: 'bg-indigo-600',
-        YR10: 'bg-violet-500',
-        YR11: 'bg-violet-600',
-        YR12: 'bg-violet-700'
-    }
+    const order = getGradeSortOrder(grade)
+    if (order <= 3) return 'bg-teal-500'
+    if (order <= 6) return 'bg-green-500'
+    if (order <= 9) return 'bg-cyan-500'
+    if (order <= 12) return 'bg-blue-600'
+    if (order <= 15) return 'bg-indigo-600'
+    return 'bg-primary'
+}
 
-    return colorMap[gradeCode] || 'bg-primary'
+const getGradeBadge = (grade) => {
+    return getGradeUiBadge(grade)
 }
 </script>
-
-<style scoped></style>

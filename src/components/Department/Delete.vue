@@ -1,14 +1,14 @@
 <template>
     <dialog ref="modalRef" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4">ยืนยันการลบ</h3>
-            <p class="py-4">คุณต้องการลบแผนก <span class="font-bold text-error">{{ department?.name }}</span>
-                ใช่หรือไม่?</p>
+            <h3 class="font-bold text-lg mb-4">{{ t('departmentDelete.title') }}</h3>
+            <p class="py-4">{{ t('departmentDelete.confirmText') }} <span class="font-bold text-error">{{ department?.name }}</span>
+                {{ t('departmentDelete.warningText') }}</p>
             <div class="modal-action">
-                <button @click="closeModal" class="btn btn-ghost">ยกเลิก</button>
+                <button @click="closeModal" class="btn btn-ghost">{{ t('departmentDelete.cancelBtn') }}</button>
                 <button @click="handleDelete" class="btn btn-error" :disabled="loading">
                     <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                    <span v-else>ลบ</span>
+                    <span v-else>{{ t('departmentDelete.deleteBtn') }}</span>
                 </button>
             </div>
         </div>
@@ -17,7 +17,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const modalRef = ref(null)
 const loading = ref(false)
 const department = ref(null)

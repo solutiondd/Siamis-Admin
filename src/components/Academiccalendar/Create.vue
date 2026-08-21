@@ -1,14 +1,14 @@
 <template>
     <dialog ref="modalRef" :id="modalId" class="modal">
         <div class="modal-box max-w-4xl">
-            <h3 class="font-bold text-lg mb-4 text-primary">เพิ่มปฏิทินการศึกษา</h3>
+            <h3 class="font-bold text-lg mb-4 text-primary">{{ t('academicCalendarModal.createTitle') }}</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ปีการศึกษา <span class="text-error">*</span></span>
+                        <span class="label-text">{{ t('academicCalendarModal.academicYear') }} <span class="text-error">*</span></span>
                     </label>
-                    <input v-model.number="academicYearBE" type="number" placeholder="เช่น 2569"
+                    <input v-model.number="academicYearBE" type="number" :placeholder="t('academicCalendarModal.yearPlaceholder')"
                         class="input input-bordered" :class="{ 'input-error': yearError }" required />
                     <label v-if="yearError" class="label">
                         <span class="label-text-alt text-error">{{ yearError }}</span>
@@ -18,18 +18,18 @@
                 <div class="max-h-[55vh] overflow-y-auto pr-1 space-y-3">
                     <div v-for="(term, index) in formTerms" :key="index" class="rounded-lg border border-base-300 p-3">
                         <div class="flex items-center justify-between mb-3">
-                            <p class="font-semibold">รายการที่ {{ index + 1 }}</p>
+                            <p class="font-semibold">{{ t('academicCalendarModal.itemIndex', { index: index + 1 }) }}</p>
                             <button type="button" class="btn btn-xs btn-outline btn-error"
                                 :disabled="loading || formTerms.length <= 1" @click="removeTerm(index)">
-                                ลบรายการนี้
+                                {{ t('academicCalendarModal.removeItem') }}
                             </button>
                         </div>
 
                         <div class="form-control mb-2">
                             <label class="label">
-                                <span class="label-text">รายการ <span class="text-error">*</span></span>
+                                <span class="label-text">{{ t('academicCalendarModal.itemName') }} <span class="text-error">*</span></span>
                             </label>
-                            <input v-model.trim="term.term" type="text" placeholder="เช่น เทอมที่ 1"
+                            <input v-model.trim="term.term" type="text" :placeholder="t('academicCalendarModal.termPlaceholder')"
                                 class="input input-bordered" :class="{ 'input-error': fieldErrors[index]?.term }" />
                             <label v-if="fieldErrors[index]?.term" class="label">
                                 <span class="label-text-alt text-error">{{ fieldErrors[index].term }}</span>
@@ -39,7 +39,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">วันเริ่มต้น <span class="text-error">*</span></span>
+                                    <span class="label-text">{{ t('academicCalendarModal.startDate') }} <span class="text-error">*</span></span>
                                 </label>
                                 <input v-model="term.start_date" type="date" class="input input-bordered"
                                     :class="{ 'input-error': fieldErrors[index]?.start_date }" />
@@ -50,7 +50,7 @@
 
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text">วันสิ้นสุด <span class="text-error">*</span></span>
+                                    <span class="label-text">{{ t('academicCalendarModal.endDate') }} <span class="text-error">*</span></span>
                                 </label>
                                 <input v-model="term.end_date" type="date" class="input input-bordered"
                                     :class="{ 'input-error': fieldErrors[index]?.end_date }" />
@@ -63,7 +63,7 @@
                 </div>
 
                 <button type="button" class="btn btn-outline btn-primary btn-sm" @click="addTerm" :disabled="loading">
-                    + เพิ่มรายการ
+                    + {{ t('academicCalendarModal.addItem') }}
                 </button>
 
                 <div v-if="errorMessage" class="alert alert-error">
@@ -77,11 +77,11 @@
 
                 <div class="modal-action">
                     <button type="button" class="btn btn-ghost" @click="handleClose" :disabled="loading">
-                        ยกเลิก
+                        {{ t('academicCalendarModal.cancel') }}
                     </button>
                     <button type="submit" class="btn btn-primary" :disabled="loading">
                         <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-                        <span v-else>บันทึกทั้งหมด</span>
+                        <span v-else>{{ t('academicCalendarModal.saveAll') }}</span>
                     </button>
                 </div>
             </form>
@@ -94,7 +94,10 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AcademicCalendarService } from '../../api/academiccalendar'
+
+const { t } = useI18n()
 
 const props = defineProps({
     isOpen: {
@@ -135,6 +138,60 @@ const emptyTerm = () => ({
     end_date: ''
 })
 
+const normalizeDateInput = (value) => {
+    if (!value) return ''
+    return String(value).substring(0, 10)
+}
+
+const isDateRangeOverlap = (startA, endA, startB, endB) => {
+    return startA <= endB && startB <= endA
+}
+
+const getAcademicCalendarList = async () => {
+    const res = await academicCalendarService.getAcademicCalendar()
+    if (Array.isArray(res?.data)) return res.data
+    if (Array.isArray(res)) return res
+    if (Array.isArray(res?.data?.data)) return res.data.data
+    return []
+}
+
+const validateOverlapWithExistingCalendars = async () => {
+    const currentYear = Number(academicYear.value)
+    const calendars = await getAcademicCalendarList()
+
+    for (let i = 0; i < formTerms.value.length; i += 1) {
+        const inputTerm = formTerms.value[i]
+        const inputStart = normalizeDateInput(inputTerm.start_date)
+        const inputEnd = normalizeDateInput(inputTerm.end_date)
+
+        if (!inputStart || !inputEnd) continue
+
+        for (const calendar of calendars) {
+            const existingYear = Number(calendar?.academic_year)
+            if (existingYear === currentYear) continue
+
+            const existingTerms = Array.isArray(calendar?.terms) ? calendar.terms : []
+            for (const existingTerm of existingTerms) {
+                const existingStart = normalizeDateInput(existingTerm?.start_date)
+                const existingEnd = normalizeDateInput(existingTerm?.end_date)
+                if (!existingStart || !existingEnd) continue
+
+                if (isDateRangeOverlap(inputStart, inputEnd, existingStart, existingEnd)) {
+                    fieldErrors.value[i].end_date = t('academicCalendarModal.errors.dateOverlap')
+                    errorMessage.value = t('academicCalendarModal.errors.overlapDetail', {
+                        index: i + 1,
+                        year: existingYear + 543,
+                        term: existingTerm?.term || t('academicCalendarModal.errors.unspecified')
+                    })
+                    return false
+                }
+            }
+        }
+    }
+
+    return true
+}
+
 const resetForm = () => {
     academicYear.value = Number(props.year) || new Date().getFullYear()
     yearError.value = ''
@@ -161,7 +218,7 @@ const applyDuplicateTermError = (duplicateTermName) => {
     let found = false
     formTerms.value.forEach((term, index) => {
         if ((term.term || '').trim().toLowerCase() === target) {
-            fieldErrors.value[index].term = 'ชื่อซ้ำกันในรายการ'
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.duplicateNameInList')
             found = true
         }
     })
@@ -175,39 +232,55 @@ const validateForm = () => {
     fieldErrors.value = formTerms.value.map(() => ({ term: '', start_date: '', end_date: '' }))
 
     if (!academicYear.value || academicYear.value < 1900 || academicYear.value > 2200) {
-        yearError.value = 'กรุณากรอกปีการศึกษาที่ถูกต้อง'
+        yearError.value = t('academicCalendarModal.errors.invalidYear')
         isValid = false
     }
 
     formTerms.value.forEach((term, index) => {
         if (!term.term || !term.term.trim()) {
-            fieldErrors.value[index].term = 'กรุณากรอกชื่อ'
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.requiredName')
             isValid = false
         }
 
         if (!term.start_date) {
-            fieldErrors.value[index].start_date = 'กรุณาเลือกวันเริ่มต้น'
+            fieldErrors.value[index].start_date = t('academicCalendarModal.errors.requiredStartDate')
             isValid = false
         }
 
         if (!term.end_date) {
-            fieldErrors.value[index].end_date = 'กรุณาเลือกวันสิ้นสุด'
+            fieldErrors.value[index].end_date = t('academicCalendarModal.errors.requiredEndDate')
             isValid = false
         }
 
         if (term.start_date) {
             const startYear = Number(term.start_date.substring(0, 4))
             if (Number(academicYear.value) !== startYear) {
-                yearError.value = `ปีการศึกษาต้องตรงกับปีของวันเริ่มต้น (${startYear + 543})`
+                yearError.value = t('academicCalendarModal.errors.yearMismatch', { year: startYear + 543 })
                 isValid = false
             }
         }
 
         if (term.start_date && term.end_date && term.start_date >= term.end_date) {
-            fieldErrors.value[index].end_date = 'วันสิ้นสุดต้องหลังจากวันเริ่มต้น'
+            fieldErrors.value[index].end_date = t('academicCalendarModal.errors.endDateBeforeStartDate')
             isValid = false
         }
     })
+
+    for (let i = 0; i < formTerms.value.length; i += 1) {
+        const termA = formTerms.value[i]
+        if (!termA.start_date || !termA.end_date) continue
+
+        for (let j = i + 1; j < formTerms.value.length; j += 1) {
+            const termB = formTerms.value[j]
+            if (!termB.start_date || !termB.end_date) continue
+
+            if (isDateRangeOverlap(termA.start_date, termA.end_date, termB.start_date, termB.end_date)) {
+                fieldErrors.value[i].end_date = t('academicCalendarModal.errors.overlapWithItem', { index: j + 1 })
+                fieldErrors.value[j].end_date = t('academicCalendarModal.errors.overlapWithItem', { index: i + 1 })
+                isValid = false
+            }
+        }
+    }
 
     const firstIndexByTerm = new Map()
     formTerms.value.forEach((term, index) => {
@@ -216,8 +289,8 @@ const validateForm = () => {
 
         if (firstIndexByTerm.has(key)) {
             const firstIndex = firstIndexByTerm.get(key)
-            fieldErrors.value[firstIndex].term = 'ชื่อซ้ำกันในรายการ'
-            fieldErrors.value[index].term = 'ชื่อซ้ำกันในรายการ'
+            fieldErrors.value[firstIndex].term = t('academicCalendarModal.errors.duplicateNameInList')
+            fieldErrors.value[index].term = t('academicCalendarModal.errors.duplicateNameInList')
             isValid = false
             return
         }
@@ -235,6 +308,9 @@ const handleSubmit = async () => {
     errorMessage.value = ''
 
     try {
+        const hasNoOverlapWithExisting = await validateOverlapWithExistingCalendars()
+        if (!hasNoOverlapWithExisting) return
+
         const payloadTerms = formTerms.value.map((term) => ({
             term: term.term.trim(),
             start_date: term.start_date,
@@ -259,14 +335,14 @@ const handleSubmit = async () => {
 
         if (duplicateTermName) {
             applyDuplicateTermError(duplicateTermName)
-            errorMessage.value = `ชื่อซ้ำกัน: ${duplicateTermName}`
+            errorMessage.value = t('academicCalendarModal.errors.duplicateNameBackend', { name: duplicateTermName })
             return
         }
 
         if (msg === 'Duplicate data') {
-            errorMessage.value = `มีปฏิทินการศึกษาปี ${academicYear.value + 543} อยู่แล้ว กรุณาใช้การแก้ไขแทน`
+            errorMessage.value = t('academicCalendarModal.errors.duplicateYear', { year: academicYear.value + 543 })
         } else {
-            errorMessage.value = error.response?.data?.error || error.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มปฏิทินการศึกษา'
+            errorMessage.value = error.response?.data?.error || error.response?.data?.message || t('academicCalendarModal.errors.createFail')
         }
     } finally {
         loading.value = false

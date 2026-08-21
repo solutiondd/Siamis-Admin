@@ -2,21 +2,21 @@
     <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
         <template v-if="isMobile">
             <div v-if="devices.length === 0" class="text-center py-8 text-base-content/60">
-                ไม่พบข้อมูลอุปกรณ์
+                {{ t('DeviceTable.noData') }}
             </div>
             <div v-else class="flex flex-col gap-4">
                 <div v-for="(device, index) in devices" :key="device._id"
                     class="bg-white rounded-lg shadow p-4 border border-base-200">
                     <div class="font-bold text-primary mb-2">{{ index + 1 }}</div>
-                    <div class="font-medium mb-1">Serial: {{ device.serial_number }}</div>
-                    <div class="mb-1">สถานที่: {{ device.location }}</div>
-                    <div class="mb-1 flex items-center gap-2">สถานะ:
-                        <span :class="isOnline(device.current_time)
+                    <div class="font-medium mb-1">{{ t('DeviceTable.serialLabel') }}: {{ device.serial_number }}</div>
+                    <div class="mb-1">{{ t('DeviceTable.locationLabel') }}: {{ device.location }}</div>
+                    <div class="mb-1 flex items-center gap-2">{{ t('DeviceTable.statusLabel') }}:
+                        <span :class="statusIsOnline(device)
                             ? 'inline-block w-3 h-3 rounded-full bg-green-500'
                             : 'inline-block w-3 h-3 rounded-full bg-red-500'"
-                            :title="isOnline(device.current_time) ? 'ออนไลน์' : 'ออฟไลน์'"></span>
-                        <span :class="formatStatus(device.status) === 'ออนไลน์' ? 'text-green-600' : 'text-red-600'">
-                            {{ formatStatus(device.status) }}
+                            :title="statusIsOnline(device) ? t('DeviceTable.online') : t('DeviceTable.offline')"></span>
+                        <span :class="statusIsOnline(device) ? 'text-green-600' : 'text-red-600'">
+                            {{ formatStatus(device) }}
                         </span>
                     </div>
                     <div v-if="auth.user?.role !== 'viewer'" class="flex gap-2 justify-end mt-2">
@@ -51,20 +51,20 @@
             <table class="table w-full">
                 <thead>
                     <tr class="bg-base-200">
-                        <th class="text-center hidden xl:table-cell">ลำดับ</th>
-                        <th>Serial Number</th>
-                        <th class="hidden sm:table-cell">IP Address</th>
-                        <th>สถานที่</th>
-                        <th class="hidden xl:table-cell">เวลาปัจจุบัน</th>
-                        <th class="hidden sm:table-cell">เข้า/ออก</th>
-                        <th>สถานะ</th>
-                        <th v-if="auth.user?.role !== 'viewer'" class="text-center">จัดการ</th>
+                        <th class="text-center hidden xl:table-cell">{{ t('DeviceTable.index') }}</th>
+                        <th>{{ t('device.serialNumber') }}</th>
+                        <th class="hidden sm:table-cell">{{ t('DeviceTable.ipAddress') }}</th>
+                        <th>{{ t('DeviceTable.locationLabel') }}</th>
+                        <th class="hidden xl:table-cell">{{ t('DeviceTable.currentTime') }}</th>
+                        <th class="hidden sm:table-cell">{{ t('DeviceTable.gateType') }}</th>
+                        <th>{{ t('DeviceTable.statusLabel') }}</th>
+                        <th v-if="auth.user?.role !== 'viewer'" class="text-center">{{ t('DeviceTable.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="devices.length === 0">
                         <td colspan="8" class="text-center py-8 text-base-content/60">
-                            ไม่พบข้อมูลอุปกรณ์
+                            {{ t('DeviceTable.noData') }}
                         </td>
                     </tr>
                     <tr v-for="(device, index) in devices" :key="device._id"
@@ -77,8 +77,8 @@
                         <td class="hidden sm:table-cell">{{ formatGateType(device.gate_type) }}</td>
                         <td>
                             <span
-                                :class="isOnline(device.current_time) ? 'inline-block w-3 h-3 rounded-full bg-green-500 mr-2 align-middle' : 'inline-block w-3 h-3 rounded-full bg-red-500 mr-2 align-middle'"
-                                :title="isOnline(device.current_time) ? 'ออนไลน์' : 'ออฟไลน์'"></span>
+                                :class="statusIsOnline(device) ? 'inline-block w-3 h-3 rounded-full bg-green-500 mr-2 align-middle' : 'inline-block w-3 h-3 rounded-full bg-red-500 mr-2 align-middle'"
+                                :title="statusIsOnline(device) ? t('DeviceTable.online') : t('DeviceTable.offline')"></span>
                         </td>
                         <td v-if="auth.user?.role !== 'viewer'" class="text-center">
                             <div class="flex gap-2 justify-center">
@@ -117,8 +117,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
+const { t, locale } = useI18n()
 
 const isMobile = ref(window.innerWidth < 1050)
 const handleResize = () => {
@@ -144,7 +146,8 @@ const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return '-'
     try {
         const date = new Date(dateTimeString)
-        return date.toLocaleString('th-TH-u-ca-buddhist', {
+        const activeLocale = locale.value === 'en' ? 'en-US' : 'th-TH-u-ca-buddhist'
+        return date.toLocaleString(activeLocale, {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -160,12 +163,24 @@ const formatDateTime = (dateTimeString) => {
 const formatGateType = (gateType) => {
     if (!gateType) return '-'
     const s = String(gateType).toLowerCase()
-    if (s === 'in' || s === 'enter' || s === 'entry') return 'เข้า'
-    if (s === 'out' || s === 'exit') return 'ออก'
+    if (s === 'in' || s === 'enter' || s === 'entry') return t('device.gateIn')
+    if (s === 'out' || s === 'exit') return t('device.gateOut')
     return gateType
 }
 
-const formatStatus = (status) => {
+const statusIsOnline = (device) => {
+    if (isOnline(device?.current_time)) return true
+    const status = String(device?.status || '').toLowerCase()
+    return status === 'online' || status === 'active' || status === '1' || status === 'true'
+}
+
+const formatStatus = (device) => {
+    if (statusIsOnline(device)) return t('DeviceTable.online')
+    const status = String(device?.status || '').trim()
+    if (!status) return t('DeviceTable.offline')
+    const s = status.toLowerCase()
+    if (s === 'offline' || s === 'inactive' || s === '0' || s === 'false') return t('DeviceTable.offline')
+    return status
 }
 
 const isOnline = (currentTime) => {

@@ -7,38 +7,41 @@
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                ส่งออก Excel
+                {{ $t('ReportAttendanceTableAmount.exportExcel') }}
             </button>
-            <!-- <button v-if="role === 'teacher'" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
+            <button v-if="role === 'teacher'" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
                 @click="exportDocxReport">
                 <span v-if="loadingExportDoc" class="loading loading-spinner loading-xs mr-2"></span>
-                เอกสารสรุปการเข้างาน
-            </button> -->
+                {{ $t('ReportAttendanceTableAmount.summaryDocument') }}
+            </button>
         </div>
         <div class="hidden lg:block bg-base-100 rounded-lg shadow-lg overflow-x-auto">
             <table class="table w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th class="text-center">รหัส</th>
-                        <th class="text-center">โปรไฟล์</th>
-                        <th>ชื่อ - นามสกุล</th>
+                        <th class="w-12 text-center">#</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTableAmount.code') }}</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTableAmount.profile') }}</th>
+                        <th>{{ $t('ReportAttendanceTableAmount.fullName') }}</th>
                         <th class="text-center">
-                            <span v-if="role === 'student'">ชั้น/ห้อง</span>
-                            <span v-else>หน่วยงาน</span>
+                            <span>{{ role === 'student' ? $t('ReportAttendanceTableAmount.gradeClassroom') : $t('ReportAttendanceTableAmount.department') }}</span>
                         </th>
-                        <th class="text-center">ลงเวลา</th>
-                        <th class="text-center text-green-600">มาปกติ</th>
-                        <th class="text-center text-red-500">ไม่ได้สแกน</th>
-                        <th class="text-center text-blue-500">มาสาย</th>
+                        <th class="text-center">{{ $t('ReportAttendanceTableAmount.timeRecord') }}</th>
+                        <th class="text-center text-green-600">{{ $t('ReportAttendanceTableAmount.presentNormal') }}</th>
+                        <th class="text-center text-red-500">{{ $t('ReportAttendanceTableAmount.noScan') }}</th>
+                        <th class="text-center text-blue-500">{{ $t('ReportAttendanceTableAmount.late') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="data.length === 0">
-                        <td colspan="8" class="text-center py-8 text-base-content/60">
-                            ไม่พบข้อมูล
+                        <td colspan="9" class="text-center py-8 text-base-content/60">
+                            {{ $t('ReportAttendanceTableAmount.noData') }}
                         </td>
                     </tr>
-                    <tr v-for="item in data" :key="item._id">
+                    <tr v-for="(item, index) in data" :key="item._id">
+                        <td class="text-center">
+                            {{ ((pagination?.page || 1) - 1) * (pagination?.limit || 10) + index + 1 }}
+                        </td>
                         <td class="text-center">{{ item.userid }}</td>
                         <td class="text-center">
                             <div v-if="item.picture" class="avatar inline-flex">
@@ -56,15 +59,15 @@
                         </td>
                         <td>{{ item.name }}</td>
                         <td class="text-center">
-                            <span v-if="role === 'student'">{{ item.grade && item.classroom ?
-                                `${item.grade}/${item.classroom}` : '-' }}</span>
+                            <span v-if="role === 'student'">{{ formatGradeClassroomDisplay(item.grade, item.classroom)
+                                }}</span>
                             <span v-else>{{ item.department || '-' }}</span>
                         </td>
                         <td class="text-center">{{ totalDays }}</td>
                         <td class="text-center text-green-600">{{ countPresentNormal(item.attendances) }}</td>
                         <td class="text-center text-red-500">{{ totalDays - countPresentNormal(item.attendances) -
-                            countLate(item.attendances) }}</td>
-                        <td class="text-center text-blue-500">{{ countLate(item.attendances) }}</td>
+                            countLate(item) }}</td>
+                        <td class="text-center text-blue-500">{{ countLate(item) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -73,7 +76,7 @@
         <div class="lg:hidden space-y-4">
             <div v-if="data.length === 0"
                 class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                ไม่พบข้อมูล
+                {{ $t('ReportAttendanceTableAmount.noData') }}
             </div>
             <div v-for="item in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
                 <div class="flex justify-between items-start">
@@ -81,8 +84,8 @@
                         <div class="badge badge-primary badge-sm mb-2">{{ item.userid }}</div>
                         <h3 class="font-bold text-lg">{{ item.name }}</h3>
                         <p class="text-sm text-base-content/70">
-                            <span v-if="role === 'student'">{{ item.grade && item.classroom ?
-                                `${item.grade}/${item.classroom}` : '-' }}</span>
+                            <span v-if="role === 'student'">{{ formatGradeClassroomDisplay(item.grade, item.classroom)
+                                }}</span>
                             <span v-else>{{ item.department || '-' }}</span>
                         </p>
                     </div>
@@ -103,21 +106,21 @@
                 <div class="divider my-2"></div>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                        <span class="text-base-content/60">ลงเวลา</span>
+                        <span class="text-base-content/60">{{ $t('ReportAttendanceTableAmount.timeRecord') }}</span>
                         <p class="font-medium">{{ totalDays }}</p>
                     </div>
                     <div>
-                        <span class="text-base-content/60">มาปกติ</span>
+                        <span class="text-base-content/60">{{ $t('ReportAttendanceTableAmount.presentNormal') }}</span>
                         <p class="font-medium text-green-600">{{ countPresentNormal(item.attendances) }}</p>
                     </div>
                     <div>
-                        <span class="text-base-content/60">ไม่ได้สแกน</span>
+                        <span class="text-base-content/60">{{ $t('ReportAttendanceTableAmount.noScan') }}</span>
                         <p class="font-medium text-red-500">{{ totalDays - countPresentNormal(item.attendances) -
-                            countLate(item.attendances) }}</p>
+                            countLate(item) }}</p>
                     </div>
                     <div>
-                        <span class="text-base-content/60">มาสาย</span>
-                        <p class="font-medium text-blue-500">{{ countLate(item.attendances) }}</p>
+                        <span class="text-base-content/60">{{ $t('ReportAttendanceTableAmount.late') }}</span>
+                        <p class="font-medium text-blue-500">{{ countLate(item) }}</p>
                     </div>
                 </div>
             </div>
@@ -141,8 +144,7 @@
     </div>
     <div v-if="pagination && pagination.total_items > 0"
         class="text-center text-sm text-white text-base-content/60 mt-2">
-        แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{ Math.min(pagination.page * pagination.limit,
-            pagination.total_items) }} จาก {{ pagination.total_items }} รายการ
+        {{ $t('ReportAttendanceTableAmount.totalItems', { total: pagination.total_items, page: pagination.page, totalPages: pagination.total_pages }) }}
     </div>
 </template>
 
@@ -153,7 +155,10 @@ import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
 import holidaysApi from '../../api/holidays.js'
 import { ref, computed, computed as vueComputed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
+const { t } = useI18n()
 const loadingExportDoc = ref(false)
 async function exportDocxReport() {
     if (loadingExportDoc.value) return
@@ -311,16 +316,6 @@ async function exportDocxReport() {
                                 children: [
                                     new TableCell({
                                         children: [new Paragraph({ children: [new TextRun({ text: '', font })] })],
-                                        // children: [
-                                        //     new Paragraph({
-                                        //         children: [
-                                        //             new ImageRun({
-                                        //                 data: base64ToUint8Array(imageBase64),
-                                        //                 transformation: { width: 100, height: 100 }
-                                        //             })
-                                        //         ]
-                                        //     })
-                                        // ],
                                         width: { size: 15, type: WidthType.PERCENTAGE },
                                         height: { value: 500, rule: 'atLeast' },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -341,7 +336,7 @@ async function exportDocxReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'งานบุคคล โรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })] })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: 'งานบุคคล โรงเรียน จังหวัด', font, size: 32 })] })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -392,7 +387,7 @@ async function exportDocxReport() {
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
                                     }),
                                     new TableCell({
-                                        children: [new Paragraph({ children: [new TextRun({ text: 'ผู้อำนวยการโรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })] })],
+                                        children: [new Paragraph({ children: [new TextRun({ text: 'ผู้อำนวยการโรงเรียน จังหวัด', font, size: 32 })] })],
                                         columnSpan: 3,
                                         width: { size: 85, type: WidthType.PERCENTAGE },
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -419,7 +414,6 @@ async function exportDocxReport() {
                     new Table({
                         rows: [
                             new TableRow({
-                                // repeatHeaderRow: true,
                                 children: [
                                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'ที่', font, size: 32 })], alignment: AlignmentType.CENTER })], rowSpan: 2, width: { size: 500, type: WidthType.DXA }, verticalAlign: 'center' }),
                                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'ประเภท/กลุ่มสาระ', font, size: 32 })], alignment: AlignmentType.CENTER })], rowSpan: 2, width: { size: 1200, type: WidthType.DXA }, verticalAlign: 'center' }),
@@ -436,7 +430,6 @@ async function exportDocxReport() {
                                 ]
                             }),
                             new TableRow({
-                                // repeatHeaderRow: true,
                                 children: [
                                     new TableCell({
                                         children: [new Paragraph({ children: [new TextRun({ text: 'วันหยุดตามปฏิทิน', font, size: 32 })], alignment: AlignmentType.CENTER })],
@@ -496,14 +489,14 @@ async function exportDocxReport() {
                     new Paragraph({ text: '', spacing: { after: 200 } }),
                     new Paragraph({ children: [new TextRun({ text: 'ลงชื่อ....................................................ผู้บันทึกข้อมูล', font, size: 32 })], alignment: AlignmentType.RIGHT }),
                     new Paragraph({ children: [new TextRun({ text: 'ลงชื่อ....................................................รองผู้อำนวยการโรงเรียน ผู้ตรวจสอบข้อมูล', font, size: 32 })], alignment: AlignmentType.RIGHT }),
-                    new Paragraph({ children: [new TextRun({ text: 'ลงชื่อ....................................................ผู้อำนวยการโรงเรียนจักรคำคณาทร จังหวัดลำพูน', font, size: 32 })], alignment: AlignmentType.RIGHT }),
+                    new Paragraph({ children: [new TextRun({ text: 'ลงชื่อ....................................................ผู้อำนวยการโรงเรียน จังหวัด', font, size: 32 })], alignment: AlignmentType.RIGHT }),
                 ]
             }]
         })
         const blob = await Packer.toBlob(doc)
         saveAs(blob, `รายงานการมา_${props.dateRange.start}_${props.dateRange.end}.docx`)
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Word')
+        alert(t('ReportAttendanceTableAmount.wordError'))
         console.error(e)
     } finally {
         loadingExportDoc.value = false
@@ -597,7 +590,6 @@ async function exportAllToExcel() {
             }
         } while (params.page <= totalPages)
 
-        // โหลดวันหยุดใหม่ (sync กับ holidaysArr)
         let holidaysRaw = []
         try {
             const res = await holidaysApi.getHolidaysByRange(props.dateRange.start, props.dateRange.end)
@@ -607,24 +599,24 @@ async function exportAllToExcel() {
         }
         const workingDaysArr = getWorkingDays(props.dateRange.start, props.dateRange.end, holidaysRaw)
         const totalDaysVal = workingDaysArr.length
+        const columnHeaderGroup = props.role === 'student' ? t('ReportAttendanceTableAmount.gradeClassroom') : t('ReportAttendanceTableAmount.department')
+
         const rows = allData.map(item => {
             const presentNormal = countPresentNormal(item.attendances)
-            const late = countLate(item.attendances)
+            const late = countLate(item)
             return {
-                'รหัส': item.userid,
-                'ชื่อ - นามสกุล': item.name,
-                [props.role === 'student' ? 'ชั้น/ห้อง' : 'หน่วยงาน']: props.role === 'student' ? (item.grade && item.classroom ? `${item.grade}/${item.classroom}` : '-') : (item.department || '-'),
-                'ลงเวลา': totalDaysVal,
-                'มาปกติ': presentNormal,
-                'ไม่ได้สแกน': totalDaysVal - presentNormal - late,
-                'มาสาย': late,
+                [t('ReportAttendanceTableAmount.code')]: item.userid,
+                [t('ReportAttendanceTableAmount.fullName')]: item.name,
+                [columnHeaderGroup]: props.role === 'student' ? formatGradeClassroomDisplay(item.grade, item.classroom) : (item.department || '-'),
+                [t('ReportAttendanceTableAmount.timeRecord')]: totalDaysVal,
+                [t('ReportAttendanceTableAmount.presentNormal')]: presentNormal,
+                [t('ReportAttendanceTableAmount.noScan')]: totalDaysVal - presentNormal - late,
+                [t('ReportAttendanceTableAmount.late')]: late,
             }
         })
 
         const workbook = new ExcelJS.Workbook()
-        const worksheet = workbook.addWorksheet('AttendanceSummary')
-
-
+        const worksheet = workbook.addWorksheet(t('ReportAttendanceTableAmount.excelSheetName'))
 
         function formatDateTH(dateStr) {
             if (!dateStr) return '-'
@@ -632,31 +624,31 @@ async function exportAllToExcel() {
             return d.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' })
         }
         const dateRangeText = `(${formatDateTH(props.dateRange.start)} - ${formatDateTH(props.dateRange.end)})`
-        worksheet.addRow([`รายงานจำนวนเข้า-ออก ${dateRangeText}`])
+        worksheet.addRow([t('ReportAttendanceTableAmount.exportTitle', { dateRange: dateRangeText })])
         worksheet.mergeCells('A1:G1')
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' }
         worksheet.getCell('A1').font = { bold: true }
 
         const header = [
-            'รหัส',
-            'ชื่อ - นามสกุล',
-            props.role === 'student' ? 'ชั้น/ห้อง' : 'หน่วยงาน',
-            'ลงเวลา',
-            'มาปกติ',
-            'ไม่ได้สแกน',
-            'มาสาย',
+            t('ReportAttendanceTableAmount.code'),
+            t('ReportAttendanceTableAmount.fullName'),
+            columnHeaderGroup,
+            t('ReportAttendanceTableAmount.timeRecord'),
+            t('ReportAttendanceTableAmount.presentNormal'),
+            t('ReportAttendanceTableAmount.noScan'),
+            t('ReportAttendanceTableAmount.late'),
         ]
         worksheet.addRow(header)
 
         rows.forEach(row => {
             worksheet.addRow([
-                row['รหัส'],
-                row['ชื่อ - นามสกุล'],
-                row[props.role === 'student' ? 'ชั้น/ห้อง' : 'หน่วยงาน'],
-                row['ลงเวลา'],
-                row['มาปกติ'],
-                row['ไม่ได้สแกน'],
-                row['มาสาย'],
+                row[t('ReportAttendanceTableAmount.code')],
+                row[t('ReportAttendanceTableAmount.fullName')],
+                row[columnHeaderGroup],
+                row[t('ReportAttendanceTableAmount.timeRecord')],
+                row[t('ReportAttendanceTableAmount.presentNormal')],
+                row[t('ReportAttendanceTableAmount.noScan')],
+                row[t('ReportAttendanceTableAmount.late')],
             ])
         })
 
@@ -678,7 +670,7 @@ async function exportAllToExcel() {
         const buffer = await workbook.xlsx.writeBuffer()
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `AttendanceSummary_${props.dateRange.start}_${props.dateRange.end}.xlsx`)
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Excel')
+        alert(t('ReportAttendanceTableAmount.excelError'))
         console.error(e)
     } finally {
         loadingExport.value = false
@@ -703,7 +695,6 @@ const displayedPages = vueComputed(() => {
 })
 
 
-// ฟังก์ชันคำนวณวันทำงานจริง (ไม่รวมวันหยุดและเสาร์-อาทิตย์)
 function getWorkingDays(startStr, endStr, holidaysArr = []) {
     const start = new Date(startStr)
     const end = new Date(endStr)
@@ -718,14 +709,12 @@ function getWorkingDays(startStr, endStr, holidaysArr = []) {
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dayOfWeek = d.getDay()
         const dateStr = d.toISOString().slice(0, 10)
-        if (dayOfWeek === 0 || dayOfWeek === 6) continue // 0=อาทิตย์, 6=เสาร์
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue
         if (holidaySet.has(dateStr)) continue
         days.push(dateStr)
     }
     return days
 }
-
-// holidaysArr จะถูกโหลด async ใน mounted
 
 const holidaysArr = ref([])
 
@@ -744,7 +733,6 @@ const totalDays = computed(() => {
     return getWorkingDays(props.dateRange.start, props.dateRange.end, holidaysArr.value).length
 })
 
-// มาปกติ = มาและไม่สาย
 function countPresentNormal(attendances) {
     if (!attendances) return 0
     let count = 0
@@ -759,14 +747,18 @@ function countPresentNormal(attendances) {
     return count
 }
 
-function countLate(attendances) {
-    if (!attendances) return 0
+function countLate(item) {
+    if (item && Array.isArray(item.late_dates)) {
+        return item.late_dates.length
+    }
+
+    const attendances = item.attendances || item
+    if (!Array.isArray(attendances)) return 0
+
     let lateCount = 0
     attendances.forEach(att => {
         if (!att.timeStamps || att.timeStamps.length === 0) return
-        const first = att.timeStamps
-            .map(ts => ts.timestamp)
-            .sort()[0]
+        const first = att.timeStamps.map(ts => ts.timestamp).sort()[0]
         if (first) {
             const time = first.split(' ')[1]
             if (time > '08:01:00') lateCount++

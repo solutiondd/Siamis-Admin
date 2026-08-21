@@ -1,7 +1,7 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการห้องเรียน</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">{{ t('classroomPage.title') }}</h2>
             <div class="flex gap-2">
                 <button v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" @click="openCreateModal"
                     class="btn btn-primary btn-sm">
@@ -9,9 +9,10 @@
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    เพิ่มห้องเรียน
+                    {{ t('classroomPage.add') }}
                 </button>
-                <Promote v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'"
+                <Promote
+                    v-if="featureFlags.gradeSystem.enablePromoteLevel && auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'"
                     @success="fetchClassRooms" />
             </div>
         </div>
@@ -24,7 +25,8 @@
                             'btn btn-sm',
                             selectedGrade === grade.value ? 'btn-secondary' : 'btn-ghost'
                         ]">
-                        {{ grade.label }}
+                        <span class="xl:hidden">{{ grade.compactLabel }}</span>
+                        <span class="hidden xl:inline">{{ grade.fullLabel }}</span>
                     </button>
                 </div>
             </div>
@@ -53,8 +55,11 @@ import Promote from '../../components/ClassRoom/Promote.vue'
 import { ClassRoomService } from '../../api/class-room'
 import { TeacherService } from '../../api/teacher'
 import { useAuthStore } from '../../stores/auth'
-import { DEFAULT_GRADE_CODE, GRADE_OPTIONS, gradeEquals, toLegacyGrade } from '../../utils/grade'
+import { useI18n } from 'vue-i18n'
+import featureFlags from '../../config/featureFlags'
+import { getConfiguredGrades, getGradeCompactLabel, getGradeFullLabel, getGradeUiLabel, shouldIncludeGrade, toVisibleSortedGrades } from '../../utils/gradeSystem'
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const classRoomService = new ClassRoomService()
 const teacherService = new TeacherService()
@@ -65,13 +70,25 @@ const loading = ref(false)
 const createModalRef = ref(null)
 const updateModalRef = ref(null)
 const deleteModalRef = ref(null)
-const selectedGrade = ref(DEFAULT_GRADE_CODE)
+const selectedGrade = ref('')
 
-const availableGrades = GRADE_OPTIONS
+const availableGrades = computed(() => {
+    const grades = toVisibleSortedGrades([
+        ...getConfiguredGrades(),
+        ...classrooms.value.map(c => c.grade)
+    ])
+    return grades.map(grade => ({
+        value: grade,
+        label: getGradeUiLabel(grade),
+        compactLabel: getGradeCompactLabel(grade),
+        fullLabel: getGradeFullLabel(grade)
+    }))
+})
 
 const filteredClassrooms = computed(() => {
-    if (!selectedGrade.value) return classrooms.value
-    return classrooms.value.filter(classroom => gradeEquals(classroom.grade, selectedGrade.value))
+    const visibleClassrooms = classrooms.value.filter(classroom => shouldIncludeGrade(classroom.grade))
+    if (!selectedGrade.value) return visibleClassrooms
+    return visibleClassrooms.filter(classroom => classroom.grade === selectedGrade.value)
 })
 
 const fetchClassRooms = async () => {
@@ -80,14 +97,18 @@ const fetchClassRooms = async () => {
         const response = await classRoomService.getClassRooms()
         if (response.message === 'Success' && response.data) {
             classrooms.value = response.data
+            const gradeValues = availableGrades.value.map(item => item.value)
+            if (!gradeValues.includes(selectedGrade.value)) {
+                selectedGrade.value = gradeValues[0] || ''
+            }
         }
     } catch (error) {
         console.error('Fetch classrooms error:', error)
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถโหลดข้อมูลห้องเรียนได้',
+            title: t('classroomPage.loadErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.loadErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -113,7 +134,7 @@ const handleCreateSuccess = async (formData) => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'warning',
-                title: 'กรุณาเลือกครูที่ปรึกษาอย่างน้อย 1 คน',
+                title: t('classroomPage.chooseAdviser'),
                 confirmButtonColor: '#2563eb',
                 didOpen: () => {
                     document.getElementById('app').removeAttribute('aria-hidden')
@@ -123,7 +144,7 @@ const handleCreateSuccess = async (formData) => {
         }
 
         await classRoomService.createClassRoom({
-            grade: toLegacyGrade(formData.grade),
+            grade: formData.grade,
             classroom: formData.classroom,
             adviser: formData.adviser,
             adviser2: formData.adviser2 || ''
@@ -132,7 +153,7 @@ const handleCreateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'success',
-            title: 'เพิ่มห้องเรียนสำเร็จ',
+            title: t('classroomPage.createSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -144,8 +165,8 @@ const handleCreateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: error.response?.data?.error || 'ไม่สามารถเพิ่มห้องเรียนได้',
+            title: t('classroomPage.createErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.createErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')
@@ -164,7 +185,7 @@ const handleUpdateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'success',
-            title: 'แก้ไขห้องเรียนสำเร็จ',
+            title: t('classroomPage.updateSuccess'),
             showConfirmButton: false,
             timer: 1500,
             didOpen: () => {
@@ -176,8 +197,8 @@ const handleUpdateSuccess = async (formData) => {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถแก้ไขห้องเรียนได้',
+            title: t('classroomPage.updateErrorTitle'),
+            text: error?.response?.data?.error || error?.message || t('classroomPage.updateErrorText'),
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

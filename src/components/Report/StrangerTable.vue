@@ -3,18 +3,18 @@
         <table class="table table-zebra w-full">
             <thead>
                 <tr class="bg-primary text-primary-content">
-                    <th class="text-center">ลำดับ</th>
-                    <th class="text-center">รหัส</th>
-                    <th class="text-center">วันที่</th>
-                    <th class="text-center">เวลา</th>
-                    <th class="text-center">สถานที่</th>
-                    <th class="text-center">รูปภาพ</th>
+                    <th class="text-center">#</th>
+                    <th class="text-center">{{ t('reportStranger.serial') }}</th>
+                    <th class="text-center">{{ t('reportStranger.date') }}</th>
+                    <th class="text-center">{{ t('reportStranger.time') }}</th>
+                    <th class="text-center">{{ t('reportStranger.location') }}</th>
+                    <th class="text-center">{{ t('reportStranger.image') }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="data.length === 0">
                     <td colspan="6" class="text-center py-8 text-base-content/60">
-                        ไม่พบข้อมูล
+                        {{ t('reportStranger.noData') }}
                     </td>
                 </tr>
                 <tr v-for="(item, index) in data" :key="item._id" class="hover">
@@ -27,7 +27,7 @@
                         <img v-if="item.imageUrl" :src="`${imgBaseUrl}${item.imageUrl}`" alt="snapshot"
                             class="w-16 h-16 object-cover inline-block cursor-pointer rounded"
                             @click="viewImage(item.imageUrl)" />
-                        <div v-else class="w-16 h-16 bg-base-200 inline-block rounded flex items-center justify-center">
+                        <div v-else class="w-16 h-16 bg-base-200 inline-block rounded items-center justify-center">
                             <svg class="w-8 h-8 text-base-content/50" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -42,7 +42,7 @@
 
     <div class="lg:hidden space-y-4">
         <div v-if="data.length === 0" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-            ไม่พบข้อมูล
+            {{ t('reportStranger.noData') }}
         </div>
         <div v-for="(item, index) in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
             <div class="flex items-start gap-3">
@@ -73,6 +73,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
 const props = defineProps({
     data: {
         type: Array,
@@ -85,17 +87,19 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['viewImage'])
+const { t, locale } = useI18n()
 
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const activeLocale = locale.value === 'en' ? 'en-US' : 'th-TH-u-ca-buddhist'
+    return new Intl.DateTimeFormat(activeLocale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-    })
+    }).format(date)
 }
 
 const formatTime = (timestamp) => {

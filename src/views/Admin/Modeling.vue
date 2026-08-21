@@ -1,7 +1,7 @@
 <template>
-    <div class="space-y-6 max-[570px]:pt-14">
+    <div class="space-y-6 max-[944px]:pt-16">
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-            <h1 class="text-lg md:text-3xl font-bold text-white">จัดการเชื่อมต่ออุปกรณ์</h1>
+            <h1 class="text-lg md:text-3xl font-bold text-white">{{ $t('Modeling.title') }}</h1>
             <div v-if="auth.user?.role !== 'viewer'" class="w-full sm:w-auto flex justify-end">
                 <CreateModeling v-if="auth.user?.role !== 'teacher'" @created="fetchData"
                     @selectModeChanged="handleSelectModeChanged" :selected-ids="selectedIds" />
@@ -12,82 +12,97 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div v-if="auth.user?.role !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ประเภท</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.type') }}</span>
                     </label>
                     <select v-model="filters.role" @change="fetchData" class="select select-bordered select-sm w-full">
-                        <option value="student">นักเรียน</option>
-                        <option value="teacher">อาจารย์</option>
+                        <option value="student">{{ $t('Modeling.student') }}</option>
+                        <option value="teacher">{{ $t('Modeling.teacher') }}</option>
                     </select>
                 </div>
 
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ชื่อ</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.name') }}</span>
                     </label>
-                    <input v-model="filters.name" type="text" placeholder="ค้นหาชื่อ..."
+                    <input v-model="filters.name" type="text" :placeholder="$t('Modeling.searchNamePlaceholder')"
                         class="input input-bordered input-sm w-full" @keyup.enter="searchByNameOrUserid" />
                 </div>
 
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">รหัส</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.code') }}</span>
                     </label>
-                    <input v-model="filters.userid" type="text" placeholder="ค้นหารหัส..."
+                    <input v-model="filters.userid" type="text" :placeholder="$t('Modeling.searchCodePlaceholder')"
                         class="input input-bordered input-sm w-full" @keyup.enter="searchByNameOrUserid" />
                 </div>
 
                 <div class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">สถานะ</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.status') }}</span>
                     </label>
                     <select v-model="filters.status" @change="fetchData"
                         class="select select-bordered select-sm w-full">
-                        <option value="all">ทั้งหมด</option>
-                        <option value="fail">ไม่สำเร็จ</option>
-                        <option value="notlinked">ไม่ได้เชื่อมต่อ</option>
+                        <option value="all">{{ $t('Modeling.all') }}</option>
+                        <option value="fail">{{ $t('Modeling.failed') }}</option>
+                        <option value="notlinked">{{ $t('Modeling.notConnected') }}</option>
                     </select>
                 </div>
 
                 <div v-if="filters.role === 'student' && auth.user?.role !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ชั้นปี</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.grade') }}</span>
                     </label>
                     <select v-model="filters.grade" @change="fetchData" class="select select-bordered select-sm w-full">
-                        <option value="">ทั้งหมด</option>
-                        <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
+                        <option value="">{{ $t('Modeling.all') }}</option>
+                        <option v-for="grade in grades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
+                        </option>
                     </select>
                 </div>
                 <div v-if="filters.role === 'student' && auth.user?.role !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">ห้อง</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.classroom') }}</span>
                     </label>
                     <select v-model="filters.classroom" @change="fetchData"
                         class="select select-bordered select-sm w-full">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('Modeling.all') }}</option>
                         <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
 
                 <div v-if="filters.role === 'teacher' && auth.user?.role !== 'teacher'" class="form-control">
                     <label class="label py-1">
-                        <span class="label-text text-sm font-medium">แผนก</span>
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.department') }}</span>
                     </label>
                     <select v-model="filters.department" @change="fetchData"
                         class="select select-bordered select-sm w-full">
-                        <option value="">ทั้งหมด</option>
+                        <option value="">{{ $t('Modeling.all') }}</option>
                         <option v-for="dept in departments" :key="dept._id" :value="dept.name">{{ dept.name }}</option>
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm font-medium">{{ $t('Modeling.rowsPerPage') }}</span>
+                    </label>
+                    <select v-model.number="filters.limit" @change="handleLimitChange"
+                        class="select select-bordered select-sm w-full">
+                        <option :value="10">10</option>
+                        <option :value="20">20</option>
+                        <option :value="50">50</option>
+                        <option :value="100">100</option>
                     </select>
                 </div>
             </div>
 
             <div class="flex justify-end gap-2 mt-3">
+                <ModelingExport :filters="filters" />
                 <button @click="resetFilters" class="btn btn-ghost btn-xs">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    รีเซ็ต
+                    {{ $t('Modeling.reset') }}
                 </button>
                 <button @click="searchByNameOrUserid" class="btn btn-primary btn-xs">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
@@ -95,7 +110,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    ค้นหา
+                    {{ $t('Modeling.search') }}
                 </button>
             </div>
         </div>
@@ -112,7 +127,7 @@
                 <div class="join">
                     <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(1)"
                         :disabled="currentPage === 1">
-                        «
+                        ‹
                     </button>
                     <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(currentPage - 1)"
                         :disabled="currentPage === 1">
@@ -135,7 +150,7 @@
             </div>
             <div class="flex flex-col items-center gap-4 mt-6">
                 <div class="text-sm text-base-content/60 text-white">
-                    ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
+                    {{ $t('Modeling.totalItems', { total: totalItems, current: currentPage, totalPages: totalPages }) }}
                 </div>
             </div>
         </div>
@@ -144,15 +159,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { ClassRoomService } from '../../api/class-room.js';
 import { DepartmentService } from '../../api/department.js';
 import ModelingTable from "../../components/Modeling/Table.vue";
 import CreateModeling from "../../components/Modeling/Create.vue";
+import ModelingExport from "../../components/Modeling/Export.vue";
 import ModelingService from "../../api/modeling.js";
 import Swal from "sweetalert2";
 import { useAuthStore } from "../../stores/auth.js";
-import { gradeEquals, sortGrades, toGradeCode, toLegacyGrade } from '../../utils/grade';
+import { mapGradeDisplay, toVisibleSortedGrades } from '../../utils/gradeSystem';
 
+const { t } = useI18n();
 const auth = useAuthStore();
 
 const loading = ref(false);
@@ -180,10 +198,7 @@ const departments = ref([]);
 
 const availableClassrooms = computed(() => {
     if (!filters.value.grade) return [];
-    return classrooms.value
-        .filter(c => gradeEquals(c.grade, filters.value.grade))
-        .map(c => c.classroom)
-        .sort((a, b) => a - b);
+    return classrooms.value.filter(c => c.grade === filters.value.grade).map(c => c.classroom).sort((a, b) => a - b);
 });
 
 const visiblePages = computed(() => {
@@ -209,7 +224,6 @@ const fetchData = async () => {
         let params = { ...filters.value, page: currentPage.value };
         if (params.role === 'student') {
             params.department = '';
-            params.grade = toLegacyGrade(params.grade);
         } else if (params.role === 'teacher') {
             params.grade = '';
             params.classroom = '0';
@@ -220,9 +234,11 @@ const fetchData = async () => {
         const response = await ModelingService.getModelings(params);
 
         if (response.message === "Success") {
-            modelings.value = (response.data || []).map((item) => ({
-                ...item,
-                grade: item.grade ? toGradeCode(item.grade) : item.grade
+            const rows = Array.isArray(response.data) ? response.data : [];
+            modelings.value = rows.map((row) => ({
+                ...row,
+                rfid: row?.rfid,
+                guardian_phone: row?.guardian_phone
             }));
             totalItems.value = response.total_items || response.data.length;
             totalPages.value = response.total_pages || 1;
@@ -231,8 +247,8 @@ const fetchData = async () => {
         console.error("Error fetching modelings:", error);
         Swal.fire({
             icon: "error",
-            title: "เกิดข้อผิดพลาด",
-            text: "ไม่สามารถโหลดข้อมูลได้",
+            title: t('Modeling.errorTitle'),
+            text: t('Modeling.errorMessage'),
         });
     } finally {
         loading.value = false;
@@ -246,6 +262,11 @@ const changePage = (page) => {
     }
 };
 
+const handleLimitChange = () => {
+    currentPage.value = 1;
+    fetchData();
+};
+
 const resetFilters = () => {
     filters.value = {
         role: "student",
@@ -254,6 +275,8 @@ const resetFilters = () => {
         userid: "",
         status: "all",
         limit: 10,
+        grade: "",
+        classroom: "",
     };
     currentPage.value = 1;
     fetchData();
@@ -287,9 +310,9 @@ onMounted(async () => {
         classrooms.value = classroomRes?.data || [];
         const gradeSet = new Set();
         (classroomRes?.data || []).forEach(room => {
-            if (room.grade) gradeSet.add(toGradeCode(room.grade));
+            if (room.grade) gradeSet.add(room.grade);
         });
-        grades.value = sortGrades(Array.from(gradeSet));
+        grades.value = toVisibleSortedGrades(Array.from(gradeSet));
         departments.value = departmentRes?.data || [];
     } catch (e) {
         classrooms.value = [];

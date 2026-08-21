@@ -7,33 +7,37 @@
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                ส่งออก Excel
+                {{ t('ReportLateTable.exportExcel') }}
             </button>
         </div>
         <div class="hidden lg:block bg-base-100 rounded-lg shadow-lg overflow-x-auto">
             <table class="table table-zebra w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">รหัส</th>
-                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">โปรไฟล์</th>
-                        <th>ชื่อ-สกุล</th>
-                        <th class="text-center">ตำแหน่ง</th>
-                        <th class="text-center">ชั้นเรียน/แผนก</th>
-                        <th class="text-center">วันที่</th>
-                        <th class="text-center">เวลา</th>
-                        <th class="text-center">เวลาสาย</th>
-                        <th class="text-center">รูปภาพ</th>
+                        <th class="text-center w-16">#</th>
+                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">{{ t('ReportLateTable.colCode') }}</th>
+                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">{{ t('ReportLateTable.colProfile') }}</th>
+                        <th>{{ t('ReportLateTable.colName') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colRole') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colClassDept') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colDate') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colTime') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colLateTime') }}</th>
+                        <th class="text-center">{{ t('ReportLateTable.colImage') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="data.length === 0">
-                        <td colspan="9" class="text-center py-8 text-base-content/60">
-                            ไม่พบข้อมูล
+                        <td colspan="10" class="text-center py-8 text-base-content/60">
+                            {{ t('ReportLateTable.noData') }}
                         </td>
                     </tr>
-                    <template v-for="item in sortedData" :key="item._id">
+                    <template v-for="(item, index) in sortedData" :key="item._id">
                         <template v-if="item.late_dates && item.late_dates.length > 0">
                             <tr class="hover" :key="item._id + '-first'">
+                                <td class="text-center">
+                                    {{ ((pagination.page - 1) * pagination.limit) + index + 1 }}
+                                </td>
                                 <td class="text-center w-20 min-w-[60px] max-w-[80px]">{{ item.userid }}</td>
                                 <td class="text-center w-20 min-w-[60px] max-w-[80px]">
                                     <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
@@ -51,24 +55,24 @@
                                     </div>
                                 </td>
                                 <td>{{ item.name }}</td>
-                                <td class="text-center">{{ item.position }}</td>
+                                <td class="text-center">{{ formatPosition(item.position) }}</td>
                                 <td class="text-center">
-                                    <span v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
-                                        item.classroom
-                                        }}</span>
-                                    <span v-else>-</span>
+                                    <span v-if="item.position === 'นักเรียน' || item.position === 'Student'">{{ formatGradeClassroomDisplay(item.grade,
+                                        item.classroom) }}</span>
+                                    <span v-else>{{ item.department || '-' }}</span>
                                 </td>
                                 <td class="text-center">{{ formatDate(item.late_dates[0].date) }}</td>
                                 <td class="text-center">
                                     <span v-if="getEntry(item.late_dates[0]) !== '-'"
                                         class="badge badge-info badge-md px-4 py-2">{{
-                                            getEntry(item.late_dates[0]) }}</span>
+                                            getEntry(item.late_dates[0]).substring(0, 5) }}</span>
                                     <span v-else class="badge badge-error badge-md px-4 py-2">-</span>
                                 </td>
                                 <td class="text-center">
                                     <span v-if="getEntry(item.late_dates[0]) !== '-'"
                                         class="badge badge-warning badge-md px-4 py-2">{{
-                                            computeLateTime(getEntry(item.late_dates[0])) }}</span>
+                                            computeLateTime(getEntry(item.late_dates[0]), item.role, item.position)
+                                        }}</span>
                                     <span v-else class="badge badge-warning badge-md px-4 py-2">-</span>
                                 </td>
                                 <td class="text-center">
@@ -81,10 +85,9 @@
                                                     class="w-14 h-14 rounded object-cover cursor-pointer border border-base-200"
                                                     @click="viewImage(item.late_dates[0].timeStamps[0].imageUrl)"
                                                     @error="item.late_dates[0]._imgError = true" />
-                                                <p v-if="item.late_dates[0].timeStamps[0].similarity !== undefined"
+                                                <p v-if="hasSimilarity(item.late_dates[0].timeStamps[0].similarity)"
                                                     class="text-xs text-gray-500 text-center mt-1 w-full">
-                                                    ความเหมือน: {{
-                                                        formatSimilarity(item.late_dates[0].timeStamps[0].similarity) }}
+                                                    {{ t('ReportLateTable.similarity', { percent: item.late_dates[0].timeStamps[0].similarity }) }}
                                                 </p>
                                             </template>
                                             <template v-else>
@@ -92,7 +95,7 @@
                                                     <div
                                                         class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                         <span class="text-base font-bold">{{ getInitials(item.name)
-                                                        }}</span>
+                                                            }}</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -103,6 +106,7 @@
                             </tr>
                             <template v-for="(late, lateIdx) in item.late_dates" :key="item._id + '-late-' + lateIdx">
                                 <tr v-if="lateIdx > 0" class="hover">
+                                    <td class="text-center"></td>
                                     <td class="text-center w-20 min-w-[60px] max-w-[80px]"></td>
                                     <td class="text-center w-20 min-w-[60px] max-w-[80px]"></td>
                                     <td></td>
@@ -112,13 +116,13 @@
                                     <td class="text-center">
                                         <span v-if="getEntry(late) !== '-'"
                                             class="badge badge-info badge-md px-4 py-2">{{
-                                                getEntry(late) }}</span>
+                                                getEntry(late).substring(0, 5) }}</span>
                                         <span v-else class="badge badge-error badge-md px-4 py-2">-</span>
                                     </td>
                                     <td class="text-center">
                                         <span v-if="getEntry(late) !== '-'"
                                             class="badge badge-warning badge-md px-4 py-2">{{
-                                                computeLateTime(getEntry(late)) }}</span>
+                                                computeLateTime(getEntry(late), item.role, item.position) }}</span>
                                         <span v-else class="badge badge-warning badge-md px-4 py-2">-</span>
                                     </td>
                                     <td class="text-center">
@@ -130,10 +134,9 @@
                                                         class="w-14 h-14 rounded object-cover cursor-pointer border border-base-200"
                                                         @click="viewImage(late.timeStamps[0].imageUrl)"
                                                         @error="late._imgError = true" />
-                                                    <p v-if="late.timeStamps[0].similarity !== undefined"
+                                                    <p v-if="hasSimilarity(late.timeStamps[0].similarity)"
                                                         class="text-xs text-gray-500 text-center mt-1 w-full">
-                                                        ความเหมือน: {{ formatSimilarity(late.timeStamps[0].similarity)
-                                                        }}
+                                                        {{ t('ReportLateTable.similarity', { percent: late.timeStamps[0].similarity }) }}
                                                     </p>
                                                 </template>
                                                 <template v-else>
@@ -141,7 +144,7 @@
                                                         <div
                                                             class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                             <span class="text-base font-bold">{{ getInitials(item.name)
-                                                                }}</span>
+                                                            }}</span>
                                                         </div>
                                                     </div>
                                                 </template>
@@ -153,6 +156,9 @@
                             </template>
                         </template>
                         <tr v-else class="hover">
+                            <td class="text-center font-bold">
+                                {{ ((pagination.page - 1) * pagination.limit) + index + 1 }}
+                            </td>
                             <td class="text-center w-20 min-w-[60px] max-w-[80px]">{{ item.userid }}</td>
                             <td class="text-center w-20 min-w-[60px] max-w-[80px]">
                                 <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
@@ -170,11 +176,11 @@
                                 </div>
                             </td>
                             <td>{{ item.name }}</td>
-                            <td class="text-center">{{ item.position }}</td>
+                            <td class="text-center">{{ formatPosition(item.position) }}</td>
                             <td class="text-center">
-                                <span v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
-                                    item.classroom }}</span>
-                                <span v-else>-</span>
+                                <span v-if="item.position === 'นักเรียน' || item.position === 'Student'">{{ formatGradeClassroomDisplay(item.grade,
+                                    item.classroom) }}</span>
+                                <span v-else>{{ item.department || '-' }}</span>
                             </td>
                             <td class="text-center">-</td>
                             <td class="text-center"><span class="badge badge-error badge-sm">-</span></td>
@@ -189,7 +195,7 @@
         <div class="lg:hidden space-y-4">
             <div v-if="data.length === 0"
                 class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
-                ไม่พบข้อมูล
+                {{ t('ReportLateTable.noData') }}
             </div>
             <div v-for="item in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
                 <div class="flex items-start gap-3">
@@ -202,16 +208,17 @@
                     <div class="flex-1">
                         <div class="badge badge-primary badge-sm mb-2">{{ item.userid }}</div>
                         <h3 class="font-bold text-lg">{{ item.name }}</h3>
-                        <p class="text-sm text-base-content/70">{{ item.position }}</p>
+                        <p class="text-sm text-base-content/70">{{ formatPosition(item.position) }}</p>
                     </div>
                 </div>
                 <div class="divider my-2"></div>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                        <span class="text-base-content/60" v-if="item.position === 'นักเรียน'">ชั้นเรียน:</span>
-                        <span class="text-base-content/60" v-else>แผนก:</span>
-                        <p class="font-medium" v-if="item.position === 'นักเรียน'">{{ displayGrade(item.grade) }}/{{
-                            item.classroom }}
+                        <span class="text-base-content/60" v-if="item.position === 'นักเรียน' || item.position === 'Student'">{{ t('ReportLateTable.labelClassroom') }}:</span>
+                        <span class="text-base-content/60" v-else>{{ t('ReportLateTable.labelDepartment') }}:</span>
+                        <p class="font-medium" v-if="item.position === 'นักเรียน' || item.position === 'Student'">{{
+                            formatGradeClassroomDisplay(item.grade,
+                                item.classroom) }}
                         </p>
                         <p class="font-medium" v-else>{{ item.department || '-' }}</p>
                     </div>
@@ -225,15 +232,15 @@
                         </div>
                         <div class="flex gap-2 mb-2">
                             <div class="flex-1 text-center">
-                                <span class="text-xs text-base-content/60 block">เข้า</span>
+                                <span class="text-xs text-base-content/60 block">{{ t('ReportLateTable.entry') }}</span>
                                 <span v-if="getEntry(late) !== '-'" class="badge badge-success badge-sm">{{
-                                    getEntry(late) }}</span>
-                                <span v-else class="badge badge-error badge-sm">ไม่มีเข้า</span>
+                                    getEntry(late).substring(0, 5) }}</span>
+                                <span v-else class="badge badge-error badge-sm">{{ t('ReportLateTable.noEntry') }}</span>
                             </div>
                             <div class="flex-1 text-center">
-                                <span class="text-xs text-base-content/60 block">เวลาสาย</span>
+                                <span class="text-xs text-base-content/60 block">{{ t('ReportLateTable.colLateTime') }}</span>
                                 <span class="badge badge-warning badge-sm" v-if="getEntry(late) !== '-'">{{
-                                    computeLateTime(getEntry(late)) }}</span>
+                                    computeLateTime(getEntry(late), item.role, item.position) }}</span>
                                 <span class="badge badge-error badge-sm" v-else>-</span>
                             </div>
                         </div>
@@ -243,9 +250,9 @@
                                 <img :src="`${imgProBaseUrl}${late.timeStamps[0].imageUrl}`" alt="late snapshot"
                                     class="h-20 object-cover rounded-md cursor-pointer"
                                     @click="viewImage(late.timeStamps[0].imageUrl)" @error="late._imgError = true" />
-                                <p v-if="late.timeStamps[0].similarity !== undefined"
+                                <p v-if="hasSimilarity(late.timeStamps[0].similarity)"
                                     class="text-xs text-gray-500 text-center mt-1 w-full">
-                                    ความเหมือน: {{ formatSimilarity(late.timeStamps[0].similarity) }}
+                                    {{ t('ReportLateTable.similarity', { percent: late.timeStamps[0].similarity }) }}
                                 </p>
                             </div>
                             <div v-else
@@ -258,12 +265,12 @@
                 <template v-else>
                     <div class="flex gap-2 mb-2">
                         <div class="flex-1 text-center">
-                            <span class="text-xs text-base-content/60 block">เข้า</span>
-                            <span class="badge badge-error badge-sm">ไม่มีเข้า</span>
+                            <span class="text-xs text-base-content/60 block">{{ t('ReportLateTable.entry') }}</span>
+                            <span class="badge badge-error badge-sm">{{ t('ReportLateTable.noEntry') }}</span>
                         </div>
                         <div class="flex-1 text-center">
-                            <span class="text-xs text-base-content/60 block">ออก</span>
-                            <span class="badge badge-error badge-sm">ไม่มีออก</span>
+                            <span class="text-xs text-base-content/60 block">{{ t('ReportLateTable.colLateTime') }}</span>
+                            <span class="badge badge-error badge-sm">{{ t('ReportLateTable.noExit') }}</span>
                         </div>
                     </div>
                 </template>
@@ -293,9 +300,7 @@
 
         <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4"
             :class="summaryTextColor">
-            แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{
-                Math.min(pagination.page * pagination.limit, pagination.total_items)
-            }} จาก {{ pagination.total_items }} รายการ
+            {{ t('ReportLateTable.paginationSummary', { total: pagination.total_items, page: pagination.page, totalPages: pagination.total_pages }) }}
         </div>
 
         <dialog ref="imageModal" class="modal">
@@ -317,12 +322,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ExcelJS from 'exceljs'
 import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
-import { toGradeCode, toLegacyGrade } from '../../utils/grade'
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
+const { t, locale } = useI18n()
 const loadingExport = ref(false)
+
+const formatPosition = (pos) => {
+    if (pos === 'นักเรียน' || pos === 'student') return t('ReportLateTable.roleStudent')
+    if (pos === 'ครู' || pos === 'teacher') return t('ReportLateTable.roleTeacher')
+    return pos || '-'
+}
+
 async function exportLateToExcel() {
     if (loadingExport.value) return;
     loadingExport.value = true;
@@ -352,48 +366,57 @@ async function exportLateToExcel() {
 
         const rows = [];
         allData.forEach(item => {
+            const posDisplay = formatPosition(item.position)
+            const classDeptDisplay = (item.position === 'นักเรียน' || item.position === 'Student')
+                ? formatGradeClassroomDisplay(item.grade, item.classroom)
+                : (item.department || '-')
+
             if (item.late_dates && item.late_dates.length > 0) {
                 item.late_dates.forEach(late => {
                     rows.push({
-                        'รหัส': item.userid,
-                        'ชื่อ-สกุล': item.name,
-                        'ตำแหน่ง': item.position,
-                        'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                            ? `${displayGrade(item.grade)}/${item.classroom}`
-                            : (item.department || '-'),
-                        'วันที่': formatDate(late.date),
-                        'เวลาเข้า': getFirstTime(late),
-                        'มาสาย(ชม.)': computeLateTime(getFirstTimeFull(late)),
+                        [t('ReportLateTable.excelHeader.code')]: item.userid,
+                        [t('ReportLateTable.excelHeader.name')]: item.name,
+                        [t('ReportLateTable.excelHeader.role')]: posDisplay,
+                        [t('ReportLateTable.excelHeader.classDept')]: classDeptDisplay,
+                        [t('ReportLateTable.excelHeader.date')]: formatDate(late.date),
+                        [t('ReportLateTable.excelHeader.timeIn')]: getFirstTime(late),
+                        [t('ReportLateTable.excelHeader.lateHours')]: computeLateTime(getFirstTimeFull(late), item.role, item.position),
                     });
                 });
             } else {
                 rows.push({
-                    'รหัส': item.userid,
-                    'ชื่อ-สกุล': item.name,
-                    'ตำแหน่ง': item.position,
-                    'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
-                        ? `${displayGrade(item.grade)}/${item.classroom}`
-                        : (item.department || '-'),
-                    'วันที่': '-',
-                    'เวลาเข้า': '-',
-                    'มาสาย(ชม.)': '-',
+                    [t('ReportLateTable.excelHeader.code')]: item.userid,
+                    [t('ReportLateTable.excelHeader.name')]: item.name,
+                    [t('ReportLateTable.excelHeader.role')]: posDisplay,
+                    [t('ReportLateTable.excelHeader.classDept')]: classDeptDisplay,
+                    [t('ReportLateTable.excelHeader.date')]: '-',
+                    [t('ReportLateTable.excelHeader.timeIn')]: '-',
+                    [t('ReportLateTable.excelHeader.lateHours')]: '-',
                 });
             }
         });
 
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('LateDetail');
+        const worksheet = workbook.addWorksheet(t('ReportLateTable.excelSheetName'));
 
         let reportRange = '';
         if (props.filters && props.filters.start && props.filters.end) {
             reportRange = `(${formatDate(props.filters.start)} - ${formatDate(props.filters.end)})`;
         }
-        worksheet.addRow([`รายงานข้อมูลมาสาย ${reportRange}`]);
+        worksheet.addRow([t('ReportLateTable.excelReportTitle', { range: reportRange })]);
         worksheet.mergeCells('A1:G1');
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
         worksheet.getCell('A1').font = { bold: true };
 
-        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่', 'เวลาเข้า', 'มาสาย(ชม.)'];
+        const header = [
+            t('ReportLateTable.excelHeader.code'),
+            t('ReportLateTable.excelHeader.name'),
+            t('ReportLateTable.excelHeader.role'),
+            t('ReportLateTable.excelHeader.classDept'),
+            t('ReportLateTable.excelHeader.date'),
+            t('ReportLateTable.excelHeader.timeIn'),
+            t('ReportLateTable.excelHeader.lateHours')
+        ];
         worksheet.addRow(header);
 
         rows.forEach(row => {
@@ -416,7 +439,7 @@ async function exportLateToExcel() {
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `LateDetail_${props.filters?.start || ''}_${props.filters?.end || ''}.xlsx`);
     } catch (e) {
-        alert('เกิดข้อผิดพลาดในการส่งออก Excel');
+        alert(t('ReportLateTable.exportError'));
         console.error(e);
     } finally {
         loadingExport.value = false;
@@ -467,6 +490,10 @@ const props = defineProps({
     summaryTextColor: {
         type: String,
         default: 'text-white'
+    },
+    allowanceRules: {
+        type: Array,
+        default: () => []
     }
 })
 
@@ -507,7 +534,8 @@ const selectedImageType = ref('snap')
 function formatDate(dateStr) {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
-    return date.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const dateLocale = locale.value === 'th' ? 'th-TH-u-ca-buddhist' : 'en-US'
+    return date.toLocaleDateString(dateLocale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
@@ -530,7 +558,14 @@ function getEntry(late) {
     if (!late || !late.timeStamps || late.timeStamps.length === 0) return '-';
     const first = late.timeStamps[0];
     if (!first || !first.timeStamp) return '-';
-    return first.timeStamp.split(' ')[1].substring(0, 5);
+
+    return first.timeStamp.split(' ')[1].substring(0, 8);
+}
+
+function hasSimilarity(value) {
+    if (value === undefined || value === null) return false;
+    if (typeof value === 'string' && value.trim() === '') return false;
+    return true;
 }
 
 const displayGrade = (grade) => toGradeCode(grade)
@@ -548,18 +583,59 @@ function viewImage(image, isProfile = false) {
     imageModal.value?.showModal()
 }
 
-const computeLateTime = (timeStr) => {
+const normalizeRole = (role) => {
+    const normalized = String(role || '').trim().toLowerCase();
+    if (!normalized) return '';
+    if (normalized === 'student' || normalized === 'teacher') return normalized;
+    if (normalized.includes('นักเรียน')) return 'student';
+    if (normalized.includes('ครู')) return 'teacher';
+    return '';
+};
+
+const computeLateTime = (timeStr, role, position) => {
     if (!timeStr || timeStr === '-' || timeStr === 'ไม่มีเข้า') return '-';
+
+    let h1 = 8;
+    let m1 = 1;
+    let s1 = 0;
+
+    const targetRole =
+        normalizeRole(role) ||
+        normalizeRole(position) ||
+        normalizeRole(props.filters?.role) ||
+        'student';
+
+    if (props.allowanceRules && props.allowanceRules.length > 0) {
+        const currentRule = props.allowanceRules.find(r => r.role === targetRole && r.enabled);
+        if (currentRule && currentRule.allowance_time) {
+            const [allowH, allowM, allowS] = currentRule.allowance_time.split(':').map(Number);
+            h1 = allowH;
+            m1 = allowM;
+            s1 = allowS || 0;
+        }
+    }
+
     const [h2, m2, s2] = timeStr.split(':').map(Number);
-    const h1 = 8, m1 = 1;
-    const t1 = h1 * 60 + m1;
-    const t2 = h2 * 60 + m2;
-    if (t2 < t1) return '-';
-    let minsLate = (t2 - t1) + 1;
-    const hours = Math.floor(minsLate / 60);
-    const mins = minsLate % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-}
+
+    const totalSeconds1 = (h1 * 3600) + (m1 * 60) + s1;
+    const totalSeconds2 = (h2 * 3600) + (m2 * 60) + (s2 || 0);
+
+    if (totalSeconds2 <= totalSeconds1) return t('ReportLateTable.statusNotLate');
+
+    if (h2 === h1 && m2 === m1) {
+        return '00:01';
+    }
+
+    const diffSeconds = totalSeconds2 - totalSeconds1;
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const h = Math.floor(diffMinutes / 60);
+    const m = diffMinutes % 60;
+
+    const displayHour = String(h).padStart(2, '0');
+    const displayMin = String(m).padStart(2, '0');
+
+    return `${displayHour}:${displayMin}`;
+};
 </script>
 
 <style scoped>

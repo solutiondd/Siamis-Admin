@@ -2,58 +2,59 @@
     <dialog ref="modalRef" class="modal">
         <div class="modal-box w-11/12 max-w-4xl">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg text-primary">นำเข้าข้อมูลครูจาก Excel 📝</h3>
+                <h3 class="font-bold text-lg text-primary">{{ t('TeacherImportExcel.title') }}</h3>
                 <button class="btn btn-sm btn-circle btn-ghost" @click="closeModal">✕</button>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mb-4 p-4 border rounded-lg bg-base-200">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์ Excel (.xlsx, .xls)</span>
+                        <span class="label-text font-medium">{{ t('TeacherImportExcel.selectExcelLabel') }}</span>
                     </label>
                     <input type="file" accept=".xlsx,.xls" @change="onExcelChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="excelFile" class="text-xs text-success mt-1">ไฟล์ที่เลือก: {{ excelFile.name }}</p>
+                    <p v-if="excelFile" class="text-xs text-success mt-1">{{ t('TeacherImportExcel.selectedFile') }} {{ excelFile.name }}</p>
                     <div class="mt-2">
                         <a :href="exampleExcelUrl" download class="link link-primary text-xs">
-                            ดาวน์โหลดไฟล์ตัวอย่าง Excel
+                            {{ t('TeacherImportExcel.downloadSample') }}
                         </a>
                     </div>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">เลือกไฟล์รูปภาพ (หลายไฟล์ได้)</span>
+                        <span class="label-text font-medium">{{ t('TeacherImportExcel.selectImagesLabel') }}</span>
                     </label>
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
-                    <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                    }} ไฟล์</p>
-                    <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสครู เช่น <b>6200.jpg</b>
-                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
+                    <p v-if="imageFiles.length" class="text-xs text-success mt-1">{{ t('TeacherImportExcel.selectedImages') }} {{ imageFiles.length }}</p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ t('TeacherImportExcel.imageHint') }}
+                    </p>
                 </div>
             </div>
 
             <div class="flex gap-2">
                 <button class="btn btn-warning" @click="previewExcel" :disabled="!excelFile || isPreviewing">
                     <span v-if="isPreviewing" class="loading loading-spinner"></span>
-                    ดูตัวอย่าง
+                    {{ t('TeacherImportExcel.previewButton') }}
                 </button>
             </div>
 
             <div v-if="previewData.length" class="mt-6">
-                <h3 class="font-bold mb-2 text-secondary">ตัวอย่างข้อมูลครู ({{ previewData.length }} แถว)</h3>
+                <h3 class="font-bold mb-2 text-secondary">{{ t('TeacherImportExcel.previewTitle', { count: previewData.length }) }}</h3>
                 <div class="overflow-x-auto max-h-96">
                     <table class="table table-zebra w-full table-sm">
                         <thead>
                             <tr class="bg-base-300">
-                                <th>รหัส</th>
-                                <th>คำนำหน้า</th>
-                                <th>ชื่อ</th>
-                                <th>นามสกุล</th>
-                                <th>ตำแหน่ง</th>
-                                <th>แผนก</th>
-                                <th>ชื่อรูปภาพ</th>
+                                <th>{{ t('TeacherImportExcel.colUserId') }}</th>
+                                <th>{{ t('TeacherImportExcel.colPrefix') }}</th>
+                                <th>{{ t('TeacherImportExcel.colFirstName') }}</th>
+                                <th>{{ t('TeacherImportExcel.colLastName') }}</th>
+                                <th>{{ t('TeacherImportExcel.colRfid') }}</th>
+                                <th>{{ t('TeacherImportExcel.colPosition') }}</th>
+                                <th>{{ t('TeacherImportExcel.colDepartment') }}</th>
+                                <th>{{ t('TeacherImportExcel.colImageName') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,26 +63,36 @@
                                 <td>{{ teacher.pre_name }}</td>
                                 <td>{{ teacher.first_name }}</td>
                                 <td>{{ teacher.last_name }}</td>
+                                <td>{{ teacher.rfid || '-' }}</td>
                                 <td>{{ teacher.position }}</td>
                                 <td>{{ teacher.department }}</td>
-                                <td>{{ teacher.imageName || '-' }}</td>
+                                <td>
+                                    <span
+                                        :class="teacher.imageMatched ? 'text-success font-semibold' : 'text-error font-semibold'">
+                                        {{ teacher.imageName || '-' }}
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <p class="text-xs mt-2">
+                    <span class="text-success font-semibold">{{ t('TeacherImportExcel.matchedHint') }}</span>
+                    <span class="text-error font-semibold">{{ t('TeacherImportExcel.unmatchedHint') }}</span>
+                </p>
                 <div class="flex justify-center items-center gap-2 mt-2">
                     <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">‹</button>
-                    <span class="text-xs">หน้า {{ currentPage }} / {{ totalPages }}</span>
+                    <span class="text-xs">{{ t('TeacherImportExcel.pageText', { current: currentPage, total: totalPages }) }}</span>
                     <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">›</button>
                 </div>
                 <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
                     <span v-if="isImporting" class="loading loading-spinner"></span>
-                    ✅ บันทึกและนำเข้าข้อมูล
+                    {{ t('TeacherImportExcel.saveImportButton') }}
                 </button>
             </div>
 
             <div v-if="!excelFile && !previewData.length" class="text-center p-8 text-gray-500">
-                กรุณาเลือกไฟล์ Excel เพื่อเริ่มต้นการนำเข้า
+                {{ t('TeacherImportExcel.emptyHint') }}
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
@@ -92,46 +103,88 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { TeacherService } from '../../api/teacher'
 import * as XLSX from 'xlsx'
 import Swal from 'sweetalert2'
 
-async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
+const { t } = useI18n()
+let faceapiLib = null
+let tinyFaceModelReady = false
+
+const ensureTinyFaceDetectorModel = async () => {
+    if (!faceapiLib) {
+        faceapiLib = await import('face-api.js')
+    }
+
+    if (!tinyFaceModelReady) {
+        await faceapiLib.nets.tinyFaceDetector.loadFromUri('/models')
+        tinyFaceModelReady = true
+    }
+
+    return faceapiLib
+}
+
+const detectFace = async (file) => {
+    const faceapi = await ensureTinyFaceDetectorModel()
+    const img = await faceapi.bufferToImage(file)
+    const detections = await faceapi.detectAllFaces(
+        img,
+        new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
+    )
+    return detections.length > 0
+}
+
+async function resizeImage(file, maxSizeKB = 70, targetWidth = 450) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
         const reader = new FileReader();
         reader.onload = (e) => {
             img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                if (width > maxWidth || height > maxHeight) {
-                    const scale = Math.min(maxWidth / width, maxHeight / height);
-                    width = Math.round(width * scale);
-                    height = Math.round(height * scale);
-                }
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                let quality = 0.85;
+                const maxBytes = maxSizeKB * 1024;
+                let width = targetWidth > 0 ? targetWidth : img.width;
+                let height = Math.max(1, Math.round((img.height * width) / img.width));
+                let quality = 0.9;
+
                 function tryCompress() {
+                    canvas.width = Math.max(1, Math.round(width));
+                    canvas.height = Math.max(1, Math.round(height));
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
                     canvas.toBlob((b) => {
-                        if (!b) return reject('บีบอัดรูปไม่สำเร็จ');
-                        if (b.size / 1024 > maxSizeKB && quality > 0.4) {
-                            quality -= 0.05;
-                            tryCompress();
-                        } else {
+                        if (!b) return reject(t('TeacherImportExcel.errCompressFailed'));
+
+                        if (b.size <= maxBytes) {
                             resolve(b);
+                            return;
                         }
+
+                        if (quality > 0.45) {
+                            quality -= 0.07;
+                            tryCompress();
+                            return;
+                        }
+
+                        if (width > 120) {
+                            width = Math.max(120, Math.round(width * 0.9));
+                            height = Math.max(1, Math.round((img.height * width) / img.width));
+                            quality = 0.9;
+                            tryCompress();
+                            return;
+                        }
+
+                        reject(t('TeacherImportExcel.errCompressLimit', { size: maxSizeKB }));
                     }, 'image/jpeg', quality);
                 }
+
                 tryCompress();
             };
-            img.onerror = () => reject('ไฟล์รูปไม่ถูกต้อง');
+            img.onerror = () => reject(t('TeacherImportExcel.errInvalidImage'));
             img.src = e.target.result;
         };
-        reader.onerror = () => reject('อ่านไฟล์รูปไม่สำเร็จ');
+        reader.onerror = () => reject(t('TeacherImportExcel.errReadImage'));
         reader.readAsDataURL(file);
     });
 }
@@ -193,7 +246,7 @@ function onImagesChange(e) {
 
 function previewExcel() {
     if (!excelFile.value) {
-        Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกไฟล์ Excel ก่อน', 'warning')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.errSelectExcelFirst'), 'warning')
         return
     }
 
@@ -201,9 +254,9 @@ function previewExcel() {
     previewData.value = []
     currentPage.value = 1
 
-    const getImageName = (userid) => {
-        userid = userid?.toString().trim();
-        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === userid);
+    const getImageName = (key) => {
+        key = key?.toString().trim();
+        const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === key);
         return found ? found.name : '';
     }
 
@@ -217,26 +270,43 @@ function previewExcel() {
             const json = XLSX.utils.sheet_to_json(sheet)
 
             if (!json || json.length === 0) {
-                Swal.fire('ข้อมูลว่างเปล่า', 'ไม่พบข้อมูลในไฟล์ Excel ที่เลือก', 'warning')
+                Swal.fire(t('common.error'), t('TeacherImportExcel.errEmptyData'), 'warning')
             } else {
                 previewData.value = json.map(row => {
                     const userid = (mapHeader('รหัส', row) || mapHeader('userid', row) || '').toString().trim();
+                    const imageNameFromSheet = (
+                        mapHeader('ชื่อรูป', row) ||
+                        mapHeader('ชื่อรูปภาพ', row) ||
+                        mapHeader('image_name', row) ||
+                        mapHeader('imageName', row)
+                    )?.toString().trim() || '';
+
+                    const imageLookupKey = (imageNameFromSheet || userid)
+                        .toString()
+                        .trim()
+                        .replace(/\.[^/.]+$/, '');
+
+                    const matchedImageName = getImageName(imageLookupKey);
+                    const imageMatched = Boolean(matchedImageName);
+
                     return {
                         userid,
                         pre_name: mapHeader('คำนำหน้า', row) || mapHeader('pre_name', row) || '',
                         first_name: mapHeader('ชื่อ', row) || mapHeader('first_name', row) || '',
                         last_name: mapHeader('นามสกุล', row) || mapHeader('last_name', row) || '',
+                        rfid: (mapHeader('รหัสบัตร (rfid)', row) || mapHeader('rfid', row) || '').toString().trim(),
                         position: mapHeader('ตำแหน่ง', row) || mapHeader('position', row) || '',
                         department: mapHeader('แผนก', row) || mapHeader('department', row) || '',
                         status: 'ปกติ',
-                        imageName: getImageName(userid)
+                        imageName: matchedImageName || imageNameFromSheet,
+                        imageMatched
                     }
                 })
             }
 
         } catch (error) {
             console.error('Error reading Excel:', error)
-            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถอ่านไฟล์ Excel ได้ ลองตรวจสอบรูปแบบไฟล์', 'error')
+            Swal.fire(t('common.error'), t('TeacherImportExcel.errReadExcel'), 'error')
             previewData.value = []
         } finally {
             isPreviewing.value = false
@@ -244,75 +314,235 @@ function previewExcel() {
     }
     reader.onerror = () => {
         isPreviewing.value = false
-        Swal.fire('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการโหลดไฟล์', 'error')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.errLoadFile'), 'error')
     }
     reader.readAsArrayBuffer(excelFile.value)
 }
 
 async function handleImport() {
     if (!previewData.value.length || !excelFile.value) {
-        Swal.fire('แจ้งเตือน', 'กรุณาดูตัวอย่างข้อมูลและตรวจสอบความถูกต้องก่อนบันทึก', 'warning')
+        Swal.fire(t('common.error'), t('TeacherImportExcel.warnPreviewFirst'), 'warning')
         return
     }
 
     isImporting.value = true
     try {
         const imageMap = {};
+        const resizedImageCache = {};
         for (const file of imageFiles.value) {
             const baseName = file.name.split('.')[0];
-            if (file.type.match('image/jpeg') || file.type.match('image/jpg')) {
-                try {
-                    const resizedBlob = await resizeImage(file, 70, 300, 300);
-                    if (resizedBlob.size > 70 * 1024) {
-                        continue;
-                    }
-                    imageMap[baseName] = new File([resizedBlob], file.name, { type: 'image/jpeg' });
-                } catch (err) {
-                }
+            if (file.type.startsWith('image/')) {
+                imageMap[baseName] = file;
             }
+        }
+
+        async function getResizedImageByKey(key) {
+            const normalizedKey = (key || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            if (!normalizedKey) return null;
+
+            if (resizedImageCache[normalizedKey]) {
+                return resizedImageCache[normalizedKey];
+            }
+
+            const sourceFile = imageMap[normalizedKey];
+            if (!sourceFile) return null;
+
+            try {
+                const resizedBlob = await resizeImage(sourceFile, 70, 450);
+                const resizedFile = new File([resizedBlob], sourceFile.name, { type: 'image/jpeg' });
+                const hasFace = await detectFace(resizedFile)
+                if (!hasFace) {
+                    resizedImageCache[normalizedKey] = null;
+                    return null;
+                }
+                resizedImageCache[normalizedKey] = resizedFile;
+                return resizedFile;
+            } catch (err) {
+                resizedImageCache[normalizedKey] = null;
+                return null;
+            }
+        }
+
+        function cleanLastName(val) {
+            if (val === undefined || val === null || val === '' || (typeof val === 'string' && val.trim() === '')) return '';
+            if (val === '-') return ' ';
+            if (typeof val === 'string' && val.trim() === '-') return ' ';
+            return val;
+        }
+
+        function cleanRfid(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
         }
 
         const importedTeachers = [];
+        const failedTeachers = [];
         for (const teacher of previewData.value) {
-            const formData = {
-                userid: teacher.userid,
-                pre_name: teacher.pre_name,
-                first_name: teacher.first_name,
-                last_name: teacher.last_name,
-                position: teacher.position,
-                department: teacher.department,
-                status: 'ปกติ',
-                picture: imageMap[teacher.userid] || null
+            const cleanedTeacher = {
+                ...teacher,
+                last_name: cleanLastName(teacher.last_name),
+                rfid: cleanRfid(teacher.rfid)
             };
+
+            const imageNameKey = (cleanedTeacher.imageName || '')
+                .toString()
+                .trim()
+                .replace(/\.[^/.]+$/, '');
+
+            const resolvedImageFile = await getResizedImageByKey(imageNameKey)
+                || await getResizedImageByKey(cleanedTeacher.userid);
+
+            let formData = {};
+
+            let existing = null;
             try {
-                const response = await teacherService.createTeacher(formData);
-                if (response.message === 'Success') {
-                    importedTeachers.push(response.data);
+                existing = await teacherService.getTeacherByUserid(cleanedTeacher.userid);
+            } catch (e) {
+            }
+
+            if (existing && existing.message === 'Success' && existing.data && existing.data._id) {
+                const oldData = existing.data;
+
+                let fallbackFirstName = oldData.first_name || '';
+                let fallbackLastName = oldData.last_name || '';
+
+                if ((!fallbackFirstName || !fallbackLastName) && oldData.name) {
+                    let cleanName = oldData.name.replace(/^(เด็กชาย|เด็กหญิง|นาย|นางสาว|นาง|ดร\.|อ\.|ศ\.|ผศ\.|รศ\.)\s*/, '').trim();
+                    const nameParts = cleanName.split(/\s+/);
+
+                    fallbackFirstName = nameParts[0] || '';
+                    fallbackLastName = nameParts.slice(1).join(' ') || '';
                 }
-            } catch (err) {
-                const apiError = err?.response?.data;
-                if (apiError?.message === 'Validation error' && apiError?.error?.includes('"pre_name" must be one of')) {
-                    Swal.fire('ข้อผิดพลาด', `คำนำหน้าของ ${teacher.first_name} ${teacher.last_name} ไม่ถูกต้อง กรุณาตรวจสอบและแก้ไขให้เป็นรูปแบบที่ถูกต้อง เช่น นาย, นาง, นางสาว, Mr., Ms., Mrs.`, 'error');
-                    break;
-                } else if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
-                    const duplicateId = teacher.userid;
-                    Swal.fire('ข้อผิดพลาด', `รหัส ${duplicateId} มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel`, 'error');
-                    break;
-                } else {
-                    console.error(`Error importing teacher ${teacher.userid}:`, err);
+
+                formData = {
+                    ...oldData,
+                    userid: cleanedTeacher.userid,
+                };
+
+                delete formData.picture;
+
+                const isInvalidValue = (val) => {
+                    if (val === undefined || val === null) return true;
+                    const str = val.toString().trim();
+                    return str === '' || str === '-';
+                };
+
+                formData.pre_name = !isInvalidValue(cleanedTeacher.pre_name) ? cleanedTeacher.pre_name : (oldData.pre_name || '');
+                formData.first_name = !isInvalidValue(cleanedTeacher.first_name) ? cleanedTeacher.first_name : fallbackFirstName;
+                formData.last_name = !isInvalidValue(cleanedTeacher.last_name) ? cleanedTeacher.last_name : fallbackLastName;
+
+                formData.position = !isInvalidValue(cleanedTeacher.position) ? cleanedTeacher.position : oldData.position;
+                formData.department = !isInvalidValue(cleanedTeacher.department) ? cleanedTeacher.department : oldData.department;
+
+                formData.rfid = cleanedTeacher.rfid !== '' ? cleanedTeacher.rfid : oldData.rfid;
+
+                if (resolvedImageFile) {
+                    formData.picture = resolvedImageFile;
+                }
+
+                try {
+                    const response = await teacherService.updateTeacher(oldData._id, formData);
+                    if (response.message === 'Success') {
+                        importedTeachers.push(response.data);
+                    } else {
+                        failedTeachers.push({
+                            userid: cleanedTeacher.userid,
+                            name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                            reason: response.message || t('TeacherImportExcel.unknownReason')
+                        });
+                    }
+                } catch (err) {
+                    console.error(`Error updating teacher ${cleanedTeacher.userid}:`, err);
+                    failedTeachers.push({
+                        userid: cleanedTeacher.userid,
+                        name: `${formData.pre_name}${formData.first_name} ${formData.last_name}`,
+                        reason: err.response?.data?.error || err.response?.data?.message || err.message || t('TeacherImportExcel.unknownReason')
+                    });
+                }
+
+            } else {
+                formData = {
+                    userid: cleanedTeacher.userid,
+                    pre_name: cleanedTeacher.pre_name,
+                    first_name: cleanedTeacher.first_name,
+                    last_name: cleanedTeacher.last_name,
+                    position: cleanedTeacher.position,
+                    department: cleanedTeacher.department,
+                    rfid: cleanedTeacher.rfid,
+                    status: 'ปกติ'
+                };
+
+                if (resolvedImageFile) {
+                    formData.picture = resolvedImageFile;
+                }
+
+                try {
+                    const response = await teacherService.createTeacher(formData);
+                    if (response.message === 'Success') {
+                        importedTeachers.push(response.data);
+                    } else {
+                        failedTeachers.push({
+                            userid: cleanedTeacher.userid,
+                            name: `${cleanedTeacher.pre_name}${cleanedTeacher.first_name} ${cleanedTeacher.last_name}`,
+                            reason: response.message || t('TeacherImportExcel.unknownReason')
+                        });
+                    }
+                } catch (err) {
+                    const apiError = err?.response?.data;
+                    let reason = apiError?.error || apiError?.message || err.message || t('TeacherImportExcel.unknownReason');
+                    if (apiError?.message === 'Validation error' && apiError?.error?.includes('"pre_name" must be one of')) {
+                        reason = t('TeacherImportExcel.errInvalidPrefix');
+                    } else if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
+                        reason = t('TeacherImportExcel.errDuplicateUserId');
+                    } else if (reason === '"last_name" is not allowed to be empty' || reason === 'last_name" is not allowed to be empty') {
+                        reason = t('TeacherImportExcel.errRequireLastName');
+                    } else if (/fails to match the required pattern/.test(reason) && /last_name/.test(reason)) {
+                        reason = t('TeacherImportExcel.errLastNamePattern');
+                    } else if (/fails to match the required pattern/.test(reason) && /first_name/.test(reason)) {
+                        reason = t('TeacherImportExcel.errFirstNamePattern');
+                    } else if (/is required/.test(reason)) {
+                        reason = t('TeacherImportExcel.errIncompleteData');
+                    }
+                    failedTeachers.push({
+                        userid: cleanedTeacher.userid,
+                        name: `${cleanedTeacher.pre_name}${cleanedTeacher.first_name} ${cleanedTeacher.last_name}`,
+                        reason
+                    });
                 }
             }
         }
 
-        if (importedTeachers.length > 0) {
-            Swal.fire('สำเร็จ', `นำเข้าข้อมูลครูสำเร็จ ${importedTeachers.length} รายการ`, 'success');
-            emit('success', importedTeachers);
-            closeModal();
+        let msg = `<div style='text-align:left;'>`
+            + `${t('TeacherImportExcel.importSuccessCount')} <b>${importedTeachers.length}</b> ${t('TeacherImportExcel.itemsText') || 'รายการ'}`
+            + `<br>${t('TeacherImportExcel.importFailCount')} <b>${failedTeachers.length}</b> ${t('TeacherImportExcel.itemsText') || 'รายการ'}`;
+        if (failedTeachers.length > 0) {
+            msg += `<br><br><b>${t('TeacherImportExcel.importFailedListHeader')}</b>`;
+            msg += `<div style='max-height:220px;overflow:auto;'><table style='border-collapse:collapse;width:100%;font-size:13px;'>`;
+            msg += `<thead><tr style='background:#f3f4f6;'><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colCode')}</th><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colName')}</th><th style='border:1px solid #ddd;padding:4px;'>${t('TeacherImportExcel.colReason')}</th></tr></thead><tbody>`;
+            msg += failedTeachers.map(f => {
+                return `<tr><td style='border:1px solid #ddd;padding:4px;'>${f.userid}</td><td style='border:1px solid #ddd;padding:4px;'>${f.name}</td><td style='border:1px solid #ddd;padding:4px;color:#b91c1c;'>${f.reason}</td></tr>`;
+            }).join('');
+            msg += `</tbody></table></div>`;
         }
+        msg += `</div>`;
+        Swal.fire({
+            title: t('TeacherImportExcel.importSummaryTitle'),
+            html: msg,
+            icon: failedTeachers.length > 0 ? 'warning' : 'success',
+            width: 600
+        });
+        emit('success', importedTeachers);
+        closeModal();
     } catch (e) {
         console.error('Import error:', e);
-        const errorMessage = e.response?.data?.message || 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
-        Swal.fire('เกิดข้อผิดพลาด', errorMessage, 'error');
+        const errorMessage = e.response?.data?.message || t('TeacherImportExcel.errImportData');
+        Swal.fire(t('common.error'), errorMessage, 'error');
     } finally {
         isImporting.value = false;
     }

@@ -3,9 +3,9 @@
         <div class="card-body p-4 sm:p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <div>
-                    <h2 class="text-base sm:text-lg font-bold">สรุป{{ selectedTermLabel }}</h2>
+                    <h2 class="text-base sm:text-lg font-bold">{{ t('academicCalendarSummary.title', { term: selectedTermLabel }) }}</h2>
                     <p class="text-xs sm:text-sm text-base-content/70">
-                        ช่วง {{ formatDateThai(termStart) }} - {{ formatDateThai(termEnd) }} (ไม่นับเสาร์-อาทิตย์)
+                        {{ t('academicCalendarSummary.rangeText', { start: formatDateThai(termStart), end: formatDateThai(termEnd) }) }}
                     </p>
                 </div>
                 <div v-if="loading" class="loading loading-spinner loading-sm text-primary"></div>
@@ -16,33 +16,33 @@
             </div>
 
             <div v-else-if="!termStart || !termEnd" class="text-sm text-base-content/60">
-                ไม่พบข้อมูล{{ selectedTermLabel }}ของปีการศึกษานี้
+                {{ t('academicCalendarSummary.notFound', { term: selectedTermLabel }) }}
             </div>
 
             <div v-else class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="rounded-xl bg-primary/10 border border-primary/30 p-4">
-                        <p class="text-xs text-base-content/70">วันเรียนทั้งหมด</p>
+                        <p class="text-xs text-base-content/70">{{ t('academicCalendarSummary.totalWorkdays') }}</p>
                         <p class="text-2xl font-extrabold text-primary">{{ totalWorkdays }}</p>
-                        <p class="text-xs text-base-content/60">วัน (จันทร์-ศุกร์)</p>
+                        <p class="text-xs text-base-content/60">{{ t('academicCalendarSummary.monFriUnit') }}</p>
                     </div>
 
                     <div class="rounded-xl bg-warning/10 border border-warning/40 p-4">
-                        <p class="text-xs text-base-content/70">วันหยุดในช่วงเทอม</p>
+                        <p class="text-xs text-base-content/70">{{ t('academicCalendarSummary.holidaysInTerm') }}</p>
                         <p class="text-2xl font-extrabold text-warning">{{ holidayWorkdays }}</p>
-                        <p class="text-xs text-base-content/60">วัน (เฉพาะจันทร์-ศุกร์)</p>
+                        <p class="text-xs text-base-content/60">{{ t('academicCalendarSummary.onlyMonFriUnit') }}</p>
                     </div>
 
                     <div class="rounded-xl bg-success/10 border border-success/40 p-4">
-                        <p class="text-xs text-base-content/70">วันคงเหลือ</p>
+                        <p class="text-xs text-base-content/70">{{ t('academicCalendarSummary.remainingDays') }}</p>
                         <p class="text-2xl font-extrabold text-success">{{ remainingDays }}</p>
-                        <p class="text-xs text-base-content/60">วันเรียนสุทธิ</p>
+                        <p class="text-xs text-base-content/60">{{ t('academicCalendarSummary.netWorkdaysUnit') }}</p>
                     </div>
                 </div>
 
                 <div>
                     <div class="flex justify-between items-center mb-1 text-xs sm:text-sm">
-                        <span class="text-base-content/70">สัดส่วนวันหยุดต่อวันเรียน</span>
+                        <span class="text-base-content/70">{{ t('academicCalendarSummary.holidayRatio') }}</span>
                         <span class="font-semibold">{{ holidayPercent }}%</span>
                     </div>
                     <progress class="progress progress-warning w-full" :value="holidayWorkdays"
@@ -55,8 +55,11 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AcademicCalendarService } from '../../api/academiccalendar'
 import holidaysApi from '../../api/holidays'
+
+const { t, locale } = useI18n()
 
 const props = defineProps({
     year: {
@@ -79,8 +82,12 @@ const termStart = ref('')
 const termEnd = ref('')
 const totalWorkdays = ref(0)
 const holidayWorkdays = ref(0)
+const selectedTermName = ref('')
 
-const selectedTermLabel = computed(() => (props.selectedTermKey === 'term2' ? 'เทอม 2' : 'เทอม 1'))
+const selectedTermLabel = computed(() => {
+    if (selectedTermName.value) return selectedTermName.value
+    return props.selectedTermKey === 'term2' ? t('academicCalendarSummary.defaultTerm2') : t('academicCalendarSummary.defaultTerm1')
+})
 const remainingDays = computed(() => Math.max(totalWorkdays.value - holidayWorkdays.value, 0))
 const maxProgress = computed(() => Math.max(totalWorkdays.value, 1))
 const holidayPercent = computed(() => {
@@ -135,7 +142,8 @@ function formatDateThai(dateStr) {
     if (!dateStr) return '-'
     const dateObj = normalizeDateInput(dateStr)
     if (!dateObj) return '-'
-    return dateObj.toLocaleDateString('th-TH-u-ca-buddhist', {
+    const loc = locale.value === 'th' ? 'th-TH-u-ca-buddhist' : 'en-US'
+    return dateObj.toLocaleDateString(loc, {
         day: 'numeric',
         month: 'short',
         year: 'numeric'
@@ -163,6 +171,7 @@ function pickTerm(terms, termKey) {
 async function fetchSummary() {
     loading.value = true
     errorMessage.value = ''
+    selectedTermName.value = ''
     termStart.value = ''
     termEnd.value = ''
     totalWorkdays.value = 0
@@ -173,6 +182,7 @@ async function fetchSummary() {
         const academicRes = await service.getAcademicCalendarByYear(props.year)
         const terms = academicRes?.data?.terms ?? []
         const selectedTerm = pickTerm(terms, props.selectedTermKey)
+        selectedTermName.value = String(selectedTerm?.term || '').trim()
 
         if (!selectedTerm?.start_date || !selectedTerm?.end_date) {
             return
@@ -182,7 +192,7 @@ async function fetchSummary() {
         const endObj = normalizeDateInput(selectedTerm.end_date)
 
         if (!startObj || !endObj) {
-            errorMessage.value = 'รูปแบบวันที่ของเทอมไม่ถูกต้อง'
+            errorMessage.value = t('academicCalendarSummary.invalidDateFormat')
             return
         }
 
@@ -204,7 +214,7 @@ async function fetchSummary() {
 
         holidayWorkdays.value = uniqueHolidayWeekdays.size
     } catch (error) {
-        errorMessage.value = `ไม่สามารถโหลดสรุป${selectedTermLabel.value}ได้`
+        errorMessage.value = t('academicCalendarSummary.loadFail', { term: selectedTermLabel.value })
     } finally {
         loading.value = false
     }

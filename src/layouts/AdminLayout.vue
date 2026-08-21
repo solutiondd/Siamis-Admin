@@ -1,9 +1,9 @@
 <template>
     <div class="bg flex min-h-screen bg-base-200">
-        <Sidebar ref="sidebarRef" />
+        <SideBar ref="sidebarRef" />
         <div class="flex-1 flex flex-col">
             <Navbar @toggleMobileMenu="handleToggleMobileMenu" />
-            <main class="flex-1 p-6">
+            <main class="flex-1 p-2 min-[410px]:p-5">
                 <router-view />
             </main>
         </div>
@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Sidebar from '../components/SideBar.vue'
+import SideBar from '../components/SideBar.vue'
 import Navbar from '../components/Navbar.vue'
 
 const sidebarRef = ref(null)

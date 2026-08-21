@@ -6,35 +6,38 @@
             </form>
 
             <div class="border-b-2 border-blue-200 pb-4 mb-6">
-                <h3 class="text-xl font-bold text-blue-900">รายละเอียดการเข้า-ออก</h3>
+                <h3 class="text-xl font-bold text-blue-900">{{ $t('ReportAttendanceDetail.title') }}</h3>
             </div>
 
             <div v-if="selectedItem">
                 <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-600 mb-1">รหัส</p>
+                        <p class="text-xs text-blue-600 mb-1">{{ $t('ReportAttendanceDetail.code') }}</p>
                         <p class="font-semibold text-blue-900">{{ selectedItem.userid }}</p>
                     </div>
                     <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                        <p class="text-xs text-yellow-600 mb-1">ชื่อ-สกุล</p>
+                        <p class="text-xs text-yellow-600 mb-1">{{ $t('ReportAttendanceDetail.name') }}</p>
                         <p class="font-semibold text-yellow-900">{{ selectedItem.name }}</p>
                     </div>
                     <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <p class="text-xs text-blue-600 mb-1">ตำแหน่ง</p>
+                        <p class="text-xs text-blue-600 mb-1">{{ $t('ReportAttendanceDetail.position') }}</p>
                         <p class="font-semibold text-blue-900">{{ selectedItem.position }}</p>
                     </div>
                     <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                        <p class="text-xs text-yellow-600 mb-1">{{ selectedItem.department ? 'แผนก' : 'ชั้นเรียน' }}</p>
+                        <p class="text-xs text-yellow-600 mb-1">
+                            {{ selectedItem.department ? $t('ReportAttendanceDetail.department') : $t('ReportAttendanceDetail.classroom') }}
+                        </p>
                         <p class="font-semibold text-yellow-900">
-                            {{ selectedItem.department || `${selectedItem.grade}/${selectedItem.classroom}` }}
+                            {{ selectedItem.department || formatGradeClassroomDisplay(selectedItem.grade, selectedItem.classroom) }}
                         </p>
                     </div>
                 </div>
 
                 <div v-if="selectedAttendance">
                     <div class="mb-4">
-                        <h4 class="font-semibold text-gray-700">บันทึกเวลา - {{
-                            formatDate(selectedAttendance.date) }}</h4>
+                        <h4 class="font-semibold text-gray-700">
+                            {{ $t('ReportAttendanceDetail.timeRecord') }} - {{ formatDate(selectedAttendance.date) }}
+                        </h4>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -51,47 +54,53 @@
                                 </span>
                             </div>
                             <div class="p-3">
-                                <p class="text-sm font-semibold text-blue-700 text-center mb-1">{{
-                                    formatTime(ts.timestamp) }}</p>
+                                <p class="text-sm font-semibold text-blue-700 text-center mb-1">
+                                    {{ formatTime(ts.timestamp) }}
+                                </p>
                                 <p class="text-xs text-gray-600 text-center">{{ ts.location }}</p>
-                                <p v-if="ts.similarity !== undefined" class="text-xs text-gray-500 text-center mt-1">
-                                    ความเหมือน: {{ formatSimilarity(ts.similarity) }}
+                                <p v-if="hasSimilarity(ts.similarity)" class="text-xs text-gray-500 text-center mt-1">
+                                    {{ $t('ReportAttendanceDetail.similarity', { percent: ts.similarity }) }}
+                                </p>
+                                <p v-if="ts.usecase" class="text-xs text-gray-500 text-center mt-1">
+                                    {{ ts.usecase }}
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div v-else class="text-center py-8 text-gray-500">
-                    ไม่มีข้อมูลการเข้า-ออก
+                    {{ $t('ReportAttendanceDetail.noData') }}
                 </div>
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ $t('ReportAttendanceDetail.close') }}</button>
         </form>
     </dialog>
 
     <dialog ref="imageModal" class="modal">
         <div class="modal-box max-w-7xl w-full p-0">
             <form method="dialog">
-                <button
-                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white shadow">✕</button>
             </form>
             <img v-if="selectedImage" :src="`${imgBaseUrl}${selectedImage}`" alt="attendance image"
                 class="w-full h-auto max-h-[90vh] object-contain" />
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ $t('ReportAttendanceDetail.close') }}</button>
         </form>
     </dialog>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useI18n } from "vue-i18n";
+import { formatGradeClassroomDisplay } from '../../utils/gradeSystem'
 
 // const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
 const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
+const { t } = useI18n();
 const detailModal = ref(null)
 const imageModal = ref(null)
 const selectedItem = ref(null)
@@ -122,21 +131,22 @@ const formatDate = (dateStr) => {
 
 const formatTime = (timestamp) => {
     if (!timestamp) return '-'
-    const timePart = String(timestamp).includes(' ') ? String(timestamp).split(' ')[1] : String(timestamp)
-    const [hour = '00', minute = '00', secondRaw = '00'] = timePart.split(':')
-    const second = secondRaw.split('.')[0] || '00'
-    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}:${second.padStart(2, '0')}`
-}
-
-const formatSimilarity = (similarity) => {
-    const value = Number(similarity)
-    if (!Number.isFinite(value)) return '-'
-    const percent = value <= 1 ? value * 100 : value
-    return `${Math.floor(Math.max(0, Math.min(100, percent)))}%`
+    const timePart = timestamp.split(' ')[1] || timestamp
+    const [hour, minute, secondWithFraction] = timePart.split(':')
+    if (hour === undefined || minute === undefined) return timePart
+    if (secondWithFraction === undefined) return `${hour}:${minute}`
+    const second = secondWithFraction.split('.')[0]
+    return `${hour}:${minute}:${second}`
 }
 
 const imageErrorHandler = (event, idx) => {
     imageError[idx] = true
+}
+
+const hasSimilarity = (value) => {
+    if (value === undefined || value === null) return false
+    if (typeof value === 'string' && value.trim() === '') return false
+    return true
 }
 
 const getInitials = (name) => {

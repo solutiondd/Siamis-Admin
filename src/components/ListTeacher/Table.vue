@@ -7,7 +7,7 @@
                     <span class="loading loading-spinner loading-lg text-primary"></span>
                 </div>
                 <div v-else-if="teachers.length === 0" class="text-center py-8 text-base-content/50">
-                    ไม่มีข้อมูลบุคลากร
+                    {{ t('TeacherTable.noData') }}
                 </div>
                 <div v-else class="space-y-4">
                     <div v-for="teacher in teachers" :key="teacher.id"
@@ -16,7 +16,9 @@
                             <div class="avatar">
                                 <div class="w-10 h-10 rounded-full">
                                     <img v-if="teacher.picture" :src="teacher.picture" :alt="teacher.name"
-                                        class="w-full h-full object-cover" @error="teacher.picture = null" />
+                                        class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                        @click.stop="openPictureModal(teacher.picture)"
+                                        @error="teacher.picture = null" />
                                     <div v-else
                                         class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                         <span class="text-sm font-semibold">{{ getInitials(teacher.name) }}</span>
@@ -30,7 +32,8 @@
                             </div>
                             <div>
                                 <span class="font-medium">{{ teacher.name }}</span>
-                                <div class="text-xs text-base-content/70">รหัส: {{ teacher.code }}</div>
+                                <div class="text-xs text-base-content/70">{{ t('TeacherDetail.code') }} {{ teacher.code }}</div>
+                                <div v-if="showApiNumber" class="text-xs text-base-content/70">{{ t('TeacherTable.colApiNumber') }} {{ teacher.note || '-' }}</div>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 text-sm mt-2">
@@ -41,26 +44,26 @@
                             <div>
                                 <template v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
                                     <button class="btn btn-ghost btn-xs"
-                                        :title="teacher.has_password ? 'มีรหัสผ่าน' : 'ยังไม่มีรหัสผ่าน'"
+                                        :title="teacher.has_password ? t('TeacherTable.hasPassword') : t('TeacherTable.noPassword')"
                                         @click="emitReset(teacher)">
                                         <span :class="teacher.has_password ? 'bg-green-500' : 'bg-red-500'"
                                             class="inline-block w-3 h-3 rounded-full"></span>
-                                        <span class="ml-2 text-xs">{{ teacher.has_password ? 'มีรหัสผ่าน' :
-                                            'ยังไม่มีรหัสผ่าน' }}</span>
+                                        <span class="ml-2 text-xs">{{ teacher.has_password ? t('TeacherTable.hasPassword') :
+                                            t('TeacherTable.noPassword') }}</span>
                                     </button>
                                 </template>
                                 <template v-else>
                                     <span :class="teacher.has_password ? 'bg-green-500' : 'bg-red-500'"
                                         class="inline-block w-3 h-3 rounded-full"></span>
-                                    <span class="ml-2 text-xs">{{ teacher.has_password ? 'มีรหัสผ่าน' :
-                                        'ยังไม่มีรหัสผ่าน'
-                                        }}</span>
+                                    <span class="ml-2 text-xs">{{ teacher.has_password ? t('TeacherTable.hasPassword') :
+                                        t('TeacherTable.noPassword')
+                                    }}</span>
                                 </template>
                             </div>
                             <div v-if="auth.user?.role !== 'teacher'"
                                 class="flex gap-2 flex-wrap xs:flex-col xs:items-stretch xs:w-full">
                                 <button class="btn btn-sm btn-info btn-outline" @click="emit('detail', teacher)"
-                                    title="ดูรายละเอียด">
+                                    :title="t('TeacherTable.actionDetail')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,7 +73,7 @@
                                     </svg>
                                 </button>
                                 <button v-if="auth.user?.role !== 'viewer'" class="btn btn-sm btn-warning btn-outline"
-                                    @click="$emit('edit', teacher)" title="แก้ไข">
+                                    @click="$emit('edit', teacher)" :title="t('TeacherTable.actionEdit')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -78,7 +81,7 @@
                                     </svg>
                                 </button>
                                 <button v-if="auth.user?.role !== 'viewer'" class="btn btn-sm btn-error btn-outline"
-                                    @click="$emit('delete', teacher)" title="ลบ">
+                                    @click="$emit('delete', teacher)" :title="t('TeacherTable.actionDelete')">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -95,14 +98,15 @@
                 <table class="table table-zebra table-xs sm:table-sm md:table-md">
                     <thead>
                         <tr>
-                            <th class="bg-primary text-primary-content hidden lg:table-cell">#</th>
-                            <th class="bg-primary text-primary-content">ชื่อ-นามสกุล</th>
-                            <th class="bg-primary text-primary-content hidden sm:table-cell">รหัสบุคลากร</th>
+                            <th class="bg-primary text-primary-content hidden xl:table-cell">#</th>
+                            <th class="bg-primary text-primary-content">{{ t('TeacherTable.colName') }}</th>
+                            <th class="bg-primary text-primary-content hidden sm:table-cell">{{ t('TeacherTable.colCode') }}</th>
+                            <th v-if="showApiNumber" class="bg-primary text-primary-content hidden xl:table-cell">{{ t('TeacherTable.colApiNumber') }}</th>
                             <th class="bg-primary text-primary-content hidden md:table-cell">
                                 <div class="dropdown dropdown-end">
                                     <label tabindex="0"
                                         class="btn btn-ghost btn-xs text-primary-content hover:bg-primary-focus">
-                                        แผนก
+                                        {{ t('TeacherTable.colDepartment') }}
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -112,7 +116,7 @@
                                     <ul tabindex="0"
                                         class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 text-black border border-base-300 max-h-96 overflow-y-auto"
                                         style="z-index: 1000;">
-                                        <li><a @click.prevent="handleDepartmentFilter('')">ทั้งหมด</a></li>
+                                        <li><a @click.prevent="handleDepartmentFilter('')">{{ t('TeacherTable.all') }}</a></li>
                                         <li v-for="dept in departments" :key="dept._id">
                                             <a @click.prevent="handleDepartmentFilter(dept.name)">
                                                 {{ getShortDepartmentName(dept.name) }}
@@ -125,7 +129,7 @@
                                 <div class="dropdown dropdown-end">
                                     <label tabindex="0"
                                         class="btn btn-ghost btn-xs text-primary-content hover:bg-primary-focus">
-                                        ตำแหน่ง
+                                        {{ t('TeacherTable.colPosition') }}
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 ml-1" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,38 +139,40 @@
                                     <ul tabindex="0"
                                         class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-64 text-black border border-base-300 max-h-96 overflow-y-auto"
                                         style="z-index: 1000;">
-                                        <li><a @click.prevent="handlePositionFilter('')">ทั้งหมด</a></li>
+                                        <li><a @click.prevent="handlePositionFilter('')">{{ t('TeacherTable.all') }}</a></li>
                                         <li v-for="pos in positions" :key="pos._id">
                                             <a @click.prevent="handlePositionFilter(pos.name)">{{ pos.name }}</a>
                                         </li>
                                     </ul>
                                 </div>
                             </th>
-                            <th class="bg-primary text-primary-content text-center">สถานะ</th>
+                            <th class="bg-primary text-primary-content text-center">{{ t('TeacherTable.colStatus') }}</th>
                             <th v-if="auth.user?.role !== 'teacher'"
-                                class="bg-primary text-primary-content w-24 text-center">จัดการ
+                                class="bg-primary text-primary-content w-24 text-center">{{ t('TeacherTable.colActions') }}
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="loading">
-                            <td colspan="8" class="text-center py-8">
+                            <td :colspan="tableColspan" class="text-center py-8">
                                 <span class="loading loading-spinner loading-lg text-primary"></span>
                             </td>
                         </tr>
                         <tr v-else-if="teachers.length === 0">
-                            <td colspan="8" class="text-center py-8 text-base-content/50">
-                                ไม่มีข้อมูลบุคลากร
+                            <td :colspan="tableColspan" class="text-center py-8 text-base-content/50">
+                                {{ t('TeacherTable.noData') }}
                             </td>
                         </tr>
                         <tr v-else v-for="(teacher, index) in teachers" :key="teacher.id" class="hover">
-                            <td class="hidden lg:table-cell">{{ getRowNumber(index) }}</td>
+                            <td class="hidden xl:table-cell">{{ getRowNumber(index) }}</td>
                             <td>
                                 <div class="flex items-center gap-3">
                                     <div class="avatar">
                                         <div class="w-10 h-10 rounded-full">
                                             <img v-if="teacher.picture" :src="teacher.picture" :alt="teacher.name"
-                                                class="w-full h-full object-cover" @error="teacher.picture = null" />
+                                                class="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                                                @click.stop="openPictureModal(teacher.picture)"
+                                                @error="teacher.picture = null" />
                                             <div v-else
                                                 class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
                                                 <span class="text-sm font-semibold">{{ getInitials(teacher.name)
@@ -184,6 +190,7 @@
                                 </div>
                             </td>
                             <td class="hidden sm:table-cell">{{ teacher.code }}</td>
+                            <td v-if="showApiNumber" class="hidden xl:table-cell text-xs">{{ teacher.note || '-' }}</td>
                             <td class="hidden md:table-cell">
                                 <span class="badge badge-ghost badge-sm">{{ teacher.department }}</span>
                             </td>
@@ -191,7 +198,7 @@
                             <td class="text-center">
                                 <template v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
                                     <button class="btn btn-ghost btn-xs"
-                                        :title="teacher.has_password ? 'มีรหัสผ่าน' : 'ยังไม่มีรหัสผ่าน'"
+                                        :title="teacher.has_password ? t('TeacherTable.hasPassword') : t('TeacherTable.noPassword')"
                                         @click="emitReset(teacher)">
                                         <span :class="teacher.has_password ? 'bg-green-500' : 'bg-red-500'"
                                             class="inline-block w-3 h-3 rounded-full"></span>
@@ -203,9 +210,9 @@
                                 </template>
                             </td>
                             <td v-if="auth.user?.role !== 'teacher'">
-                                <div class="flex gap-2 justify-center">
-                                    <button class="btn btn-sm btn-info btn-outline" @click="emit('detail', teacher)"
-                                        title="ดูรายละเอียด">
+                                <div class="flex gap-1 lg:gap-2 justify-center">
+                                    <button class="btn btn-xs lg:btn-sm btn-info btn-outline"
+                                        @click="emit('detail', teacher)" :title="t('TeacherTable.actionDetail')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -215,7 +222,7 @@
                                         </svg>
                                     </button>
                                     <button v-if="auth.user?.role !== 'viewer'" @click="$emit('edit', teacher)"
-                                        class="btn btn-sm btn-warning btn-outline" title="แก้ไข">
+                                        class="btn btn-xs lg:btn-sm btn-warning btn-outline" :title="t('TeacherTable.actionEdit')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -223,7 +230,7 @@
                                         </svg>
                                     </button>
                                     <button v-if="auth.user?.role !== 'viewer'" @click="$emit('delete', teacher)"
-                                        class="btn btn-sm btn-error btn-outline" title="ลบ">
+                                        class="btn btn-xs lg:btn-sm btn-error btn-outline" :title="t('TeacherTable.actionDelete')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -237,12 +244,28 @@
                 </table>
             </div>
         </div>
+        <dialog ref="pictureModal" class="modal">
+            <div class="modal-box max-w-xl w-full p-0">
+                <form method="dialog">
+                    <button
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
+                </form>
+                <img v-if="pictureModalSrc" :src="pictureModalSrc" alt="profile"
+                    class="w-full h-auto max-h-[80vh] object-contain" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
     </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
+
+const { t } = useI18n()
 const auth = useAuthStore()
 
 const emit = defineEmits(['filterDepartment', 'filterPosition', 'edit', 'reset', 'detail'])
@@ -279,11 +302,28 @@ const props = defineProps({
     itemsPerPage: {
         type: Number,
         default: 5
+    },
+    showApiNumber: {
+        type: Boolean,
+        default: false
     }
 })
 
 const localDepartmentFilter = ref(props.departmentFilter)
 const localPositionFilter = ref(props.positionFilter)
+const pictureModal = ref(null)
+const pictureModalSrc = ref(null)
+const tableColspan = computed(() => {
+    let cols = 6
+    if (props.showApiNumber) cols += 1
+    if (auth.user?.role !== 'teacher') cols += 1
+    return cols
+})
+
+const openPictureModal = (src) => {
+    pictureModalSrc.value = src
+    pictureModal.value?.showModal()
+}
 
 watch(() => props.departmentFilter, (newVal) => {
     localDepartmentFilter.value = newVal

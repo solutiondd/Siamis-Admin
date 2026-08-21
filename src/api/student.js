@@ -7,11 +7,14 @@ export class StudentService {
     this.token = localStorage.getItem("token");
   }
 
-  async getStudents(grade, classroom) {
+  async getStudents(grade, classroom, userid, name, line_connect) {
     try {
       const params = new URLSearchParams();
       if (grade) params.append("grade", grade);
       if (classroom) params.append("classroom", classroom);
+      if (userid) params.append("userid", userid);
+      if (name) params.append("name", name);
+      if (line_connect) params.append("line_connect", line_connect);
 
       let config = {
         method: "get",
@@ -39,10 +42,13 @@ export class StudentService {
       data.append("last_name", formData.last_name);
       data.append("grade", formData.grade);
       data.append("classroom", formData.classroom);
-
+      if (formData.rfid) data.append("rfid", formData.rfid);
+      if (formData.guardian_phone)
+        data.append("guardian_phone", formData.guardian_phone);
       if (formData.picture) {
         data.append("picture", formData.picture);
       }
+      data.append("no_use_face", formData.no_use_face);
 
       let config = {
         method: "post",
@@ -72,7 +78,12 @@ export class StudentService {
       if (formData.last_name) data.append("last_name", formData.last_name);
       if (formData.grade) data.append("grade", formData.grade);
       if (formData.classroom) data.append("classroom", formData.classroom);
+      if (formData.rfid) data.append("rfid", formData.rfid);
+      if (formData.guardian_phone)
+        data.append("guardian_phone", formData.guardian_phone);
       if (formData.picture) data.append("picture", formData.picture);
+      if (formData.no_use_face !== undefined)
+        data.append("no_use_face", formData.no_use_face);
 
       let config = {
         method: "patch",
@@ -188,6 +199,30 @@ export class StudentService {
       return response.data;
     } catch (error) {
       console.error("Search student error:", error);
+      throw error;
+    }
+  }
+
+  async deleteLineStudent({ lineuser_id, userid }) {
+    try {
+      this.token = localStorage.getItem("token");
+      const config = {
+        method: "delete",
+        maxBodyLength: Infinity,
+        url: `${this.baseUrl}line/students`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
+        },
+        data: {
+          lineuser_id,
+          userid,
+        },
+      };
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      console.error("Delete line student error:", error);
       throw error;
     }
   }
