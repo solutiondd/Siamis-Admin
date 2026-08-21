@@ -2,10 +2,10 @@
 import { i18n } from "../i18n";
 
 export const PREFIX_OPTIONS_TH = ["เด็กชาย", "เด็กหญิง", "นาย", "นางสาว"];
-export const PREFIX_OPTIONS_EN = ["Mr.", "Miss", "Mstr."];
+export const PREFIX_OPTIONS_EN = ["Mstr.", "Miss", "Mr.", "Ms."];
 
 export const TEACHER_PREFIX_OPTIONS_TH = ["นาย", "นาง", "นางสาว"];
-export const TEACHER_PREFIX_OPTIONS_EN = ["Mr.", "Miss", "Mrs."];
+export const TEACHER_PREFIX_OPTIONS_EN = ["Mr.", "Mrs.", "Ms."];
 
 // export const isEnglishPrefixEnabled = () =>
 //   featureFlags.prefixSystem?.enableEnglishPrefix === true;

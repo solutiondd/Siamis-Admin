@@ -350,8 +350,10 @@ import Attendance from './Attendance.vue'
 import { useAuthStore } from '../../stores/auth'
 import { toVisibleSortedGrades } from '../../utils/gradeSystem'
 import { AllowanceService } from '../../api/allowance'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
+const { locale } = useI18n()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
 const selectedDate = ref(new Date().toLocaleDateString('sv-SE'))
@@ -420,16 +422,15 @@ const localClassroom = ref(Number(localStorage.getItem('classroom')) || 0)
 const profileName = ref(localStorage.getItem('profileName') || '')
 
 const displayDate = computed(() => {
-    const [year, month, day] = (selectedDate.value || '').split('-').map(Number)
-    if (!year || !month || !day) return ''
+    if (!selectedDate.value) return ''
+    const date = new Date(selectedDate.value)
+    if (Number.isNaN(date.getTime())) return ''
 
-    const thaiMonths = [
-        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-    ]
-    const buddhistYear = year + 543
-
-    return `${day} ${thaiMonths[month - 1]} ${buddhistYear}`
+    return new Intl.DateTimeFormat(locale.value === 'th' ? 'th-TH' : 'en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(date)
 })
 
 const latePagination = computed(() => ({
