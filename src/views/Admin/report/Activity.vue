@@ -33,7 +33,7 @@
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">{{ $t('Activity.gradeLabel') }}</span>
                     </label>
-                    <select v-model="filters.grade" class="select select-sm select-bordered w-full"
+                    <select v-model="filters.grade" @change="handleGradeChange" class="select select-sm select-bordered w-full"
                         :disabled="filters.role === 'teacher'">
                         <option value="">{{ $t('Activity.allGrades') }}</option>
                         <option v-for="grade in allGrades" :key="grade" :value="grade">{{ mapGradeDisplay(grade) }}
@@ -48,20 +48,9 @@
                     <select v-model="filters.classroom" class="select select-sm select-bordered w-full"
                         :disabled="filters.role === 'teacher'">
                         <option value="">{{ $t('Activity.allClassrooms') }}</option>
-                        <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
+                        <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
-
-                <!-- <div v-if="residentRole !== 'teacher'" class="form-control">
-                    <label class="label py-1">
-                        <span class="label-text text-sm font-medium">{{ $t('Activity.typeLabel') }}</span>
-                    </label>
-                    <select v-model="filters.role" class="select select-sm select-bordered w-full">
-                        <option value="">{{ $t('Activity.allTypes') }}</option>
-                        <option value="student">{{ $t('Activity.typeStudent') }}</option>
-                        <option value="teacher">{{ $t('Activity.typeTeacher') }}</option>
-                    </select>
-                </div> -->
 
                 <div v-if="residentRole === 'teacher'"
                     class="form-control flex justify-end items-center md:items-end md:col-start-2 xl:col-start-4 xl:col-span-1">
@@ -80,7 +69,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import ActivityTable from '../../../components/Report/ActivityTable.vue';
 import { ClassRoomService } from '../../../api/class-room.js';
 import { mapGradeDisplay, toVisibleSortedGrades } from '../../../utils/gradeSystem';
@@ -91,8 +80,8 @@ const teacherGrade = localStorage.getItem('grade') || '';
 const teacherClassroom = localStorage.getItem('classroom') || '';
 
 const classRoomService = new ClassRoomService();
+const allClassRooms = ref([]);
 const allGrades = ref([]);
-const allRooms = ref([]);
 
 const filters = ref({
     search: '',
@@ -104,6 +93,23 @@ const filters = ref({
     grade: '',
     classroom: '',
 });
+
+const availableClassrooms = computed(() => {
+    if (!filters.value.grade || !allClassRooms.value || allClassRooms.value.length === 0) {
+        const roomsSet = new Set();
+        allClassRooms.value.forEach(item => {
+            if (item?.classroom) roomsSet.add(String(item.classroom));
+        });
+        return Array.from(roomsSet).sort((a, b) => a - b);
+    }
+    const filtered = allClassRooms.value.filter(c => String(c.grade) === String(filters.value.grade));
+    const classNums = [...new Set(filtered.map(c => String(c.classroom)))];
+    return classNums.sort((a, b) => a - b);
+});
+
+const handleGradeChange = () => {
+    filters.value.classroom = '';
+};
 
 watch(
     () => filters.value.role,
@@ -124,17 +130,14 @@ onMounted(async () => {
 
     try {
         const res = await classRoomService.getClassRooms();
-        const classRooms = Array.isArray(res?.data) ? res.data : [];
+        allClassRooms.value = Array.isArray(res?.data) ? res.data : [];
         const gradesSet = new Set();
-        const roomsSet = new Set();
 
-        classRooms.forEach((item) => {
+        allClassRooms.value.forEach((item) => {
             if (item?.grade) gradesSet.add(item.grade);
-            if (item?.classroom) roomsSet.add(String(item.classroom));
         });
 
         allGrades.value = toVisibleSortedGrades(Array.from(gradesSet));
-        allRooms.value = Array.from(roomsSet);
     } catch (error) {
         console.error('Error fetching class rooms:', error);
     }
